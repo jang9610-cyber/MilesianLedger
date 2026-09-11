@@ -288,7 +288,10 @@ namespace MabinogiBarter
             var watermark = T("made by 하프_알베도", 11, Muted, false); watermark.Margin = new Thickness(0, 0, 0, 12); bottom.Children.Add(watermark);
             var credits = Btn("출처", ShowSources, false); credits.HorizontalAlignment = HorizontalAlignment.Left; credits.FontSize = 11; credits.Padding = new Thickness(11, 7, 11, 7); credits.Margin = new Thickness(0, 0, 0, 12);
             AutomationProperties.SetName(credits, "출처 모아보기"); bottom.Children.Add(credits);
-            bottom.Children.Add(T("PROTOTYPE  0.18.2", 10, Muted, true));
+            var appAssembly = typeof(MainWindow).Assembly;
+            var displayVersion = (System.Reflection.AssemblyInformationalVersionAttribute)Attribute.GetCustomAttribute(appAssembly, typeof(System.Reflection.AssemblyInformationalVersionAttribute));
+            bottom.Children.Add(T("v" + (displayVersion != null && !String.IsNullOrWhiteSpace(displayVersion.InformationalVersion)
+                ? displayVersion.InformationalVersion : appAssembly.GetName().Version.ToString(3)), 10, Muted, true));
             Grid.SetRow(bottom, 2); side.Children.Add(bottom);
             var workspace = new Grid { Margin = new Thickness(30, 24, 30, 14) };
             workspace.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });

@@ -4,7 +4,11 @@
 
 <img src="assets/app-icon/barter-helper.png" alt="밀레시안 장부 아이콘" width="72" />
 
-현재 버전은 **0.18.2**입니다. WPF와 C#으로 구현한 독립 실행형 데스크톱 앱입니다.
+현재 버전은 **1.0.0-beta.1 · 공개 베타**입니다. WPF와 C#으로 구현한 Windows 데스크톱 앱이며, .NET Framework 4.8 런타임을 사용합니다.
+
+**[공개 베타 실행 ZIP 다운로드](https://github.com/jang9610-cyber/MilesianLedger/releases/download/v1.0.0-beta.1/MilesianLedger-v1.0.0-beta.1.zip)** · [릴리스 페이지](https://github.com/jang9610-cyber/MilesianLedger/releases/tag/v1.0.0-beta.1) · [베타 릴리스 안내](docs/releases/v1.0.0-beta.1.md)
+
+다운로드한 ZIP을 모두 압축 해제한 뒤 `MilesianLedger` 폴더의 `MilesianLedger.exe`를 실행하세요. GitHub의 자동 생성 **Source code (zip/tar.gz)**는 개발용 소스이며 실행 파일이 없습니다.
 
 ## 주요 기능
 
@@ -29,7 +33,7 @@
 
 ## 처음 사용하기
 
-1. 배포 압축을 쓰는 경우 먼저 압축을 풀고 `MilesianLedger.exe`를 실행합니다. 실행 파일과 `data`, `assets` 폴더를 함께 보관하세요.
+1. 위의 **공개 베타 실행 ZIP**을 내려받아 모두 압축 해제한 뒤 `MilesianLedger/MilesianLedger.exe`를 실행합니다. 실행 파일과 `data`, `assets` 폴더를 함께 보관하세요.
 2. 시작 안내에서 그랜드마스터 상인 전환 여부를 확인한 뒤 메인 화면으로 들어갑니다. 이 안내는 게임 내 재능을 직접 변경하지 않습니다.
 3. **교역 계획**에서 교역품과 수량을 선택합니다. 교역 보너스·운송 설정을 조정하거나 프리셋으로 시작할 수 있습니다.
 4. **재료 준비 → 재료 준비 방식 설정**에서 어떤 재료를 구매하고 어떤 재료를 직접 준비할지 정합니다. 바꾼 준비 방식은 현재 사용 중인 번호 프리셋에 자동 저장됩니다.
@@ -38,7 +42,7 @@
 
 교역 계획 화면의 재료 목록은 필요 재료 안내용입니다. 준비 방식은 **재료 준비**에서 변경하고, 구비 완료 체크는 **재료 준비**와 **PIP 체크리스트**에서 진행합니다. 최종 교환 재료를 모두 구비하면 재료 준비율도 100%가 됩니다.
 
-자세한 설명은 [사용 안내](docs/USER_GUIDE.md)를 참고하세요.
+기존 버전에서 업데이트할 때는 앱을 닫고 실행 폴더를 백업한 다음 새 ZIP을 별도 폴더에 풉니다. 기존 `data`의 개인 진행·설정 파일만 새 폴더로 복사하면 계획과 체크 상태를 이어 쓸 수 있습니다. 복사할 파일과 자세한 절차는 [사용 안내의 설치·업데이트](docs/USER_GUIDE.md#설치와-업데이트)를 참고하세요.
 
 ## 시세 서버와 가격 표시
 
@@ -99,7 +103,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\package.ps1
 
 같은 버전의 ZIP을 다시 만들 때는 `package.ps1 -Force`를 사용합니다. ZIP 옆에 SHA-256 검증 파일도 생성됩니다.
 
-배포할 때는 생성된 `dist\MilesianLedger-v0.18.2.zip`을 사용하세요. 사용 중인 실행 폴더를 그대로 압축하면 개인 진행 상태가 섞일 수 있으므로 배포 스크립트로 묶는 것을 권장합니다.
+배포할 때는 생성된 `dist\MilesianLedger-v1.0.0-beta.1.zip`을 사용하세요. 사용 중인 실행 폴더를 그대로 압축하면 개인 진행 상태가 섞일 수 있으므로 배포 스크립트로 묶는 것을 권장합니다.
 
 ## 저장소 구조
 
@@ -130,7 +134,8 @@ MilesianLedger/
 ├─ docs/
 │  ├─ USER_GUIDE.md
 │  ├─ PROXY_ARCHITECTURE.md
-│  └─ DEVELOPMENT.md
+│  ├─ DEVELOPMENT.md
+│  └─ releases/              # 버전별 공개 릴리스 안내
 └─ dist/                     # 실행 빌드와 배포 ZIP · Git 제외
 ```
 
@@ -143,7 +148,7 @@ MilesianLedger/
 | `main` | 검증을 마친 배포 기준 소스 |
 | `develop` | 다음 버전을 위한 기능 추가와 수정 통합 |
 
-평소 개발은 `develop`을 기준으로 진행합니다. 여러 파일에 걸치는 기능이나 수정은 작업별 브랜치로 분리하고, 완료 후 `develop`에 병합합니다. 배포 전 검증을 마친 변경만 `main`에 반영합니다. 자세한 기준은 [개발 브랜치 안내](docs/DEVELOPMENT.md)를 참고하세요.
+평소 개발은 `develop`을 기준으로 진행합니다. 여러 파일에 걸치는 기능이나 수정은 작업별 브랜치로 분리하고, 완료 후 `develop`에 병합합니다. 배포 전 검증을 마친 변경만 `main`에 반영합니다. 공개 베타는 `v1.0.0-beta.1`과 같은 태그에 연결한 GitHub Pre-release로 배포합니다. 자세한 기준은 [개발 브랜치 안내](docs/DEVELOPMENT.md)를 참고하세요.
 
 ## 개인 파일과 Git 업로드
 

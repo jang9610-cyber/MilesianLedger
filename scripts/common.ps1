@@ -10,7 +10,18 @@ function Get-LedgerFramework {
 
 function Get-LedgerVersion([string]$RepoRoot) {
     $assembly = [IO.File]::ReadAllText((Join-Path $RepoRoot 'src/AssemblyInfo.cs'))
-    $match = [regex]::Match($assembly, 'AssemblyFileVersion\("(\d+\.\d+\.\d+)\.\d+"\)')
+    $informational = [regex]::Matches($assembly, '(?m)^\s*\[assembly:\s*AssemblyInformationalVersion\s*\(\s*"([^"]*)"\s*\)\s*\]')
+    if ($informational.Count -gt 1) { throw 'The application informational version is declared more than once.' }
+    if ($informational.Count -eq 1) {
+        $version = $informational[0].Groups[1].Value
+        # SemVer identifiers also keep the version safe to use in a release filename.
+        $identifier = '(?:0|[1-9]\d*|\d*[A-Za-z-][0-9A-Za-z-]*)'
+        $semver = '\A(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-' + $identifier + '(?:\.' + $identifier + ')*)?(?:\+[0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*)?\z'
+        if (-not [regex]::IsMatch($version, $semver)) { throw 'The application informational version must be a valid semantic version.' }
+        return $version
+    }
+    # Older source snapshots have only a numeric file version.
+    $match = [regex]::Match($assembly, 'AssemblyFileVersion\s*\(\s*"(\d+\.\d+\.\d+)\.\d+"\s*\)')
     if (-not $match.Success) { throw 'Cannot read the application version.' }
     return $match.Groups[1].Value
 }

@@ -1,6 +1,29 @@
 # 밀레시안 장부 사용 안내
 
-마비노기 물물교환 교역을 준비하는 Windows 앱입니다. `MilesianLedger.exe`와 같은 위치에 있는 `data`, `assets` 폴더를 함께 보관하세요.
+**1.0.0-beta.1 공개 베타** 사용 안내입니다. Windows와 .NET Framework 4.8 런타임에서 실행하며, `MilesianLedger.exe`와 같은 위치에 있는 `data`, `assets` 폴더를 함께 보관하세요.
+
+## 설치와 업데이트
+
+처음 설치할 때는 [공개 베타 실행 ZIP](https://github.com/jang9610-cyber/MilesianLedger/releases/download/v1.0.0-beta.1/MilesianLedger-v1.0.0-beta.1.zip)을 내려받아 원하는 폴더에 모두 압축 해제한 뒤 `MilesianLedger/MilesianLedger.exe`를 실행합니다. 압축 파일 내부에서 바로 실행하지 마세요. 별도 설치 프로그램은 없습니다.
+
+[릴리스 페이지](https://github.com/jang9610-cyber/MilesianLedger/releases/tag/v1.0.0-beta.1)의 **Source code (zip/tar.gz)**는 개발용 소스입니다. 앱을 바로 사용하려면 파일 이름이 `MilesianLedger-v1.0.0-beta.1.zip`인 첨부 파일을 선택하세요.
+
+기존 버전의 계획과 설정을 이어 쓰려면 다음 순서로 업데이트합니다.
+
+1. 메인 앱과 PIP를 모두 닫고, 기존 실행 폴더 전체를 백업합니다.
+2. 새 실행 ZIP을 **별도 폴더**에 모두 압축 해제합니다.
+3. 기존 실행 폴더의 `data`에서 아래 개인 파일 중 존재하는 것만 새 실행 폴더의 `data`에 복사합니다.
+
+| 개인 파일 | 저장 내용 |
+| --- | --- |
+| `progress.json` | 교역 계획·프리셋·준비 방식·체크 상태 |
+| `progress-history.json` | 진행 상태 복원 기록 |
+| `auction-settings.json` | 경매장 품목명 매핑·조회 설정 |
+| `auction-cache.json` | 저장한 경매장 시세 |
+| `pip-settings.json` | PIP 창 설정 |
+| `appearance.txt` | 화면 모드 설정 |
+
+새 앱을 실행해 계획과 체크 상태가 표시되는지 확인합니다. `data` 폴더 전체를 덮어쓰지 말고 위 파일만 옮기세요. `barter-data.json`, `item-acquisition.json`, `trade-planning.json`, `auction-proxy.json`은 새 배포본의 데이터와 서버 설정을 사용합니다. API 키 파일은 필요하지 않습니다.
 
 ## 1. 교역 계획 정하기
 

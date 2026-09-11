@@ -1,5 +1,9 @@
 # 개발 브랜치 안내
 
+## 자동 검증
+
+GitHub Actions의 **Verify and package**는 `main`·`develop` 푸시와 Pull Request에서 계산·프록시 테스트 및 ZIP 생성을 실행합니다. Actions 화면의 **Run workflow**로 직접 실행할 수도 있습니다. 화면·PIP 검증은 대화형 Windows 환경에서 별도로 실행합니다.
+
 ## 기본 브랜치
 
 | 브랜치 | 역할 | 변경 반영 기준 |

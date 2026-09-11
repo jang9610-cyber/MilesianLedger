@@ -1,0 +1,573 @@
+{
+  "Version": "1.0",
+  "SourceUrl": "https://mabitrade.kro.kr/main",
+  "SourceScriptUrl": "https://mabitrade.kro.kr/static/js/main.290efe15.js",
+  "SourceScriptSha256": "25cf905d10e296460a48034c1db58cc0473d08bebd83f42adff51f671850f8bf",
+  "CheckedAt": "2026-09-10",
+  "Notes": [
+    "마비교역 공개 클라이언트에 저장된 참고 데이터입니다. 실시간 시세나 공식 판매가를 보장하지 않습니다.",
+    "ducat는 참고용 평균 개당 판매가입니다. 같은 단가를 예상 골드와 두카트에 각각 적용합니다.",
+    "예상 판매 단가는 parseInt(평균가 × (1 + (교역 마스터리 + 보증서) / 100))와 같이 소수점 이하를 버려 계산합니다. 재료비는 판매 총액에서 별도로 계산합니다.",
+    "교역소와 티어에 따라 품목을 구분하며, 20개 품목의 주간 교환 한도를 적용합니다.",
+    "slot는 아이템당 점유 칸 수가 아니라 한 칸에 실을 수 있는 최대 수량입니다. 필요한 칸은 품목별 ceil(수량 / 최대 적재 수량)을 합산합니다.",
+    "최소 운송 횟수는 총 칸과 총 무게의 용량 하한입니다. 적재 조합·교역소 방문 순서·실제 최적 경로를 계산한 값이 아닙니다.",
+    "알파카는 마차와 함께 선택해야 합니다. 운송 능력은 운송수단 + 그랜드마스터 + 파트너를 합산합니다.",
+    "모든 프리셋은 4개 교역소 전체의 선택과 수량에 적용합니다. 성실한 상인은 전 품목, 체리피커는 모든 교역소의 3~5티어를 주간 최대 수량으로 채웁니다. 극한의 한탕은 품목별로 정해진 수량을 적용합니다."
+  ],
+  "Items": [
+    {
+      "TradeId": "C6",
+      "Station": "오아시스",
+      "Tier": 1,
+      "SourceKey": "oasis1",
+      "SourceName": "고운모래",
+      "AverageUnitDucats": 3735,
+      "WeeklyLimit": 25,
+      "MaxStack": 10,
+      "WeightPerUnit": 15,
+      "ExtremeQuantity": 0
+    },
+    {
+      "TradeId": "C10",
+      "Station": "오아시스",
+      "Tier": 2,
+      "SourceKey": "oasis2",
+      "SourceName": "프리즌고스트 날개",
+      "AverageUnitDucats": 5897,
+      "WeeklyLimit": 15,
+      "MaxStack": 7,
+      "WeightPerUnit": 15,
+      "ExtremeQuantity": 0
+    },
+    {
+      "TradeId": "C13",
+      "Station": "오아시스",
+      "Tier": 3,
+      "SourceKey": "oasis3",
+      "SourceName": "오아시스 그림",
+      "AverageUnitDucats": 12029,
+      "WeeklyLimit": 10,
+      "MaxStack": 7,
+      "WeightPerUnit": 20,
+      "ExtremeQuantity": 7
+    },
+    {
+      "TradeId": "C15",
+      "Station": "오아시스",
+      "Tier": 4,
+      "SourceKey": "oasis4",
+      "SourceName": "선인장 꽃",
+      "AverageUnitDucats": 28866,
+      "WeeklyLimit": 8,
+      "MaxStack": 7,
+      "WeightPerUnit": 25,
+      "ExtremeQuantity": 7
+    },
+    {
+      "TradeId": "C20",
+      "Station": "오아시스",
+      "Tier": 5,
+      "SourceKey": "oasis5",
+      "SourceName": "거대 송곳니 화석",
+      "AverageUnitDucats": 136913,
+      "WeeklyLimit": 3,
+      "MaxStack": 3,
+      "WeightPerUnit": 30,
+      "ExtremeQuantity": 3
+    },
+    {
+      "TradeId": "K6",
+      "Station": "페라 화산",
+      "Tier": 1,
+      "SourceKey": "pera1",
+      "SourceName": "화산머드팩",
+      "AverageUnitDucats": 4227,
+      "WeeklyLimit": 25,
+      "MaxStack": 10,
+      "WeightPerUnit": 15,
+      "ExtremeQuantity": 0
+    },
+    {
+      "TradeId": "K10",
+      "Station": "페라 화산",
+      "Tier": 2,
+      "SourceKey": "pera2",
+      "SourceName": "마그마스톤",
+      "AverageUnitDucats": 8853,
+      "WeeklyLimit": 15,
+      "MaxStack": 7,
+      "WeightPerUnit": 15,
+      "ExtremeQuantity": 0
+    },
+    {
+      "TradeId": "K12",
+      "Station": "페라 화산",
+      "Tier": 3,
+      "SourceKey": "pera3",
+      "SourceName": "익시온의 뿔",
+      "AverageUnitDucats": 15733,
+      "WeeklyLimit": 10,
+      "MaxStack": 7,
+      "WeightPerUnit": 20,
+      "ExtremeQuantity": 7
+    },
+    {
+      "TradeId": "K15",
+      "Station": "페라 화산",
+      "Tier": 4,
+      "SourceKey": "pera4",
+      "SourceName": "화산도마뱀의 알",
+      "AverageUnitDucats": 36126,
+      "WeeklyLimit": 8,
+      "MaxStack": 7,
+      "WeightPerUnit": 25,
+      "ExtremeQuantity": 7
+    },
+    {
+      "TradeId": "K21",
+      "Station": "페라 화산",
+      "Tier": 5,
+      "SourceKey": "pera5",
+      "SourceName": "라스파 흑표범 가죽",
+      "AverageUnitDucats": 148024,
+      "WeeklyLimit": 3,
+      "MaxStack": 3,
+      "WeightPerUnit": 30,
+      "ExtremeQuantity": 3
+    },
+    {
+      "TradeId": "C31",
+      "Station": "카루 숲",
+      "Tier": 1,
+      "SourceKey": "karu1",
+      "SourceName": "우드테이블",
+      "AverageUnitDucats": 4488,
+      "WeeklyLimit": 25,
+      "MaxStack": 10,
+      "WeightPerUnit": 15,
+      "ExtremeQuantity": 0
+    },
+    {
+      "TradeId": "C33",
+      "Station": "카루 숲",
+      "Tier": 2,
+      "SourceKey": "karu2",
+      "SourceName": "목공예품",
+      "AverageUnitDucats": 7242,
+      "WeeklyLimit": 15,
+      "MaxStack": 7,
+      "WeightPerUnit": 15,
+      "ExtremeQuantity": 0
+    },
+    {
+      "TradeId": "C37",
+      "Station": "카루 숲",
+      "Tier": 3,
+      "SourceKey": "karu3",
+      "SourceName": "스톤 홀스 조각상",
+      "AverageUnitDucats": 13474,
+      "WeeklyLimit": 10,
+      "MaxStack": 7,
+      "WeightPerUnit": 20,
+      "ExtremeQuantity": 7
+    },
+    {
+      "TradeId": "C39",
+      "Station": "카루 숲",
+      "Tier": 4,
+      "SourceKey": "karu4",
+      "SourceName": "카루 표고버섯",
+      "AverageUnitDucats": 28584,
+      "WeeklyLimit": 8,
+      "MaxStack": 7,
+      "WeightPerUnit": 25,
+      "ExtremeQuantity": 7
+    },
+    {
+      "TradeId": "C44",
+      "Station": "카루 숲",
+      "Tier": 5,
+      "SourceKey": "karu5",
+      "SourceName": "조개 껍질화석",
+      "AverageUnitDucats": 136460,
+      "WeeklyLimit": 3,
+      "MaxStack": 3,
+      "WeightPerUnit": 30,
+      "ExtremeQuantity": 3
+    },
+    {
+      "TradeId": "K34",
+      "Station": "칼리다 호수",
+      "Tier": 1,
+      "SourceKey": "calida1",
+      "SourceName": "맥반석 계란",
+      "AverageUnitDucats": 4376,
+      "WeeklyLimit": 25,
+      "MaxStack": 10,
+      "WeightPerUnit": 15,
+      "ExtremeQuantity": 0
+    },
+    {
+      "TradeId": "K38",
+      "Station": "칼리다 호수",
+      "Tier": 2,
+      "SourceKey": "calida2",
+      "SourceName": "칼리다 연어",
+      "AverageUnitDucats": 7129,
+      "WeeklyLimit": 15,
+      "MaxStack": 7,
+      "WeightPerUnit": 15,
+      "ExtremeQuantity": 0
+    },
+    {
+      "TradeId": "K42",
+      "Station": "칼리다 호수",
+      "Tier": 3,
+      "SourceKey": "calida3",
+      "SourceName": "온천 입욕제",
+      "AverageUnitDucats": 15411,
+      "WeeklyLimit": 10,
+      "MaxStack": 7,
+      "WeightPerUnit": 20,
+      "ExtremeQuantity": 0
+    },
+    {
+      "TradeId": "K48",
+      "Station": "칼리다 호수",
+      "Tier": 4,
+      "SourceKey": "calida4",
+      "SourceName": "대형 캠핑 텐트",
+      "AverageUnitDucats": 32410,
+      "WeeklyLimit": 8,
+      "MaxStack": 7,
+      "WeightPerUnit": 25,
+      "ExtremeQuantity": 0
+    },
+    {
+      "TradeId": "K52",
+      "Station": "칼리다 호수",
+      "Tier": 5,
+      "SourceKey": "calida5",
+      "SourceName": "핑크 솔트",
+      "AverageUnitDucats": 143624,
+      "WeeklyLimit": 3,
+      "MaxStack": 3,
+      "WeightPerUnit": 30,
+      "ExtremeQuantity": 3
+    }
+  ],
+  "Ranks": [
+    {
+      "Id": "practice",
+      "Name": "연습 (0%)",
+      "Percent": 0,
+      "Slots": 0,
+      "Weight": 0,
+      "RequiredRideId": ""
+    },
+    {
+      "Id": "1",
+      "Name": "1 (15%)",
+      "Percent": 15,
+      "Slots": 0,
+      "Weight": 0,
+      "RequiredRideId": ""
+    },
+    {
+      "Id": "2",
+      "Name": "2 (14%)",
+      "Percent": 14,
+      "Slots": 0,
+      "Weight": 0,
+      "RequiredRideId": ""
+    },
+    {
+      "Id": "3",
+      "Name": "3 (13%)",
+      "Percent": 13,
+      "Slots": 0,
+      "Weight": 0,
+      "RequiredRideId": ""
+    },
+    {
+      "Id": "4",
+      "Name": "4 (12%)",
+      "Percent": 12,
+      "Slots": 0,
+      "Weight": 0,
+      "RequiredRideId": ""
+    },
+    {
+      "Id": "5",
+      "Name": "5 (11%)",
+      "Percent": 11,
+      "Slots": 0,
+      "Weight": 0,
+      "RequiredRideId": ""
+    },
+    {
+      "Id": "6",
+      "Name": "6 (10%)",
+      "Percent": 10,
+      "Slots": 0,
+      "Weight": 0,
+      "RequiredRideId": ""
+    },
+    {
+      "Id": "7",
+      "Name": "7 (9%)",
+      "Percent": 9,
+      "Slots": 0,
+      "Weight": 0,
+      "RequiredRideId": ""
+    },
+    {
+      "Id": "8",
+      "Name": "8 (8%)",
+      "Percent": 8,
+      "Slots": 0,
+      "Weight": 0,
+      "RequiredRideId": ""
+    },
+    {
+      "Id": "9",
+      "Name": "9 (7%)",
+      "Percent": 7,
+      "Slots": 0,
+      "Weight": 0,
+      "RequiredRideId": ""
+    },
+    {
+      "Id": "A",
+      "Name": "A (6%)",
+      "Percent": 6,
+      "Slots": 0,
+      "Weight": 0,
+      "RequiredRideId": ""
+    },
+    {
+      "Id": "B",
+      "Name": "B (5%)",
+      "Percent": 5,
+      "Slots": 0,
+      "Weight": 0,
+      "RequiredRideId": ""
+    },
+    {
+      "Id": "C",
+      "Name": "C (4%)",
+      "Percent": 4,
+      "Slots": 0,
+      "Weight": 0,
+      "RequiredRideId": ""
+    },
+    {
+      "Id": "D",
+      "Name": "D (3%)",
+      "Percent": 3,
+      "Slots": 0,
+      "Weight": 0,
+      "RequiredRideId": ""
+    },
+    {
+      "Id": "E",
+      "Name": "E (2%)",
+      "Percent": 2,
+      "Slots": 0,
+      "Weight": 0,
+      "RequiredRideId": ""
+    },
+    {
+      "Id": "F",
+      "Name": "F (1%)",
+      "Percent": 1,
+      "Slots": 0,
+      "Weight": 0,
+      "RequiredRideId": ""
+    }
+  ],
+  "Warranties": [
+    {
+      "Id": "none",
+      "Name": "아니요",
+      "Percent": 0,
+      "Slots": 0,
+      "Weight": 0,
+      "RequiredRideId": ""
+    },
+    {
+      "Id": "special-imp",
+      "Name": "임프의 특별한 보증서 (150%)",
+      "Percent": 150,
+      "Slots": 0,
+      "Weight": 0,
+      "RequiredRideId": ""
+    },
+    {
+      "Id": "special-irusa",
+      "Name": "이루샤의 특별한 보증서 (75%)",
+      "Percent": 75,
+      "Slots": 0,
+      "Weight": 0,
+      "RequiredRideId": ""
+    },
+    {
+      "Id": "high-imp",
+      "Name": "임프의 고급 보증서 (75%)",
+      "Percent": 75,
+      "Slots": 0,
+      "Weight": 0,
+      "RequiredRideId": ""
+    },
+    {
+      "Id": "high-goblin",
+      "Name": "고블린의 고급 보증서 (60%)",
+      "Percent": 60,
+      "Slots": 0,
+      "Weight": 0,
+      "RequiredRideId": ""
+    },
+    {
+      "Id": "high-ogre",
+      "Name": "오거의 고급 보증서 (45%)",
+      "Percent": 45,
+      "Slots": 0,
+      "Weight": 0,
+      "RequiredRideId": ""
+    },
+    {
+      "Id": "imp",
+      "Name": "임프의 보증서 (25%)",
+      "Percent": 25,
+      "Slots": 0,
+      "Weight": 0,
+      "RequiredRideId": ""
+    },
+    {
+      "Id": "goblin",
+      "Name": "고블린의 보증서 (20%)",
+      "Percent": 20,
+      "Slots": 0,
+      "Weight": 0,
+      "RequiredRideId": ""
+    },
+    {
+      "Id": "ogre",
+      "Name": "오거의 보증서 (15%)",
+      "Percent": 15,
+      "Slots": 0,
+      "Weight": 0,
+      "RequiredRideId": ""
+    }
+  ],
+  "GrandMasters": [
+    {
+      "Id": "none",
+      "Name": "아니요",
+      "Percent": 0,
+      "Slots": 0,
+      "Weight": 0,
+      "RequiredRideId": ""
+    },
+    {
+      "Id": "yes",
+      "Name": "네 (칸: 1, 무게: 100)",
+      "Percent": 0,
+      "Slots": 1,
+      "Weight": 100,
+      "RequiredRideId": ""
+    }
+  ],
+  "Rides": [
+    {
+      "Id": "backpack",
+      "Name": "등짐 (칸: 4, 무게: 400)",
+      "Percent": 0,
+      "Slots": 4,
+      "Weight": 400,
+      "RequiredRideId": ""
+    },
+    {
+      "Id": "handcart",
+      "Name": "손수레 (칸: 6, 무게: 800)",
+      "Percent": 0,
+      "Slots": 6,
+      "Weight": 800,
+      "RequiredRideId": ""
+    },
+    {
+      "Id": "wagon",
+      "Name": "마차 (칸: 8, 무게: 900)",
+      "Percent": 0,
+      "Slots": 8,
+      "Weight": 900,
+      "RequiredRideId": ""
+    },
+    {
+      "Id": "elephant",
+      "Name": "코끼리 (칸: 7, 무게: 1700)",
+      "Percent": 0,
+      "Slots": 7,
+      "Weight": 1700,
+      "RequiredRideId": ""
+    },
+    {
+      "Id": "dogsled",
+      "Name": "개썰매 (칸: 11, 무게: 700)",
+      "Percent": 0,
+      "Slots": 11,
+      "Weight": 700,
+      "RequiredRideId": ""
+    },
+    {
+      "Id": "camel",
+      "Name": "낙타 (칸: 7, 무게: 1400)",
+      "Percent": 0,
+      "Slots": 7,
+      "Weight": 1400,
+      "RequiredRideId": ""
+    },
+    {
+      "Id": "airship",
+      "Name": "부유선 (칸: 8, 무게: 1200)",
+      "Percent": 0,
+      "Slots": 8,
+      "Weight": 1200,
+      "RequiredRideId": ""
+    }
+  ],
+  "Partners": [
+    {
+      "Id": "none",
+      "Name": "아니요",
+      "Percent": 0,
+      "Slots": 0,
+      "Weight": 0,
+      "RequiredRideId": ""
+    },
+    {
+      "Id": "trade",
+      "Name": "교역파트너 (칸: 1, 무게: 100)",
+      "Percent": 0,
+      "Slots": 1,
+      "Weight": 100,
+      "RequiredRideId": ""
+    },
+    {
+      "Id": "william",
+      "Name": "윌리엄 (칸: 1, 무게: 200)",
+      "Percent": 0,
+      "Slots": 1,
+      "Weight": 200,
+      "RequiredRideId": ""
+    },
+    {
+      "Id": "alpaca",
+      "Name": "[마차]알파카 (칸: 2, 무게: 200)",
+      "Percent": 0,
+      "Slots": 2,
+      "Weight": 200,
+      "RequiredRideId": "wagon"
+    }
+  ]
+}

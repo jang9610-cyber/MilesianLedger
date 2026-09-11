@@ -1,0 +1,2674 @@
+{
+  "version": 1,
+  "collectedAt": "2026-09-09T17:19:44.532811+00:00",
+  "source": "라바뉴의 마비노기 (비공식 자료 사이트)",
+  "sourceUrl": "https://mabi.labanyu.com/trade",
+  "note": "공개된 PNG 파일의 원래 바이트와 해상도를 보존했습니다. 게임 이미지 권리는 원권리자에게 있습니다. 경매장 API 키나 시세 데이터는 포함하지 않습니다.",
+  "itemCount": 145,
+  "readyCount": 145,
+  "items": [
+    {
+      "name": "고운 모래",
+      "kind": "trade",
+      "aliases": [],
+      "references": [
+        "C6"
+      ],
+      "status": "ready",
+      "file": "png/고운 모래.png",
+      "englishName": "",
+      "sourcePage": "https://mabi.labanyu.com/trade",
+      "imageUrl": "https://tacask-cdn.com/mabi-labanyu/content/trading/item-1728144387039.png",
+      "width": 40,
+      "height": 40,
+      "mode": "RGB",
+      "sha256": "5965f834908e7fe7b37c942b833712693c2a1efd398bf098b559ae256b0ff4c1",
+      "bytes": 4560
+    },
+    {
+      "name": "프리즌 고스트의 날개",
+      "kind": "trade",
+      "aliases": [],
+      "references": [
+        "C10"
+      ],
+      "status": "ready",
+      "file": "png/프리즌 고스트의 날개.png",
+      "englishName": "",
+      "sourcePage": "https://mabi.labanyu.com/trade",
+      "imageUrl": "https://tacask-cdn.com/mabi-labanyu/content/trading/item-1728144577417.png",
+      "width": 40,
+      "height": 40,
+      "mode": "RGB",
+      "sha256": "595fbe2a0732bc1d00bd2ee036ced148939a38cf989134705baa30ac1600f163",
+      "bytes": 4112
+    },
+    {
+      "name": "오아시스 그림",
+      "kind": "trade",
+      "aliases": [],
+      "references": [
+        "C13"
+      ],
+      "status": "ready",
+      "file": "png/오아시스 그림.png",
+      "englishName": "",
+      "sourcePage": "https://mabi.labanyu.com/trade",
+      "imageUrl": "https://tacask-cdn.com/mabi-labanyu/content/trading/item-1728144704196.png",
+      "width": 40,
+      "height": 40,
+      "mode": "RGB",
+      "sha256": "cfa322489f883aa25548952a45f32a015d07b0af3881a1aab45d8e9f50cdfd56",
+      "bytes": 4343
+    },
+    {
+      "name": "선인장 꽃",
+      "kind": "trade",
+      "aliases": [],
+      "references": [
+        "C15"
+      ],
+      "status": "ready",
+      "file": "png/선인장 꽃.png",
+      "englishName": "",
+      "sourcePage": "https://mabi.labanyu.com/trade",
+      "imageUrl": "https://tacask-cdn.com/mabi-labanyu/content/trading/item-1728145020135.png",
+      "width": 40,
+      "height": 40,
+      "mode": "RGB",
+      "sha256": "f9685404c7ca31d273cc71757309b9d76b7812932ca1dca201fb916b34f67528",
+      "bytes": 4751
+    },
+    {
+      "name": "거대 송곳니 화석",
+      "kind": "trade",
+      "aliases": [],
+      "references": [
+        "C20"
+      ],
+      "status": "ready",
+      "file": "png/거대 송곳니 화석.png",
+      "englishName": "",
+      "sourcePage": "https://mabi.labanyu.com/trade",
+      "imageUrl": "https://tacask-cdn.com/mabi-labanyu/content/trading/item-1728145063445.png",
+      "width": 40,
+      "height": 40,
+      "mode": "RGB",
+      "sha256": "1970bb0d8276a3f1d547fe8ab332a587d00ab1a8301f2b90b97c7736bc6cfec0",
+      "bytes": 4371
+    },
+    {
+      "name": "화산 머드팩",
+      "kind": "trade",
+      "aliases": [],
+      "references": [
+        "K6"
+      ],
+      "status": "ready",
+      "file": "png/화산 머드팩.png",
+      "englishName": "",
+      "sourcePage": "https://mabi.labanyu.com/trade",
+      "imageUrl": "https://tacask-cdn.com/mabi-labanyu/content/trading/item-1728145317464.png",
+      "width": 40,
+      "height": 40,
+      "mode": "RGB",
+      "sha256": "68afc66b3bbff2b14403f7c48392e1e7a17e1ef46daf9b0632eeea492a94d883",
+      "bytes": 4327
+    },
+    {
+      "name": "마그마 스톤",
+      "kind": "trade",
+      "aliases": [],
+      "references": [
+        "K10"
+      ],
+      "status": "ready",
+      "file": "png/마그마 스톤.png",
+      "englishName": "",
+      "sourcePage": "https://mabi.labanyu.com/trade",
+      "imageUrl": "https://tacask-cdn.com/mabi-labanyu/content/trading/item-1728145342553.png",
+      "width": 40,
+      "height": 40,
+      "mode": "RGB",
+      "sha256": "3855ddecf2e84ef68d6303b4b0c58334188041d02f3a43e2a8959cdc00bfa938",
+      "bytes": 4103
+    },
+    {
+      "name": "익시온의 뿔",
+      "kind": "trade",
+      "aliases": [],
+      "references": [
+        "K12"
+      ],
+      "status": "ready",
+      "file": "png/익시온의 뿔.png",
+      "englishName": "",
+      "sourcePage": "https://mabi.labanyu.com/trade",
+      "imageUrl": "https://tacask-cdn.com/mabi-labanyu/content/trading/item-1728145398103.png",
+      "width": 40,
+      "height": 40,
+      "mode": "RGB",
+      "sha256": "26bda85c1f90f540109f0371b50b2dc59eafc99c31ec0002a9e3eff87d0147c1",
+      "bytes": 3932
+    },
+    {
+      "name": "화산 도마뱀의 알",
+      "kind": "trade",
+      "aliases": [],
+      "references": [
+        "K15"
+      ],
+      "status": "ready",
+      "file": "png/화산 도마뱀의 알.png",
+      "englishName": "",
+      "sourcePage": "https://mabi.labanyu.com/trade",
+      "imageUrl": "https://tacask-cdn.com/mabi-labanyu/content/trading/item-1728145432594.png",
+      "width": 40,
+      "height": 40,
+      "mode": "RGB",
+      "sha256": "8f59ea4fee84d9b621e4053312a362ba1af1da071d3e1176bdf678ea84f125df",
+      "bytes": 4090
+    },
+    {
+      "name": "라스파 흑표범의 가죽",
+      "kind": "trade",
+      "aliases": [],
+      "references": [
+        "K21"
+      ],
+      "status": "ready",
+      "file": "png/라스파 흑표범의 가죽.png",
+      "englishName": "",
+      "sourcePage": "https://mabi.labanyu.com/trade",
+      "imageUrl": "https://tacask-cdn.com/mabi-labanyu/content/trading/item-1728145478487.png",
+      "width": 40,
+      "height": 40,
+      "mode": "RGB",
+      "sha256": "e7c19071116d4925dddb50c4904823b3bfbb1f141867fd5565315c24036acf7b",
+      "bytes": 3965
+    },
+    {
+      "name": "우드 테이블",
+      "kind": "trade",
+      "aliases": [],
+      "references": [
+        "C31"
+      ],
+      "status": "ready",
+      "file": "png/우드 테이블.png",
+      "englishName": "",
+      "sourcePage": "https://mabi.labanyu.com/trade",
+      "imageUrl": "https://tacask-cdn.com/mabi-labanyu/content/trading/item-1728135182780.png",
+      "width": 40,
+      "height": 40,
+      "mode": "RGB",
+      "sha256": "7b936931d2454391735b6d448113f0fa30f6b1b9c3e7d5149f520ebb060f8b46",
+      "bytes": 4316
+    },
+    {
+      "name": "목공예품",
+      "kind": "trade",
+      "aliases": [],
+      "references": [
+        "C33"
+      ],
+      "status": "ready",
+      "file": "png/목공예품.png",
+      "englishName": "",
+      "sourcePage": "https://mabi.labanyu.com/trade",
+      "imageUrl": "https://tacask-cdn.com/mabi-labanyu/content/trading/item-1728143556072.png",
+      "width": 40,
+      "height": 40,
+      "mode": "RGB",
+      "sha256": "71d7e72a5cf2814d35cbd0a19fdef661bbe2394ede09eee4f7fdaf91a988d5d1",
+      "bytes": 4244
+    },
+    {
+      "name": "스톤 홀스 조각상",
+      "kind": "trade",
+      "aliases": [],
+      "references": [
+        "C37"
+      ],
+      "status": "ready",
+      "file": "png/스톤 홀스 조각상.png",
+      "englishName": "",
+      "sourcePage": "https://mabi.labanyu.com/trade",
+      "imageUrl": "https://tacask-cdn.com/mabi-labanyu/content/trading/item-1728143606760.png",
+      "width": 40,
+      "height": 40,
+      "mode": "RGB",
+      "sha256": "b3c5464081abc2fa76b15b556c66b90968886f8e4998b9dbe34f3b07ed942e9c",
+      "bytes": 4014
+    },
+    {
+      "name": "카루 표고 버섯",
+      "kind": "trade",
+      "aliases": [],
+      "references": [
+        "C39"
+      ],
+      "status": "ready",
+      "file": "png/카루 표고 버섯.png",
+      "englishName": "",
+      "sourcePage": "https://mabi.labanyu.com/trade",
+      "imageUrl": "https://tacask-cdn.com/mabi-labanyu/content/trading/item-1728144308753.png",
+      "width": 40,
+      "height": 40,
+      "mode": "RGB",
+      "sha256": "116305f33b964354f4c002ee36f766e30fc881b7aa8d2af2ddbd8bc54e5b6c21",
+      "bytes": 4665
+    },
+    {
+      "name": "조개 껍질 화석",
+      "kind": "trade",
+      "aliases": [],
+      "references": [
+        "C44"
+      ],
+      "status": "ready",
+      "file": "png/조개 껍질 화석.png",
+      "englishName": "",
+      "sourcePage": "https://mabi.labanyu.com/trade",
+      "imageUrl": "https://tacask-cdn.com/mabi-labanyu/content/trading/item-1728144342120.png",
+      "width": 40,
+      "height": 40,
+      "mode": "RGB",
+      "sha256": "459ff881c13f3a7d0ebbc3fb58c34578ca88f2247f2c851fbba397586420681b",
+      "bytes": 4619
+    },
+    {
+      "name": "맥반석 계란",
+      "kind": "trade",
+      "aliases": [],
+      "references": [
+        "K34"
+      ],
+      "status": "ready",
+      "file": "png/맥반석 계란.png",
+      "englishName": "",
+      "sourcePage": "https://mabi.labanyu.com/trade",
+      "imageUrl": "https://tacask-cdn.com/mabi-labanyu/content/trading/item-1728145100776.png",
+      "width": 40,
+      "height": 40,
+      "mode": "RGB",
+      "sha256": "126c1e6dae94e2161458c355039c3c63caf8aa3170f9e226f0c6fcfd2e1e19f2",
+      "bytes": 4478
+    },
+    {
+      "name": "칼리다 연어",
+      "kind": "trade",
+      "aliases": [],
+      "references": [
+        "K38"
+      ],
+      "status": "ready",
+      "file": "png/칼리다 연어.png",
+      "englishName": "",
+      "sourcePage": "https://mabi.labanyu.com/trade",
+      "imageUrl": "https://tacask-cdn.com/mabi-labanyu/content/trading/item-1728145136072.png",
+      "width": 40,
+      "height": 40,
+      "mode": "RGB",
+      "sha256": "a9cd3b5a9250672de2ce6583e562797f8b7b6942158ac7fa9378c11cb6f1615e",
+      "bytes": 4232
+    },
+    {
+      "name": "온천 입욕제",
+      "kind": "trade",
+      "aliases": [],
+      "references": [
+        "K42"
+      ],
+      "status": "ready",
+      "file": "png/온천 입욕제.png",
+      "englishName": "",
+      "sourcePage": "https://mabi.labanyu.com/trade",
+      "imageUrl": "https://tacask-cdn.com/mabi-labanyu/content/trading/item-1728145172512.png",
+      "width": 40,
+      "height": 40,
+      "mode": "RGB",
+      "sha256": "6b4e22c9f9afd0c84f95380a221d8cd0c4819dd2c62f5c617524ccdb8865f988",
+      "bytes": 4478
+    },
+    {
+      "name": "대형 캠핑 텐트",
+      "kind": "trade",
+      "aliases": [],
+      "references": [
+        "K48"
+      ],
+      "status": "ready",
+      "file": "png/대형 캠핑 텐트.png",
+      "englishName": "",
+      "sourcePage": "https://mabi.labanyu.com/trade",
+      "imageUrl": "https://tacask-cdn.com/mabi-labanyu/content/trading/item-1728145210624.png",
+      "width": 40,
+      "height": 40,
+      "mode": "RGB",
+      "sha256": "bd73c9dfcbd693d4f04b6d52c78640776cd24d67c672ef3b13bc8fe2e64dbf17",
+      "bytes": 4306
+    },
+    {
+      "name": "핑크 솔트",
+      "kind": "trade",
+      "aliases": [],
+      "references": [
+        "K52"
+      ],
+      "status": "ready",
+      "file": "png/핑크 솔트.png",
+      "englishName": "",
+      "sourcePage": "https://mabi.labanyu.com/trade",
+      "imageUrl": "https://tacask-cdn.com/mabi-labanyu/content/trading/item-1728145248875.png",
+      "width": 40,
+      "height": 40,
+      "mode": "RGB",
+      "sha256": "f2e8c6ae928e9ddf7aa65ec3fe259579e1d05f3a48fe9d36150cff1f03f4a046",
+      "bytes": 4207
+    },
+    {
+      "name": "매듭끈",
+      "kind": "material",
+      "aliases": [],
+      "references": [
+        "D6",
+        "F48"
+      ],
+      "status": "ready",
+      "file": "png/매듭끈.png",
+      "englishName": "Braid",
+      "sourcePage": "https://mabi.labanyu.com/item/NDEyOTEw/%EB%A7%A4%EB%93%AD%EB%81%88",
+      "imageUrl": "https://tacask-cdn.com/mabi-labanyu/item-base-data/thumbnail/item-12910.png",
+      "width": 24,
+      "height": 24,
+      "mode": "RGBA",
+      "sha256": "bd7aa9992efe5941c814baa772b5b987a048cc15ae7dfe140182c953afec4fe8",
+      "bytes": 571
+    },
+    {
+      "name": "가는 실뭉치",
+      "kind": "material",
+      "aliases": [],
+      "references": [
+        "F6.1",
+        "F10",
+        "F12",
+        "F14",
+        "F40",
+        "F49"
+      ],
+      "status": "ready",
+      "file": "png/가는 실뭉치.png",
+      "englishName": "Thin Thread Ball",
+      "sourcePage": "https://mabi.labanyu.com/item/NDEyOTEz/%EA%B0%80%EB%8A%94%20%EC%8B%A4%EB%AD%89%EC%B9%98",
+      "imageUrl": "https://tacask-cdn.com/mabi-labanyu/item-base-data/thumbnail/item-12913.png",
+      "width": 24,
+      "height": 24,
+      "mode": "RGBA",
+      "sha256": "ff629f862c3f1e5aa17e729f4c3ec9a37407403e705a54d577e806614f77fb34",
+      "bytes": 481
+    },
+    {
+      "name": "굵은 실뭉치",
+      "kind": "material",
+      "aliases": [],
+      "references": [
+        "F6.2",
+        "F19",
+        "N15",
+        "F33",
+        "F50"
+      ],
+      "status": "ready",
+      "file": "png/굵은 실뭉치.png",
+      "englishName": "Thick Thread Ball",
+      "sourcePage": "https://mabi.labanyu.com/item/NDEyOTEy/%EA%B5%B5%EC%9D%80%20%EC%8B%A4%EB%AD%89%EC%B9%98",
+      "imageUrl": "https://tacask-cdn.com/mabi-labanyu/item-base-data/thumbnail/item-12912.png",
+      "width": 24,
+      "height": 24,
+      "mode": "RGBA",
+      "sha256": "febf126a492aa42faffb98810e0c8ce97a2a2290e9585b53a6be341f66b728d6",
+      "bytes": 566
+    },
+    {
+      "name": "스태미나 500 포션",
+      "kind": "material",
+      "aliases": [],
+      "references": [
+        "D7",
+        "D7.purchase"
+      ],
+      "status": "ready",
+      "file": "png/스태미나 500 포션.png",
+      "englishName": "Stamina 500 Potion",
+      "sourcePage": "https://mabi.labanyu.com/item/NDEwNzAy/%EC%8A%A4%ED%83%9C%EB%AF%B8%EB%82%98%20500%20%ED%8F%AC%EC%85%98",
+      "imageUrl": "https://tacask-cdn.com/mabi-labanyu/item-base-data/thumbnail/item-10702.png",
+      "width": 24,
+      "height": 24,
+      "mode": "RGBA",
+      "sha256": "9dee512a1fe9a6e94f8c7cc9f53e1baea403a27fd1204e0850258c3facafd579",
+      "bytes": 680
+    },
+    {
+      "name": "쿠션용 솜",
+      "kind": "material",
+      "aliases": [],
+      "references": [
+        "D10"
+      ],
+      "status": "ready",
+      "file": "png/쿠션용 솜.png",
+      "englishName": "Cotton Cushion Stuffing",
+      "sourcePage": "https://mabi.labanyu.com/item/NDE0MjA1/%EC%BF%A0%EC%85%98%EC%9A%A9%20%EC%86%9C",
+      "imageUrl": "https://tacask-cdn.com/mabi-labanyu/item-base-data/thumbnail/item-14205.png",
+      "width": 48,
+      "height": 48,
+      "mode": "RGBA",
+      "sha256": "bc77de6478b3ba09bd753d6e0ff6b5c77e644e141349d8d1e7b8d3b139c8e329",
+      "bytes": 968
+    },
+    {
+      "name": "거미줄",
+      "kind": "material",
+      "aliases": [],
+      "references": [
+        "F10.alternate",
+        "F12.alternate",
+        "F14.alternate",
+        "F40.alternate",
+        "F49.alternate"
+      ],
+      "status": "ready",
+      "file": "png/거미줄.png",
+      "englishName": "Cobweb",
+      "sourcePage": "https://mabi.labanyu.com/item/NDEyOTE0/%EA%B1%B0%EB%AF%B8%EC%A4%84",
+      "imageUrl": "https://tacask-cdn.com/mabi-labanyu/item-base-data/thumbnail/item-12914.png",
+      "width": 24,
+      "height": 24,
+      "mode": "RGBA",
+      "sha256": "da8a6b9df5b3dd419c5a397ed5358c5feabf7be64d771e7739a6d07afca7ffc4",
+      "bytes": 576
+    },
+    {
+      "name": "고급 양털",
+      "kind": "material",
+      "aliases": [],
+      "references": [
+        "F11"
+      ],
+      "status": "ready",
+      "file": "png/고급 양털.png",
+      "englishName": "Fine Wool",
+      "sourcePage": "https://mabi.labanyu.com/item/NDE0MjA0/%EA%B3%A0%EA%B8%89%20%EC%96%91%ED%84%B8",
+      "imageUrl": "https://tacask-cdn.com/mabi-labanyu/item-base-data/thumbnail/item-14204.png",
+      "width": 48,
+      "height": 48,
+      "mode": "RGBA",
+      "sha256": "8a8908d1bea294e01c341e91f299f0fa2b01afa74ca67428ab3df88df02b9a3e",
+      "bytes": 1664
+    },
+    {
+      "name": "최고급 실크",
+      "kind": "material",
+      "aliases": [],
+      "references": [
+        "D12"
+      ],
+      "status": "ready",
+      "file": "png/최고급 실크.png",
+      "englishName": "Finest Silk",
+      "sourcePage": "https://mabi.labanyu.com/item/NDEyOTE5/%EC%B5%9C%EA%B3%A0%EA%B8%89%20%EC%8B%A4%ED%81%AC",
+      "imageUrl": "https://tacask-cdn.com/mabi-labanyu/item-base-data/thumbnail/item-12919.png",
+      "width": 48,
+      "height": 48,
+      "mode": "RGBA",
+      "sha256": "009192d034790a656e89b77b30df50e9c834a95d0eb3f4ca98a58073aa3f9e61",
+      "bytes": 1019
+    },
+    {
+      "name": "최고급 가죽끈",
+      "kind": "material",
+      "aliases": [],
+      "references": [
+        "D13",
+        "F22"
+      ],
+      "status": "ready",
+      "file": "png/최고급 가죽끈.png",
+      "englishName": "Finest Leather Strap",
+      "sourcePage": "https://mabi.labanyu.com/item/NDEyOTM1/%EC%B5%9C%EA%B3%A0%EA%B8%89%20%EA%B0%80%EC%A3%BD%EB%81%88",
+      "imageUrl": "https://tacask-cdn.com/mabi-labanyu/item-base-data/thumbnail/item-12935.png",
+      "width": 24,
+      "height": 24,
+      "mode": "RGBA",
+      "sha256": "c844c55627e935df2735cf4abe2a883c25c8f1e763e6a2f26293bd28469508e1",
+      "bytes": 499
+    },
+    {
+      "name": "최고급 가죽",
+      "kind": "material",
+      "aliases": [],
+      "references": [
+        "F13",
+        "F22.alternate"
+      ],
+      "status": "ready",
+      "file": "png/최고급 가죽.png",
+      "englishName": "Finest Leather",
+      "sourcePage": "https://mabi.labanyu.com/item/NDEyOTMx/%EC%B5%9C%EA%B3%A0%EA%B8%89%20%EA%B0%80%EC%A3%BD",
+      "imageUrl": "https://tacask-cdn.com/mabi-labanyu/item-base-data/thumbnail/item-12931.png",
+      "width": 48,
+      "height": 48,
+      "mode": "RGBA",
+      "sha256": "0548f3ddec27b26cd89dc749122470e82e2a91bf0021cbd41cb82f68f0c5800a",
+      "bytes": 1209
+    },
+    {
+      "name": "질긴 실",
+      "kind": "material",
+      "aliases": [],
+      "references": [
+        "D14"
+      ],
+      "status": "ready",
+      "file": "png/질긴 실.png",
+      "englishName": "Tough Thread",
+      "sourcePage": "https://mabi.labanyu.com/item/NDEyOTU1/%EC%A7%88%EA%B8%B4%20%EC%8B%A4",
+      "imageUrl": "https://tacask-cdn.com/mabi-labanyu/item-base-data/thumbnail/item-12955.png",
+      "width": 24,
+      "height": 24,
+      "mode": "RGBA",
+      "sha256": "fa4d33c164a2f51a8abeafa20b8f2edc31cb286a5231b97b54164b355898d0bd",
+      "bytes": 788
+    },
+    {
+      "name": "정령의 리큐르",
+      "kind": "material",
+      "aliases": [],
+      "references": [
+        "D15"
+      ],
+      "status": "ready",
+      "file": "png/정령의 리큐르.png",
+      "englishName": "Spirit Liqueur",
+      "sourcePage": "https://mabi.labanyu.com/item/NDEwNTY1/%EC%A0%95%EB%A0%B9%EC%9D%98%20%EB%A6%AC%ED%81%90%EB%A5%B4",
+      "imageUrl": "https://tacask-cdn.com/mabi-labanyu/item-base-data/thumbnail/item-10565.png",
+      "width": 24,
+      "height": 24,
+      "mode": "RGBA",
+      "sha256": "24942ff009c988e0f60766bf3d82fe8871268145a95d2097a3ea8390e9552668",
+      "bytes": 428
+    },
+    {
+      "name": "화이트 허브",
+      "kind": "material",
+      "aliases": [],
+      "references": [
+        "F15"
+      ],
+      "status": "ready",
+      "file": "png/화이트 허브.png",
+      "englishName": "White Herb",
+      "sourcePage": "https://mabi.labanyu.com/item/NDEwNjM4/%ED%99%94%EC%9D%B4%ED%8A%B8%20%ED%97%88%EB%B8%8C",
+      "imageUrl": "https://tacask-cdn.com/mabi-labanyu/item-base-data/thumbnail/item-10638.png",
+      "width": 24,
+      "height": 48,
+      "mode": "RGBA",
+      "sha256": "4a113872b1ec0c25b45cd38036a91223d7e68629e7868796282d4f4d240fa5e8",
+      "bytes": 983
+    },
+    {
+      "name": "고대 정령의 화석 조각",
+      "kind": "material",
+      "aliases": [],
+      "references": [
+        "F16"
+      ],
+      "status": "ready",
+      "file": "png/고대 정령의 화석 조각.png",
+      "englishName": "Piece of an Ancient Spirit Fossil",
+      "sourcePage": "https://mabi.labanyu.com/item/NDEzMjQ4/%EA%B3%A0%EB%8C%80%20%EC%A0%95%EB%A0%B9%EC%9D%98%20%ED%99%94%EC%84%9D%20%EC%A1%B0%EA%B0%81",
+      "imageUrl": "https://tacask-cdn.com/mabi-labanyu/item-base-data/thumbnail/item-13248.png",
+      "width": 24,
+      "height": 24,
+      "mode": "RGBA",
+      "sha256": "36d6bbd9ce8acfe1016350291ebef32780a941676cdd5222189303aeabd77895",
+      "bytes": 528
+    },
+    {
+      "name": "엘레멘탈 리무버",
+      "kind": "material",
+      "aliases": [],
+      "references": [
+        "F17"
+      ],
+      "status": "ready",
+      "file": "png/엘레멘탈 리무버.png",
+      "englishName": "Elemental Remover",
+      "sourcePage": "https://mabi.labanyu.com/item/NDEzMjQ3/%EC%97%98%EB%A0%88%EB%A9%98%ED%83%88%20%EB%A6%AC%EB%AC%B4%EB%B2%84",
+      "imageUrl": "https://tacask-cdn.com/mabi-labanyu/item-base-data/thumbnail/item-13247.png",
+      "width": 24,
+      "height": 24,
+      "mode": "RGBA",
+      "sha256": "ed10832941dbf6acee50f58f2b85b3d06dd8a5d60f2bcfa0cc9c3b9e895f812e",
+      "bytes": 624
+    },
+    {
+      "name": "은판",
+      "kind": "material",
+      "aliases": [],
+      "references": [
+        "D18"
+      ],
+      "status": "ready",
+      "file": "png/은판.png",
+      "englishName": "Silver Plate",
+      "sourcePage": "https://mabi.labanyu.com/item/NDE0MDYx/%EC%9D%80%ED%8C%90",
+      "imageUrl": "https://tacask-cdn.com/mabi-labanyu/item-base-data/thumbnail/item-14061.png",
+      "width": 48,
+      "height": 48,
+      "mode": "RGBA",
+      "sha256": "8b78704cbfbe17b2496fc82da9b67198a051f0861fc8c60c9caedbe79c599b14",
+      "bytes": 971
+    },
+    {
+      "name": "은괴",
+      "kind": "material",
+      "aliases": [],
+      "references": [
+        "F18"
+      ],
+      "status": "ready",
+      "file": "png/은괴.png",
+      "englishName": "Silver Ingot",
+      "sourcePage": "https://mabi.labanyu.com/item/NDE0MDM5/%EC%9D%80%EA%B4%B4",
+      "imageUrl": "https://tacask-cdn.com/mabi-labanyu/item-base-data/thumbnail/item-14039.png",
+      "width": 48,
+      "height": 24,
+      "mode": "RGBA",
+      "sha256": "e5e643fab2036631bb6a6c7e5895adb50ab226d79bcae0b4fb578c249100219c",
+      "bytes": 391
+    },
+    {
+      "name": "고급 옷감",
+      "kind": "material",
+      "aliases": [],
+      "references": [
+        "D19"
+      ],
+      "status": "ready",
+      "file": "png/고급 옷감.png",
+      "englishName": "Fine Fabric",
+      "sourcePage": "https://mabi.labanyu.com/item/NDEyOTI2/%EA%B3%A0%EA%B8%89%20%EC%98%B7%EA%B0%90",
+      "imageUrl": "https://tacask-cdn.com/mabi-labanyu/item-base-data/thumbnail/item-12926.png",
+      "width": 48,
+      "height": 48,
+      "mode": "RGBA",
+      "sha256": "81d8a196e6487f80cb2b4ee6f8d3080de56a22d6d112e058ac85596a45490991",
+      "bytes": 731
+    },
+    {
+      "name": "양털",
+      "kind": "material",
+      "aliases": [],
+      "references": [
+        "F19.alternate",
+        "N15.alternate",
+        "F33.alternate",
+        "F50.alternate"
+      ],
+      "status": "ready",
+      "file": "png/양털.png",
+      "englishName": "Wool",
+      "sourcePage": "https://mabi.labanyu.com/item/NDEyOTE1/%EC%96%91%ED%84%B8",
+      "imageUrl": "https://tacask-cdn.com/mabi-labanyu/item-base-data/thumbnail/item-12915.png",
+      "width": 48,
+      "height": 48,
+      "mode": "RGBA",
+      "sha256": "0d10de7227f8b1ffd4ed504aaa8e7b54888ab223e542a82d1b7e9a33ce93be7e",
+      "bytes": 1127
+    },
+    {
+      "name": "펫 놀이세트",
+      "kind": "material",
+      "aliases": [
+        "펫 놀이 세트"
+      ],
+      "references": [
+        "D20"
+      ],
+      "status": "ready",
+      "file": "png/펫 놀이세트.png",
+      "englishName": "Pet Playset",
+      "sourcePage": "https://mabi.labanyu.com/item/NDE4MDI0/%ED%8E%AB%20%EB%86%80%EC%9D%B4%EC%84%B8%ED%8A%B8",
+      "imageUrl": "https://tacask-cdn.com/mabi-labanyu/item-base-data/thumbnail/item-18024.png",
+      "width": 48,
+      "height": 24,
+      "mode": "RGBA",
+      "sha256": "e7d31b6a9a233e58929cb7031e45af57c57e614d3e749647daac103ddda01a24",
+      "bytes": 1161
+    },
+    {
+      "name": "펫이 좋아하는 잡동사니",
+      "kind": "material",
+      "aliases": [],
+      "references": [
+        "F20"
+      ],
+      "status": "ready",
+      "file": "png/펫이 좋아하는 잡동사니.png",
+      "englishName": "Pet's Favorite Knickknacks",
+      "sourcePage": "https://mabi.labanyu.com/item/NDE4MDI1/%ED%8E%AB%EC%9D%B4%20%EC%A2%8B%EC%95%84%ED%95%98%EB%8A%94%20%EC%9E%A1%EB%8F%99%EC%82%AC%EB%8B%88",
+      "imageUrl": "https://tacask-cdn.com/mabi-labanyu/item-base-data/thumbnail/item-18025.png",
+      "width": 48,
+      "height": 24,
+      "mode": "RGBA",
+      "sha256": "fd83286a4f55cd89eb72f6a835be8ff79b1a381a2be82ec755040f6eb433b69c",
+      "bytes": 1293
+    },
+    {
+      "name": "나무판",
+      "kind": "material",
+      "aliases": [],
+      "references": [
+        "F21"
+      ],
+      "status": "ready",
+      "file": "png/나무판.png",
+      "englishName": "Wood Board",
+      "sourcePage": "https://mabi.labanyu.com/item/NDEyOTU5/%EB%82%98%EB%AC%B4%ED%8C%90",
+      "imageUrl": "https://tacask-cdn.com/mabi-labanyu/item-base-data/thumbnail/item-12959.png",
+      "width": 24,
+      "height": 24,
+      "mode": "RGBA",
+      "sha256": "759a7fcdf530b97dd4455f18f00cb52f48ff999460ff0e88a8e7477c62226160",
+      "bytes": 412
+    },
+    {
+      "name": "건초 더미",
+      "kind": "material",
+      "aliases": [],
+      "references": [
+        "D22"
+      ],
+      "status": "ready",
+      "file": "png/건초 더미.png",
+      "englishName": "Hay Bale",
+      "sourcePage": "https://mabi.labanyu.com/item/NDE0MjEx/%EA%B1%B4%EC%B4%88%20%EB%8D%94%EB%AF%B8",
+      "imageUrl": "https://tacask-cdn.com/mabi-labanyu/item-base-data/thumbnail/item-14211.png",
+      "width": 48,
+      "height": 48,
+      "mode": "RGBA",
+      "sha256": "74d689d5d0322d8323d5c0984bd1314e9c28d243f1d2e4d244f15228a2d84f6c",
+      "bytes": 2943
+    },
+    {
+      "name": "못쓰게 된 밀 이파리",
+      "kind": "material",
+      "aliases": [],
+      "references": [
+        "F23"
+      ],
+      "status": "ready",
+      "file": "png/못쓰게 된 밀 이파리.png",
+      "englishName": "Wheat Chaff",
+      "sourcePage": "https://mabi.labanyu.com/item/NDE0MjEw/%EB%AA%BB%EC%93%B0%EA%B2%8C%20%EB%90%9C%20%EB%B0%80%20%EC%9D%B4%ED%8C%8C%EB%A6%AC",
+      "imageUrl": "https://tacask-cdn.com/mabi-labanyu/item-base-data/thumbnail/item-14210.png",
+      "width": 24,
+      "height": 72,
+      "mode": "RGBA",
+      "sha256": "cb515f914d0b860bdf28d58c03cfa4b9a15a81ab1723418e2bf7de69486929c7",
+      "bytes": 953
+    },
+    {
+      "name": "마력이 깃든 나무장작",
+      "kind": "material",
+      "aliases": [],
+      "references": [
+        "D24"
+      ],
+      "status": "ready",
+      "file": "png/마력이 깃든 나무장작.png",
+      "englishName": "Enchanted Firewood",
+      "sourcePage": "https://mabi.labanyu.com/item/NDE0NjQ4/%EB%A7%88%EB%A0%A5%EC%9D%B4%20%EA%B9%83%EB%93%A0%20%EB%82%98%EB%AC%B4%EC%9E%A5%EC%9E%91",
+      "imageUrl": "https://tacask-cdn.com/mabi-labanyu/item-base-data/thumbnail/item-14648.png",
+      "width": 24,
+      "height": 48,
+      "mode": "RGBA",
+      "sha256": "2af9cac29065996da413619ed59a15bfb78f447ad2f44b982b8ebc70782d25b9",
+      "bytes": 681
+    },
+    {
+      "name": "중급 나무장작",
+      "kind": "material",
+      "aliases": [],
+      "references": [
+        "F24",
+        "D39",
+        "N34"
+      ],
+      "status": "ready",
+      "file": "png/중급 나무장작.png",
+      "englishName": "Average Firewood",
+      "sourcePage": "https://mabi.labanyu.com/item/NDEzNTA1/%EC%A4%91%EA%B8%89%20%EB%82%98%EB%AC%B4%EC%9E%A5%EC%9E%91",
+      "imageUrl": "https://tacask-cdn.com/mabi-labanyu/item-base-data/thumbnail/item-13505.png",
+      "width": 24,
+      "height": 48,
+      "mode": "RGBA",
+      "sha256": "c3ad2795f779405b2c47f38a29698cf4d79e9a03b1483442d9e885c3aa13357b",
+      "bytes": 665
+    },
+    {
+      "name": "실리엔",
+      "kind": "material",
+      "aliases": [],
+      "references": [
+        "F25",
+        "D31",
+        "F54",
+        "N39",
+        "N41",
+        "N43"
+      ],
+      "status": "ready",
+      "file": "png/실리엔.png",
+      "englishName": "Shyllien",
+      "sourcePage": "https://mabi.labanyu.com/item/NDE0NjQx/%EC%8B%A4%EB%A6%AC%EC%97%94",
+      "imageUrl": "https://tacask-cdn.com/mabi-labanyu/item-base-data/thumbnail/item-14641.png",
+      "width": 24,
+      "height": 24,
+      "mode": "RGBA",
+      "sha256": "08ee775bd1cf45590c0bc8a8c21b2773a0d5365c6cf65cbc6f5d64cfde6591e6",
+      "bytes": 483
+    },
+    {
+      "name": "힐웬",
+      "kind": "material",
+      "aliases": [],
+      "references": [
+        "F26",
+        "F41",
+        "F53",
+        "N40"
+      ],
+      "status": "ready",
+      "file": "png/힐웬.png",
+      "englishName": "Hillwen",
+      "sourcePage": "https://mabi.labanyu.com/item/NDE0NjAw/%ED%9E%90%EC%9B%AC",
+      "imageUrl": "https://tacask-cdn.com/mabi-labanyu/item-base-data/thumbnail/item-14600.png",
+      "width": 48,
+      "height": 24,
+      "mode": "RGBA",
+      "sha256": "98d2c2dff557f9df3b6d32a2e03e1aac5674281f5e8eac096ff22b894011250a",
+      "bytes": 852
+    },
+    {
+      "name": "동판",
+      "kind": "material",
+      "aliases": [],
+      "references": [
+        "L6"
+      ],
+      "status": "ready",
+      "file": "png/동판.png",
+      "englishName": "Copper Plate",
+      "sourcePage": "https://mabi.labanyu.com/item/NDE0MDYw/%EB%8F%99%ED%8C%90",
+      "imageUrl": "https://tacask-cdn.com/mabi-labanyu/item-base-data/thumbnail/item-14060.png",
+      "width": 48,
+      "height": 48,
+      "mode": "RGBA",
+      "sha256": "024d8001fef4f42ea4463abcff222f55877e7bff2a13a803d585065c183d8947",
+      "bytes": 1827
+    },
+    {
+      "name": "동괴",
+      "kind": "material",
+      "aliases": [],
+      "references": [
+        "N6"
+      ],
+      "status": "ready",
+      "file": "png/동괴.png",
+      "englishName": "Copper Ingot",
+      "sourcePage": "https://mabi.labanyu.com/item/NDE0MDM3/%EB%8F%99%EA%B4%B4",
+      "imageUrl": "https://tacask-cdn.com/mabi-labanyu/item-base-data/thumbnail/item-14037.png",
+      "width": 48,
+      "height": 24,
+      "mode": "RGBA",
+      "sha256": "730d8c78158b3dc68062175440d76c579e3bd5f74a6dec89d696240291b6123a",
+      "bytes": 593
+    },
+    {
+      "name": "신비한 허브 가루",
+      "kind": "material",
+      "aliases": [],
+      "references": [
+        "L7"
+      ],
+      "status": "ready",
+      "file": "png/신비한 허브 가루.png",
+      "englishName": "Mysterious Herb Powder",
+      "sourcePage": "https://mabi.labanyu.com/item/NDE0NjQ3/%EC%8B%A0%EB%B9%84%ED%95%9C%20%ED%97%88%EB%B8%8C%20%EA%B0%80%EB%A3%A8",
+      "imageUrl": "https://tacask-cdn.com/mabi-labanyu/item-base-data/thumbnail/item-14647.png",
+      "width": 24,
+      "height": 24,
+      "mode": "RGBA",
+      "sha256": "47391e9e85c4b7df0e85f1ff938fc4cdfbb5920a7bff43f054edc68b85ddd5e7",
+      "bytes": 560
+    },
+    {
+      "name": "블러디 허브",
+      "kind": "material",
+      "aliases": [],
+      "references": [
+        "N7"
+      ],
+      "status": "ready",
+      "file": "png/블러디 허브.png",
+      "englishName": "Bloody Herb",
+      "sourcePage": "https://mabi.labanyu.com/item/NDEwNjMy/%EB%B8%94%EB%9F%AC%EB%94%94%20%ED%97%88%EB%B8%8C",
+      "imageUrl": "https://tacask-cdn.com/mabi-labanyu/item-base-data/thumbnail/item-10632.png",
+      "width": 24,
+      "height": 48,
+      "mode": "RGBA",
+      "sha256": "7b8726acb37587c5b1767f8b4e08cac907998485ee6b602765cb46f6df4d4a74",
+      "bytes": 958
+    },
+    {
+      "name": "마나 허브",
+      "kind": "material",
+      "aliases": [],
+      "references": [
+        "N8",
+        "F35",
+        "F45"
+      ],
+      "status": "ready",
+      "file": "png/마나 허브.png",
+      "englishName": "Mana Herb",
+      "sourcePage": "https://mabi.labanyu.com/item/NDEwNjMz/%EB%A7%88%EB%82%98%20%ED%97%88%EB%B8%8C",
+      "imageUrl": "https://tacask-cdn.com/mabi-labanyu/item-base-data/thumbnail/item-10633.png",
+      "width": 24,
+      "height": 48,
+      "mode": "RGBA",
+      "sha256": "f91e36f6b6b41477abe5d13549616514769ca96a8c3eb6a1360a3e6d625c9b5a",
+      "bytes": 967
+    },
+    {
+      "name": "포이즌 허브",
+      "kind": "material",
+      "aliases": [],
+      "references": [
+        "N9"
+      ],
+      "status": "ready",
+      "file": "png/포이즌 허브.png",
+      "englishName": "Poison Herb",
+      "sourcePage": "https://mabi.labanyu.com/item/NDEwNjQw/%ED%8F%AC%EC%9D%B4%EC%A6%8C%20%ED%97%88%EB%B8%8C",
+      "imageUrl": "https://tacask-cdn.com/mabi-labanyu/item-base-data/thumbnail/item-10640.png",
+      "width": 24,
+      "height": 48,
+      "mode": "RGBA",
+      "sha256": "ff386408eba22b378946e9e90f843ef4923f658f6da5bd512be5f60cde8044e9",
+      "bytes": 829
+    },
+    {
+      "name": "미스릴판",
+      "kind": "material",
+      "aliases": [],
+      "references": [
+        "L10"
+      ],
+      "status": "ready",
+      "file": "png/미스릴판.png",
+      "englishName": "Mythril Plate",
+      "sourcePage": "https://mabi.labanyu.com/item/NDE0MDYz/%EB%AF%B8%EC%8A%A4%EB%A6%B4%ED%8C%90",
+      "imageUrl": "https://tacask-cdn.com/mabi-labanyu/item-base-data/thumbnail/item-14063.png",
+      "width": 48,
+      "height": 48,
+      "mode": "RGBA",
+      "sha256": "aa2cd314f4ef1c335ec2062d90c6657cdfde2448b42fb66e13313da1ed1ef2a9",
+      "bytes": 1760
+    },
+    {
+      "name": "미스릴괴",
+      "kind": "material",
+      "aliases": [],
+      "references": [
+        "N10",
+        "N52"
+      ],
+      "status": "ready",
+      "file": "png/미스릴괴.png",
+      "englishName": "Mythril Ingot",
+      "sourcePage": "https://mabi.labanyu.com/item/NDE0MDQz/%EB%AF%B8%EC%8A%A4%EB%A6%B4%EA%B4%B4",
+      "imageUrl": "https://tacask-cdn.com/mabi-labanyu/item-base-data/thumbnail/item-14043.png",
+      "width": 48,
+      "height": 24,
+      "mode": "RGBA",
+      "sha256": "c326806ee531d475966541e37b0160cc691fb09d153aba495f918f92cf05551a",
+      "bytes": 517
+    },
+    {
+      "name": "보릿가루",
+      "kind": "material",
+      "aliases": [],
+      "references": [
+        "L11"
+      ],
+      "status": "ready",
+      "file": "png/보릿가루.png",
+      "englishName": "Barley Flour",
+      "sourcePage": "https://mabi.labanyu.com/item/NDA5NTky/%EB%B3%B4%EB%A6%BF%EA%B0%80%EB%A3%A8",
+      "imageUrl": "https://tacask-cdn.com/mabi-labanyu/item-base-data/thumbnail/item-9592.png",
+      "width": 48,
+      "height": 48,
+      "mode": "RGBA",
+      "sha256": "3ea73c9a50890288fb280e1ee674b2da04e20c7534cfc08308c1858fdde9beb5",
+      "bytes": 1370
+    },
+    {
+      "name": "보리",
+      "kind": "material",
+      "aliases": [],
+      "references": [
+        "N11"
+      ],
+      "status": "ready",
+      "file": "png/보리.png",
+      "englishName": "Barley",
+      "sourcePage": "https://mabi.labanyu.com/item/NDExMDM4/%EB%B3%B4%EB%A6%AC",
+      "imageUrl": "https://tacask-cdn.com/mabi-labanyu/item-base-data/thumbnail/item-11038.png",
+      "width": 24,
+      "height": 72,
+      "mode": "RGBA",
+      "sha256": "cfcc10c73493e2cdd5963b5374e8136cbb6a6cbbd4eba6fcd312e0f820d61362",
+      "bytes": 799
+    },
+    {
+      "name": "금판",
+      "kind": "material",
+      "aliases": [],
+      "references": [
+        "L12"
+      ],
+      "status": "ready",
+      "file": "png/금판.png",
+      "englishName": "Gold Plate",
+      "sourcePage": "https://mabi.labanyu.com/item/NDE0MDYy/%EA%B8%88%ED%8C%90",
+      "imageUrl": "https://tacask-cdn.com/mabi-labanyu/item-base-data/thumbnail/item-14062.png",
+      "width": 48,
+      "height": 48,
+      "mode": "RGBA",
+      "sha256": "6aa048ec1c2faa64c309bf1267fddee827748a910343d12de61a1c5787dadf6e",
+      "bytes": 1569
+    },
+    {
+      "name": "금괴",
+      "kind": "material",
+      "aliases": [],
+      "references": [
+        "N12"
+      ],
+      "status": "ready",
+      "file": "png/금괴.png",
+      "englishName": "Gold Ingot",
+      "sourcePage": "https://mabi.labanyu.com/item/NDE0MDQx/%EA%B8%88%EA%B4%B4",
+      "imageUrl": "https://tacask-cdn.com/mabi-labanyu/item-base-data/thumbnail/item-14041.png",
+      "width": 48,
+      "height": 24,
+      "mode": "RGBA",
+      "sha256": "bc99992a88fd253420c0f7fa695a9a1827a1fb72f622e1d6ec232fef83ed4451",
+      "bytes": 555
+    },
+    {
+      "name": "마리오네트 500 포션",
+      "kind": "material",
+      "aliases": [],
+      "references": [
+        "L13",
+        "L13.purchase"
+      ],
+      "status": "ready",
+      "file": "png/마리오네트 500 포션.png",
+      "englishName": "Marionette 500 Potion",
+      "sourcePage": "https://mabi.labanyu.com/item/NDEwNzIy/%EB%A7%88%EB%A6%AC%EC%98%A4%EB%84%A4%ED%8A%B8%20500%20%ED%8F%AC%EC%85%98",
+      "imageUrl": "https://tacask-cdn.com/mabi-labanyu/item-base-data/thumbnail/item-10722.png",
+      "width": 24,
+      "height": 24,
+      "mode": "RGBA",
+      "sha256": "5287bf786f7fc3ca9e2939a4b552a555032466fad004bf54bad9171dda9f393e",
+      "bytes": 952
+    },
+    {
+      "name": "최고급 옷감",
+      "kind": "material",
+      "aliases": [],
+      "references": [
+        "L15"
+      ],
+      "status": "ready",
+      "file": "png/최고급 옷감.png",
+      "englishName": "Finest Fabric",
+      "sourcePage": "https://mabi.labanyu.com/item/NDEyOTI3/%EC%B5%9C%EA%B3%A0%EA%B8%89%20%EC%98%B7%EA%B0%90",
+      "imageUrl": "https://tacask-cdn.com/mabi-labanyu/item-base-data/thumbnail/item-12927.png",
+      "width": 48,
+      "height": 48,
+      "mode": "RGBA",
+      "sha256": "81d8a196e6487f80cb2b4ee6f8d3080de56a22d6d112e058ac85596a45490991",
+      "bytes": 731
+    },
+    {
+      "name": "생명력 500 포션",
+      "kind": "material",
+      "aliases": [],
+      "references": [
+        "L16",
+        "L16.purchase"
+      ],
+      "status": "ready",
+      "file": "png/생명력 500 포션.png",
+      "englishName": "HP 500 Potion",
+      "sourcePage": "https://mabi.labanyu.com/item/NDEwNzAw/%EC%83%9D%EB%AA%85%EB%A0%A5%20500%20%ED%8F%AC%EC%85%98",
+      "imageUrl": "https://tacask-cdn.com/mabi-labanyu/item-base-data/thumbnail/item-10700.png",
+      "width": 24,
+      "height": 24,
+      "mode": "RGBA",
+      "sha256": "4b79b971b330dff0437c3e3d7863b706f44bf0c730277e080a7707b57669d1ed",
+      "bytes": 745
+    },
+    {
+      "name": "빤짝이 종이",
+      "kind": "material",
+      "aliases": [],
+      "references": [
+        "L19"
+      ],
+      "status": "ready",
+      "file": "png/빤짝이 종이.png",
+      "englishName": "Glittering Paper",
+      "sourcePage": "https://mabi.labanyu.com/item/NDE0MDg1/%EB%B9%A4%EC%A7%9D%EC%9D%B4%20%EC%A2%85%EC%9D%B4",
+      "imageUrl": "https://tacask-cdn.com/mabi-labanyu/item-base-data/thumbnail/item-14085.png",
+      "width": 48,
+      "height": 48,
+      "mode": "RGBA",
+      "sha256": "02afbeaa7601fa63bcb042cdcb057ce73eed14b7f76257e59f23599e53c1bd9f",
+      "bytes": 1150
+    },
+    {
+      "name": "종이",
+      "kind": "material",
+      "aliases": [],
+      "references": [
+        "N19"
+      ],
+      "status": "ready",
+      "file": "png/종이.png",
+      "englishName": "Paper",
+      "sourcePage": "https://mabi.labanyu.com/item/NDE0MDUy/%EC%A2%85%EC%9D%B4",
+      "imageUrl": "https://tacask-cdn.com/mabi-labanyu/item-base-data/thumbnail/item-14052.png",
+      "width": 48,
+      "height": 48,
+      "mode": "RGBA",
+      "sha256": "5ccf04b6c3f1656d382f34ed5f528cd2c597217fc1e7efdc89b5e2c44e512a3d",
+      "bytes": 684
+    },
+    {
+      "name": "작은 빨간구슬",
+      "kind": "material",
+      "aliases": [],
+      "references": [
+        "N20.1"
+      ],
+      "status": "ready",
+      "file": "png/작은 빨간구슬.png",
+      "englishName": "Small Red Gem",
+      "sourcePage": "https://mabi.labanyu.com/item/NDExMDE2/%EC%9E%91%EC%9D%80%20%EB%B9%A8%EA%B0%84%EA%B5%AC%EC%8A%AC",
+      "imageUrl": "https://tacask-cdn.com/mabi-labanyu/item-base-data/thumbnail/item-11016.png",
+      "width": 24,
+      "height": 24,
+      "mode": "RGBA",
+      "sha256": "5857b8633d31f968cc9da8f24c0ad6081356a204761c59f79dc226fee1d1b5db",
+      "bytes": 308
+    },
+    {
+      "name": "작은 녹색구슬",
+      "kind": "material",
+      "aliases": [],
+      "references": [
+        "N20.2"
+      ],
+      "status": "ready",
+      "file": "png/작은 녹색구슬.png",
+      "englishName": "Small Green Gem",
+      "sourcePage": "https://mabi.labanyu.com/item/NDExMDE0/%EC%9E%91%EC%9D%80%20%EB%85%B9%EC%83%89%EA%B5%AC%EC%8A%AC",
+      "imageUrl": "https://tacask-cdn.com/mabi-labanyu/item-base-data/thumbnail/item-11014.png",
+      "width": 24,
+      "height": 24,
+      "mode": "RGBA",
+      "sha256": "1e6d1b8561053c4e6e56a1d4dd755a73bca31ea8a73e71b1b4f6dc3af035c05e",
+      "bytes": 296
+    },
+    {
+      "name": "작은 은색구슬",
+      "kind": "material",
+      "aliases": [],
+      "references": [
+        "N20.3"
+      ],
+      "status": "ready",
+      "file": "png/작은 은색구슬.png",
+      "englishName": "Small Silver Gem",
+      "sourcePage": "https://mabi.labanyu.com/item/NDExMDE3/%EC%9E%91%EC%9D%80%20%EC%9D%80%EC%83%89%EA%B5%AC%EC%8A%AC",
+      "imageUrl": "https://tacask-cdn.com/mabi-labanyu/item-base-data/thumbnail/item-11017.png",
+      "width": 24,
+      "height": 24,
+      "mode": "RGBA",
+      "sha256": "ddf75b139e4359cea5316017e59fe150688383972bfb19e26d55bb6a0ab0a132",
+      "bytes": 304
+    },
+    {
+      "name": "작은 파란구슬",
+      "kind": "material",
+      "aliases": [],
+      "references": [
+        "N20.4"
+      ],
+      "status": "ready",
+      "file": "png/작은 파란구슬.png",
+      "englishName": "Small Blue Gem",
+      "sourcePage": "https://mabi.labanyu.com/item/NDExMDE1/%EC%9E%91%EC%9D%80%20%ED%8C%8C%EB%9E%80%EA%B5%AC%EC%8A%AC",
+      "imageUrl": "https://tacask-cdn.com/mabi-labanyu/item-base-data/thumbnail/item-11015.png",
+      "width": 24,
+      "height": 24,
+      "mode": "RGBA",
+      "sha256": "a41ea183839df161b41a164602a7432f8fb5ab79fab1815c1ca839ba5439e9d1",
+      "bytes": 304
+    },
+    {
+      "name": "뮤턴트",
+      "kind": "material",
+      "aliases": [],
+      "references": [
+        "L21"
+      ],
+      "status": "ready",
+      "file": "png/뮤턴트.png",
+      "englishName": "Mutant",
+      "sourcePage": "https://mabi.labanyu.com/item/NDE0NjUz/%EB%AE%A4%ED%84%B4%ED%8A%B8",
+      "imageUrl": "https://tacask-cdn.com/mabi-labanyu/item-base-data/thumbnail/item-14653.png",
+      "width": 48,
+      "height": 48,
+      "mode": "RGBA",
+      "sha256": "5dd48df250edf245d3b34452dab218b4da1e2b0eca025a46792f584209e21ee4",
+      "bytes": 1499
+    },
+    {
+      "name": "돌연변이 토끼의 발",
+      "kind": "material",
+      "aliases": [],
+      "references": [
+        "N21",
+        "N38"
+      ],
+      "status": "ready",
+      "file": "png/돌연변이 토끼의 발.png",
+      "englishName": "Mutant Rabbit Foot",
+      "sourcePage": "https://mabi.labanyu.com/item/NDE0NjQy/%EB%8F%8C%EC%97%B0%EB%B3%80%EC%9D%B4%20%ED%86%A0%EB%81%BC%EC%9D%98%20%EB%B0%9C",
+      "imageUrl": "https://tacask-cdn.com/mabi-labanyu/item-base-data/thumbnail/item-14642.png",
+      "width": 24,
+      "height": 24,
+      "mode": "RGBA",
+      "sha256": "9ca1acc2f80d75ef4df117bd8dd22113761773a30a178d1bf74db3bdfbad47e3",
+      "bytes": 492
+    },
+    {
+      "name": "돌연변이 식물의 점액질",
+      "kind": "material",
+      "aliases": [
+        "돌연변이 식물의 점액"
+      ],
+      "references": [
+        "N22",
+        "N42"
+      ],
+      "status": "ready",
+      "file": "png/돌연변이 식물의 점액질.png",
+      "englishName": "Mutant Plant Mucilage",
+      "sourcePage": "https://mabi.labanyu.com/item/NDE0NjQz/%EB%8F%8C%EC%97%B0%EB%B3%80%EC%9D%B4%20%EC%8B%9D%EB%AC%BC%EC%9D%98%20%EC%A0%90%EC%95%A1%EC%A7%88",
+      "imageUrl": "https://tacask-cdn.com/mabi-labanyu/item-base-data/thumbnail/item-14643.png",
+      "width": 24,
+      "height": 24,
+      "mode": "RGBA",
+      "sha256": "dfd82db9bb0a14a07eafc77ba4c7ef8803f0ec68082228787c5773abd057c22c",
+      "bytes": 667
+    },
+    {
+      "name": "사스콰치의 심장",
+      "kind": "material",
+      "aliases": [],
+      "references": [
+        "N23"
+      ],
+      "status": "ready",
+      "file": "png/사스콰치의 심장.png",
+      "englishName": "Sasquatch Heart",
+      "sourcePage": "https://mabi.labanyu.com/item/NDE0NjQ0/%EC%82%AC%EC%8A%A4%EC%BD%B0%EC%B9%98%EC%9D%98%20%EC%8B%AC%EC%9E%A5",
+      "imageUrl": "https://tacask-cdn.com/mabi-labanyu/item-base-data/thumbnail/item-14644.png",
+      "width": 24,
+      "height": 24,
+      "mode": "RGBA",
+      "sha256": "9c581e5a686f366645c4c9168294df53b2bf6be929a9ac57e360331af51420f9",
+      "bytes": 627
+    },
+    {
+      "name": "특급 나무장작",
+      "kind": "material",
+      "aliases": [],
+      "references": [
+        "L24"
+      ],
+      "status": "ready",
+      "file": "png/특급 나무장작.png",
+      "englishName": "Special Firewood",
+      "sourcePage": "https://mabi.labanyu.com/item/NDEzNjMy/%ED%8A%B9%EA%B8%89%20%EB%82%98%EB%AC%B4%EC%9E%A5%EC%9E%91",
+      "imageUrl": "https://tacask-cdn.com/mabi-labanyu/item-base-data/thumbnail/item-13632.png",
+      "width": 24,
+      "height": 48,
+      "mode": "RGBA",
+      "sha256": "e2355cb5061e0bf4bbb26109ef5adb10de3926fef95aec9c68a1cc984c00146e",
+      "bytes": 659
+    },
+    {
+      "name": "최고급 나무장작",
+      "kind": "material",
+      "aliases": [],
+      "references": [
+        "N24",
+        "L56"
+      ],
+      "status": "ready",
+      "file": "png/최고급 나무장작.png",
+      "englishName": "Finest Firewood",
+      "sourcePage": "https://mabi.labanyu.com/item/NDEzNTA3/%EC%B5%9C%EA%B3%A0%EA%B8%89%20%EB%82%98%EB%AC%B4%EC%9E%A5%EC%9E%91",
+      "imageUrl": "https://tacask-cdn.com/mabi-labanyu/item-base-data/thumbnail/item-13507.png",
+      "width": 24,
+      "height": 48,
+      "mode": "RGBA",
+      "sha256": "ec718d67b2127cc5e7cf9f274354e18d9fd7553b6a5d3b7628f2d2121559de94",
+      "bytes": 546
+    },
+    {
+      "name": "순도 높은 강화제",
+      "kind": "material",
+      "aliases": [],
+      "references": [
+        "N25"
+      ],
+      "status": "ready",
+      "file": "png/순도 높은 강화제.png",
+      "englishName": "Purified Enhancer",
+      "sourcePage": "https://mabi.labanyu.com/item/NDE0Mzcw/%EC%88%9C%EB%8F%84%20%EB%86%92%EC%9D%80%20%EA%B0%95%ED%99%94%EC%A0%9C",
+      "imageUrl": "https://tacask-cdn.com/mabi-labanyu/item-base-data/thumbnail/item-14370.png",
+      "width": 24,
+      "height": 24,
+      "mode": "RGBA",
+      "sha256": "168d566144625c39e83b037049096328e72e9a99106c422425c45a8f5e69e479",
+      "bytes": 703
+    },
+    {
+      "name": "조화의 코스모스 퍼퓸",
+      "kind": "material",
+      "aliases": [],
+      "references": [
+        "L26"
+      ],
+      "status": "ready",
+      "file": "png/조화의 코스모스 퍼퓸.png",
+      "englishName": "Harmonious Cosmos Perfume",
+      "sourcePage": "https://mabi.labanyu.com/item/NDE0MTc4/%EC%A1%B0%ED%99%94%EC%9D%98%20%EC%BD%94%EC%8A%A4%EB%AA%A8%EC%8A%A4%20%ED%8D%BC%ED%93%B8",
+      "imageUrl": "https://tacask-cdn.com/mabi-labanyu/item-base-data/thumbnail/item-14178.png",
+      "width": 48,
+      "height": 48,
+      "mode": "RGBA",
+      "sha256": "6c83ff366913267a276f68f46c9f55857cf52e33e42f43972a3361bb5f30b73c",
+      "bytes": 2277
+    },
+    {
+      "name": "코스모스 추출액",
+      "kind": "material",
+      "aliases": [],
+      "references": [
+        "N26"
+      ],
+      "status": "ready",
+      "file": "png/코스모스 추출액.png",
+      "englishName": "Cosmos Extract",
+      "sourcePage": "https://mabi.labanyu.com/item/NDIzMjkx/%EC%BD%94%EC%8A%A4%EB%AA%A8%EC%8A%A4%20%EC%B6%94%EC%B6%9C%EC%95%A1",
+      "imageUrl": "https://tacask-cdn.com/mabi-labanyu/item-base-data/thumbnail/item-23291.png",
+      "width": 24,
+      "height": 48,
+      "mode": "RGBA",
+      "sha256": "81c5bb19523a148537bca1df533ec02c042ba68b8d43329548bc8ee90d1ca55f",
+      "bytes": 844
+    },
+    {
+      "name": "빈 병",
+      "kind": "material",
+      "aliases": [],
+      "references": [
+        "N27"
+      ],
+      "status": "ready",
+      "file": "png/빈 병.png",
+      "englishName": "Empty Bottle",
+      "sourcePage": "https://mabi.labanyu.com/item/NDEzMzE1/%EB%B9%88%20%EB%B3%91",
+      "imageUrl": "https://tacask-cdn.com/mabi-labanyu/item-base-data/thumbnail/item-13315.png",
+      "width": 24,
+      "height": 48,
+      "mode": "RGBA",
+      "sha256": "f4e0798847549b7d77eef082c3ec467c1dfb8916bf9e6c6cfc4242ab0c1f7f7f",
+      "bytes": 677
+    },
+    {
+      "name": "마법가루",
+      "kind": "material",
+      "aliases": [],
+      "references": [
+        "N28"
+      ],
+      "status": "ready",
+      "file": "png/마법가루.png",
+      "englishName": "Magic Powder",
+      "sourcePage": "https://mabi.labanyu.com/item/NDEzMjM5/%EB%A7%88%EB%B2%95%EA%B0%80%EB%A3%A8",
+      "imageUrl": "https://tacask-cdn.com/mabi-labanyu/item-base-data/thumbnail/item-13239.png",
+      "width": 48,
+      "height": 48,
+      "mode": "RGBA",
+      "sha256": "a77f0955b115cd89fcda79c13b8c917657587392c9a897e07f5ffe59a7a64b50",
+      "bytes": 1419
+    },
+    {
+      "name": "베이스 허브",
+      "kind": "material",
+      "aliases": [],
+      "references": [
+        "N29"
+      ],
+      "status": "ready",
+      "file": "png/베이스 허브.png",
+      "englishName": "Base Herb",
+      "sourcePage": "https://mabi.labanyu.com/item/NDEwNjM1/%EB%B2%A0%EC%9D%B4%EC%8A%A4%20%ED%97%88%EB%B8%8C",
+      "imageUrl": "https://tacask-cdn.com/mabi-labanyu/item-base-data/thumbnail/item-10635.png",
+      "width": 24,
+      "height": 48,
+      "mode": "RGBA",
+      "sha256": "047db45daf081d71964717b07e839c4c7d370f7384a9ea37155b394f626691ec",
+      "bytes": 956
+    },
+    {
+      "name": "실리엔 결정",
+      "kind": "material",
+      "aliases": [],
+      "references": [
+        "F31"
+      ],
+      "status": "ready",
+      "file": "png/실리엔 결정.png",
+      "englishName": "Shyllien Crystal",
+      "sourcePage": "https://mabi.labanyu.com/item/NDE0NjQw/%EC%8B%A4%EB%A6%AC%EC%97%94%20%EA%B2%B0%EC%A0%95",
+      "imageUrl": "https://tacask-cdn.com/mabi-labanyu/item-base-data/thumbnail/item-14640.png",
+      "width": 24,
+      "height": 24,
+      "mode": "RGBA",
+      "sha256": "8c76bb815887d21effcb451d231631c84f2ab569fa3c7b097dc63c588c864242",
+      "bytes": 421
+    },
+    {
+      "name": "새우 조련 미끼",
+      "kind": "material",
+      "aliases": [],
+      "references": [
+        "D32"
+      ],
+      "status": "ready",
+      "file": "png/새우 조련 미끼.png",
+      "englishName": "Shrimp Taming Bait",
+      "sourcePage": "https://mabi.labanyu.com/item/NDEwMjI2/%EC%83%88%EC%9A%B0%20%EC%A1%B0%EB%A0%A8%20%EB%AF%B8%EB%81%BC",
+      "imageUrl": "https://tacask-cdn.com/mabi-labanyu/item-base-data/thumbnail/item-10226.png",
+      "width": 24,
+      "height": 24,
+      "mode": "RGBA",
+      "sha256": "c7aef3aab17ac79992b490f97da708628ee56f22471d45164e1013afcb7f7004",
+      "bytes": 534
+    },
+    {
+      "name": "새우",
+      "kind": "material",
+      "aliases": [],
+      "references": [
+        "F32.1"
+      ],
+      "status": "ready",
+      "file": "png/새우.png",
+      "englishName": "Shrimp",
+      "sourcePage": "https://mabi.labanyu.com/item/NDA5Njk1/%EC%83%88%EC%9A%B0",
+      "imageUrl": "https://tacask-cdn.com/mabi-labanyu/item-base-data/thumbnail/item-9695.png",
+      "width": 24,
+      "height": 24,
+      "mode": "RGBA",
+      "sha256": "87bb53eeb18896d12c0609f960a220c749c5420bd0457ceaf99abd26e146ecdd",
+      "bytes": 819
+    },
+    {
+      "name": "설탕",
+      "kind": "material",
+      "aliases": [],
+      "references": [
+        "F32.2"
+      ],
+      "status": "ready",
+      "file": "png/설탕.png",
+      "englishName": "Sugar",
+      "sourcePage": "https://mabi.labanyu.com/item/NDA5Njk5/%EC%84%A4%ED%83%95",
+      "imageUrl": "https://tacask-cdn.com/mabi-labanyu/item-base-data/thumbnail/item-9699.png",
+      "width": 24,
+      "height": 24,
+      "mode": "RGBA",
+      "sha256": "a9d292e8296dcff0b325328f6b1e6ee83377b1299e2f674bd894fcb0b9edc503",
+      "bytes": 481
+    },
+    {
+      "name": "마늘",
+      "kind": "material",
+      "aliases": [],
+      "references": [
+        "F32.3"
+      ],
+      "status": "ready",
+      "file": "png/마늘.png",
+      "englishName": "Garlic",
+      "sourcePage": "https://mabi.labanyu.com/item/NDA5Njgz/%EB%A7%88%EB%8A%98",
+      "imageUrl": "https://tacask-cdn.com/mabi-labanyu/item-base-data/thumbnail/item-9683.png",
+      "width": 24,
+      "height": 24,
+      "mode": "RGBA",
+      "sha256": "33da87bed48036d779964892c9e885de3f10eb63b141ab87824ec1897c9e7bbe",
+      "bytes": 619
+    },
+    {
+      "name": "질긴 끈",
+      "kind": "material",
+      "aliases": [],
+      "references": [
+        "D33"
+      ],
+      "status": "ready",
+      "file": "png/질긴 끈.png",
+      "englishName": "Tough String",
+      "sourcePage": "https://mabi.labanyu.com/item/NDEyOTU2/%EC%A7%88%EA%B8%B4%20%EB%81%88",
+      "imageUrl": "https://tacask-cdn.com/mabi-labanyu/item-base-data/thumbnail/item-12956.png",
+      "width": 24,
+      "height": 24,
+      "mode": "RGBA",
+      "sha256": "955e790dde0582bc52985055f9de60b9e8f8c1f042230fa83056301ab791ffb5",
+      "bytes": 652
+    },
+    {
+      "name": "마법의 양피지",
+      "kind": "material",
+      "aliases": [],
+      "references": [
+        "D34"
+      ],
+      "status": "ready",
+      "file": "png/마법의 양피지.png",
+      "englishName": "Magic Parchment",
+      "sourcePage": "https://mabi.labanyu.com/item/NDMxNjQy/%EB%A7%88%EB%B2%95%EC%9D%98%20%EC%96%91%ED%94%BC%EC%A7%80",
+      "imageUrl": "https://tacask-cdn.com/mabi-labanyu/item-base-data/thumbnail/item-31642.png",
+      "width": 24,
+      "height": 24,
+      "mode": "RGBA",
+      "sha256": "c91833ddc2eba4f53e586de899c261bad0dc8de163e95328bc0fd053ad823412",
+      "bytes": 575
+    },
+    {
+      "name": "부드러운 양피지",
+      "kind": "material",
+      "aliases": [],
+      "references": [
+        "F34"
+      ],
+      "status": "ready",
+      "file": "png/부드러운 양피지.png",
+      "englishName": "Soft Parchment",
+      "sourcePage": "https://mabi.labanyu.com/item/NDMxNjQ0/%EB%B6%80%EB%93%9C%EB%9F%AC%EC%9A%B4%20%EC%96%91%ED%94%BC%EC%A7%80",
+      "imageUrl": "https://tacask-cdn.com/mabi-labanyu/item-base-data/thumbnail/item-31644.png",
+      "width": 24,
+      "height": 24,
+      "mode": "RGBA",
+      "sha256": "094fa4c7695c30a9384b2e93939f4bcf756aa373661353038c67a055b61cb2e9",
+      "bytes": 645
+    },
+    {
+      "name": "선라이트 허브",
+      "kind": "material",
+      "aliases": [],
+      "references": [
+        "F36"
+      ],
+      "status": "ready",
+      "file": "png/선라이트 허브.png",
+      "englishName": "Sunlight Herb",
+      "sourcePage": "https://mabi.labanyu.com/item/NDEwNjM0/%EC%84%A0%EB%9D%BC%EC%9D%B4%ED%8A%B8%20%ED%97%88%EB%B8%8C",
+      "imageUrl": "https://tacask-cdn.com/mabi-labanyu/item-base-data/thumbnail/item-10634.png",
+      "width": 24,
+      "height": 48,
+      "mode": "RGBA",
+      "sha256": "524dd0d557f225419f535634b73444149a13486b203371cf6a014ca18be7931f",
+      "bytes": 899
+    },
+    {
+      "name": "밀가루",
+      "kind": "material",
+      "aliases": [],
+      "references": [
+        "D37"
+      ],
+      "status": "ready",
+      "file": "png/밀가루.png",
+      "englishName": "Wheat Flour",
+      "sourcePage": "https://mabi.labanyu.com/item/NDA5NTkx/%EB%B0%80%EA%B0%80%EB%A3%A8",
+      "imageUrl": "https://tacask-cdn.com/mabi-labanyu/item-base-data/thumbnail/item-9591.png",
+      "width": 48,
+      "height": 48,
+      "mode": "RGBA",
+      "sha256": "7f10dcca87fc905bd3705e254e62e45bd4cc0471631df431e1a01d222eca7751",
+      "bytes": 1402
+    },
+    {
+      "name": "밀",
+      "kind": "material",
+      "aliases": [],
+      "references": [
+        "F37"
+      ],
+      "status": "ready",
+      "file": "png/밀.png",
+      "englishName": "Wheat",
+      "sourcePage": "https://mabi.labanyu.com/item/NDExMDM3/%EB%B0%80",
+      "imageUrl": "https://tacask-cdn.com/mabi-labanyu/item-base-data/thumbnail/item-11037.png",
+      "width": 24,
+      "height": 72,
+      "mode": "RGBA",
+      "sha256": "047903b0db49d50a70cf9b6ac44c41dcd3864f870297c165ff9118fba7ba91e8",
+      "bytes": 863
+    },
+    {
+      "name": "힐웬 합금",
+      "kind": "material",
+      "aliases": [],
+      "references": [
+        "D38"
+      ],
+      "status": "ready",
+      "file": "png/힐웬 합금.png",
+      "englishName": "Hillwen Alloy",
+      "sourcePage": "https://mabi.labanyu.com/item/NDE0NjA5/%ED%9E%90%EC%9B%AC%20%ED%95%A9%EA%B8%88",
+      "imageUrl": "https://tacask-cdn.com/mabi-labanyu/item-base-data/thumbnail/item-14609.png",
+      "width": 48,
+      "height": 24,
+      "mode": "RGBA",
+      "sha256": "727c7e342c3f9285f4806c136468a0c6b6abc45e3931a4846065cbb8fab1fc05",
+      "bytes": 677
+    },
+    {
+      "name": "무른 힐웬 광석 조각",
+      "kind": "material",
+      "aliases": [],
+      "references": [
+        "F38"
+      ],
+      "status": "ready",
+      "file": "png/무른 힐웬 광석 조각.png",
+      "englishName": "Soft Hillwen Ore Fragment",
+      "sourcePage": "https://mabi.labanyu.com/item/NDIzMzA0/%EB%AC%B4%EB%A5%B8%20%ED%9E%90%EC%9B%AC%20%EA%B4%91%EC%84%9D%20%EC%A1%B0%EA%B0%81",
+      "imageUrl": "https://tacask-cdn.com/mabi-labanyu/item-base-data/thumbnail/item-23304.png",
+      "width": 24,
+      "height": 24,
+      "mode": "RGBA",
+      "sha256": "3f217795a4896b09cdde995f99f8218df187b44b6d7a516cce3369da24455cc2",
+      "bytes": 647
+    },
+    {
+      "name": "나무장작",
+      "kind": "material",
+      "aliases": [],
+      "references": [
+        "F39",
+        "N34.alternate",
+        "N53",
+        "N56.alternate"
+      ],
+      "status": "ready",
+      "file": "png/나무장작.png",
+      "englishName": "Firewood",
+      "sourcePage": "https://mabi.labanyu.com/item/NDEzMjk4/%EB%82%98%EB%AC%B4%EC%9E%A5%EC%9E%91",
+      "imageUrl": "https://tacask-cdn.com/mabi-labanyu/item-base-data/thumbnail/item-13298.png",
+      "width": 24,
+      "height": 72,
+      "mode": "RGBA",
+      "sha256": "7e9cc193fd62e7497ec8ddaed33c06fb7a94b17160bfdbf0d42d103888a54d17",
+      "bytes": 876
+    },
+    {
+      "name": "고급 실크",
+      "kind": "material",
+      "aliases": [],
+      "references": [
+        "D40"
+      ],
+      "status": "ready",
+      "file": "png/고급 실크.png",
+      "englishName": "Fine Silk",
+      "sourcePage": "https://mabi.labanyu.com/item/NDEyOTE4/%EA%B3%A0%EA%B8%89%20%EC%8B%A4%ED%81%AC",
+      "imageUrl": "https://tacask-cdn.com/mabi-labanyu/item-base-data/thumbnail/item-12918.png",
+      "width": 48,
+      "height": 48,
+      "mode": "RGBA",
+      "sha256": "995ed66cd74799e02ff0e258ae56465e6447be1016a04ba3c5a460ed063aa8ae",
+      "bytes": 1004
+    },
+    {
+      "name": "스핀 기어",
+      "kind": "material",
+      "aliases": [],
+      "references": [
+        "D41"
+      ],
+      "status": "ready",
+      "file": "png/스핀 기어.png",
+      "englishName": "Spin Gear",
+      "sourcePage": "https://mabi.labanyu.com/item/NDE0NjEw/%EC%8A%A4%ED%95%80%20%EA%B8%B0%EC%96%B4",
+      "imageUrl": "https://tacask-cdn.com/mabi-labanyu/item-base-data/thumbnail/item-14610.png",
+      "width": 24,
+      "height": 24,
+      "mode": "RGBA",
+      "sha256": "58ffdac2f4b485ea34775e137cb57acf83308e47f2e0370e577b5ef9328c153f",
+      "bytes": 547
+    },
+    {
+      "name": "육각 볼트",
+      "kind": "material",
+      "aliases": [],
+      "references": [
+        "F42"
+      ],
+      "status": "ready",
+      "file": "png/육각 볼트.png",
+      "englishName": "Hexagonal Bolt",
+      "sourcePage": "https://mabi.labanyu.com/item/NDE0NjAx/%EC%9C%A1%EA%B0%81%20%EB%B3%BC%ED%8A%B8",
+      "imageUrl": "https://tacask-cdn.com/mabi-labanyu/item-base-data/thumbnail/item-14601.png",
+      "width": 24,
+      "height": 24,
+      "mode": "RGBA",
+      "sha256": "a1f22a0156da682a72bcdbe184cfd302256ddc0131231ec20766ab9c83446adb",
+      "bytes": 491
+    },
+    {
+      "name": "육각 너트",
+      "kind": "material",
+      "aliases": [],
+      "references": [
+        "F43"
+      ],
+      "status": "ready",
+      "file": "png/육각 너트.png",
+      "englishName": "Hexagonal Nut",
+      "sourcePage": "https://mabi.labanyu.com/item/NDE0NjAy/%EC%9C%A1%EA%B0%81%20%EB%84%88%ED%8A%B8",
+      "imageUrl": "https://tacask-cdn.com/mabi-labanyu/item-base-data/thumbnail/item-14602.png",
+      "width": 24,
+      "height": 24,
+      "mode": "RGBA",
+      "sha256": "4957dc6e504a40afe852db588f9db8ca262aa58db0de4d09ac35fda4374e85ae",
+      "bytes": 446
+    },
+    {
+      "name": "마법의 깃털펜",
+      "kind": "material",
+      "aliases": [],
+      "references": [
+        "D44"
+      ],
+      "status": "ready",
+      "file": "png/마법의 깃털펜.png",
+      "englishName": "Magic Quill Pen",
+      "sourcePage": "https://mabi.labanyu.com/item/NDMxNjQx/%EB%A7%88%EB%B2%95%EC%9D%98%20%EA%B9%83%ED%84%B8%ED%8E%9C",
+      "imageUrl": "https://tacask-cdn.com/mabi-labanyu/item-base-data/thumbnail/item-31641.png",
+      "width": 24,
+      "height": 48,
+      "mode": "RGBA",
+      "sha256": "e6c45a202e4ecf2ab59e20737cdbd86f7e13bf98c378790150a8fd086282fa68",
+      "bytes": 961
+    },
+    {
+      "name": "생기 있는 깃털",
+      "kind": "material",
+      "aliases": [],
+      "references": [
+        "F44"
+      ],
+      "status": "ready",
+      "file": "png/생기 있는 깃털.png",
+      "englishName": "Vital Feather",
+      "sourcePage": "https://mabi.labanyu.com/item/NDMxNjQz/%EC%83%9D%EA%B8%B0%20%EC%9E%88%EB%8A%94%20%EA%B9%83%ED%84%B8",
+      "imageUrl": "https://tacask-cdn.com/mabi-labanyu/item-base-data/thumbnail/item-31643.png",
+      "width": 24,
+      "height": 24,
+      "mode": "RGBA",
+      "sha256": "bfc5c218c150510200ccb21124c7519ea72793da164936dc6cfe660498ec0a21",
+      "bytes": 537
+    },
+    {
+      "name": "골드 허브",
+      "kind": "material",
+      "aliases": [],
+      "references": [
+        "F46"
+      ],
+      "status": "ready",
+      "file": "png/골드 허브.png",
+      "englishName": "Golden Herb",
+      "sourcePage": "https://mabi.labanyu.com/item/NDEwNjM2/%EA%B3%A8%EB%93%9C%20%ED%97%88%EB%B8%8C",
+      "imageUrl": "https://tacask-cdn.com/mabi-labanyu/item-base-data/thumbnail/item-10636.png",
+      "width": 24,
+      "height": 48,
+      "mode": "RGBA",
+      "sha256": "949e9baccdd9730cf8a3b0c5a518c94eb105a9ae94cca7c9eeace90c9ab8afdc",
+      "bytes": 950
+    },
+    {
+      "name": "튼튼한 고리",
+      "kind": "material",
+      "aliases": [],
+      "references": [
+        "D47"
+      ],
+      "status": "ready",
+      "file": "png/튼튼한 고리.png",
+      "englishName": "Sturdy Loop",
+      "sourcePage": "https://mabi.labanyu.com/item/NDMxNjkx/%ED%8A%BC%ED%8A%BC%ED%95%9C%20%EA%B3%A0%EB%A6%AC",
+      "imageUrl": "https://tacask-cdn.com/mabi-labanyu/item-base-data/thumbnail/item-31691.png",
+      "width": 24,
+      "height": 24,
+      "mode": "RGBA",
+      "sha256": "0080baa96d6c1877c4833e00518d3c62c58ad0446bff4d3fbf68810dded5f1ba",
+      "bytes": 632
+    },
+    {
+      "name": "어둠이 깃든 칼날 조각",
+      "kind": "material",
+      "aliases": [],
+      "references": [
+        "F47"
+      ],
+      "status": "ready",
+      "file": "png/어둠이 깃든 칼날 조각.png",
+      "englishName": "Infernal Blade Fragment",
+      "sourcePage": "https://mabi.labanyu.com/item/NDE0NDEw/%EC%96%B4%EB%91%A0%EC%9D%B4%20%EA%B9%83%EB%93%A0%20%EC%B9%BC%EB%82%A0%20%EC%A1%B0%EA%B0%81",
+      "imageUrl": "https://tacask-cdn.com/mabi-labanyu/item-base-data/thumbnail/item-14410.png",
+      "width": 24,
+      "height": 24,
+      "mode": "RGBA",
+      "sha256": "932d70d969710be1c28c3b99d05a6975236d29d1c89109a84e34e6a7e21c133f",
+      "bytes": 633
+    },
+    {
+      "name": "에너지 증폭 장치",
+      "kind": "material",
+      "aliases": [],
+      "references": [
+        "D51"
+      ],
+      "status": "ready",
+      "file": "png/에너지 증폭 장치.png",
+      "englishName": "Energy Amplifier",
+      "sourcePage": "https://mabi.labanyu.com/item/NDE0NjEz/%EC%97%90%EB%84%88%EC%A7%80%20%EC%A6%9D%ED%8F%AD%20%EC%9E%A5%EC%B9%98",
+      "imageUrl": "https://tacask-cdn.com/mabi-labanyu/item-base-data/thumbnail/item-14613.png",
+      "width": 24,
+      "height": 48,
+      "mode": "RGBA",
+      "sha256": "0b26f53c4a49bc7753e51c0e19f3596bf3260a57732eb50e99b9518f6bb48df9",
+      "bytes": 642
+    },
+    {
+      "name": "에메랄드 코어",
+      "kind": "material",
+      "aliases": [],
+      "references": [
+        "F51",
+        "N50"
+      ],
+      "status": "ready",
+      "file": "png/에메랄드 코어.png",
+      "englishName": "Emerald Core",
+      "sourcePage": "https://mabi.labanyu.com/item/NDE0NjE0/%EC%97%90%EB%A9%94%EB%9E%84%EB%93%9C%20%EC%BD%94%EC%96%B4",
+      "imageUrl": "https://tacask-cdn.com/mabi-labanyu/item-base-data/thumbnail/item-14614.png",
+      "width": 24,
+      "height": 24,
+      "mode": "RGBA",
+      "sha256": "8dcaa60298994d4d1b5905d216730dc0dd2be42b7d68d579e35a123a27944dfe",
+      "bytes": 1108
+    },
+    {
+      "name": "에너지 컨버터",
+      "kind": "material",
+      "aliases": [],
+      "references": [
+        "F52",
+        "L40"
+      ],
+      "status": "ready",
+      "file": "png/에너지 컨버터.png",
+      "englishName": "Energy Converter",
+      "sourcePage": "https://mabi.labanyu.com/item/NDE0NjA3/%EC%97%90%EB%84%88%EC%A7%80%20%EC%BB%A8%EB%B2%84%ED%84%B0",
+      "imageUrl": "https://tacask-cdn.com/mabi-labanyu/item-base-data/thumbnail/item-14607.png",
+      "width": 24,
+      "height": 24,
+      "mode": "RGBA",
+      "sha256": "1d72b88851bb7a0be7453a233810d8ab4890d394028e1199a1f6b9c464b88e53",
+      "bytes": 376
+    },
+    {
+      "name": "고급 나무장작",
+      "kind": "material",
+      "aliases": [],
+      "references": [
+        "L34",
+        "N56"
+      ],
+      "status": "ready",
+      "file": "png/고급 나무장작.png",
+      "englishName": "Fine Firewood",
+      "sourcePage": "https://mabi.labanyu.com/item/NDEzNTA2/%EA%B3%A0%EA%B8%89%20%EB%82%98%EB%AC%B4%EC%9E%A5%EC%9E%91",
+      "imageUrl": "https://tacask-cdn.com/mabi-labanyu/item-base-data/thumbnail/item-13506.png",
+      "width": 24,
+      "height": 48,
+      "mode": "RGBA",
+      "sha256": "ab674d5fd2bb02e984cb04f03aa26ed8fed8abdd9f0cca57ef3d8e1da278a81c",
+      "bytes": 588
+    },
+    {
+      "name": "마나 500 포션",
+      "kind": "material",
+      "aliases": [],
+      "references": [
+        "L35",
+        "L35.purchase"
+      ],
+      "status": "ready",
+      "file": "png/마나 500 포션.png",
+      "englishName": "MP 500 Potion",
+      "sourcePage": "https://mabi.labanyu.com/item/NDEwNzAx/%EB%A7%88%EB%82%98%20500%20%ED%8F%AC%EC%85%98",
+      "imageUrl": "https://tacask-cdn.com/mabi-labanyu/item-base-data/thumbnail/item-10701.png",
+      "width": 24,
+      "height": 24,
+      "mode": "RGBA",
+      "sha256": "2a635858adf1c514c7f2c7f01db52e0a6031bdb75ea036975e415609bf593141",
+      "bytes": 757
+    },
+    {
+      "name": "정화된 토끼의 발",
+      "kind": "material",
+      "aliases": [],
+      "references": [
+        "L38"
+      ],
+      "status": "ready",
+      "file": "png/정화된 토끼의 발.png",
+      "englishName": "Purified Rabbit Foot",
+      "sourcePage": "https://mabi.labanyu.com/item/NDE0NjQ1/%EC%A0%95%ED%99%94%EB%90%9C%20%ED%86%A0%EB%81%BC%EC%9D%98%20%EB%B0%9C",
+      "imageUrl": "https://tacask-cdn.com/mabi-labanyu/item-base-data/thumbnail/item-14645.png",
+      "width": 24,
+      "height": 24,
+      "mode": "RGBA",
+      "sha256": "b706552df6136af7d6ba68bec99cd5176ca65109a0b947b3bc9776b4560c3ce2",
+      "bytes": 490
+    },
+    {
+      "name": "끈끈이 풀",
+      "kind": "material",
+      "aliases": [],
+      "references": [
+        "L42"
+      ],
+      "status": "ready",
+      "file": "png/끈끈이 풀.png",
+      "englishName": "Sundew",
+      "sourcePage": "https://mabi.labanyu.com/item/NDE0NjQ2/%EB%81%88%EB%81%88%EC%9D%B4%20%ED%92%80",
+      "imageUrl": "https://tacask-cdn.com/mabi-labanyu/item-base-data/thumbnail/item-14646.png",
+      "width": 24,
+      "height": 24,
+      "mode": "RGBA",
+      "sha256": "d599253b275d40f23fd806c2b32799a97ac11d461259734a8d3889323e8f1302",
+      "bytes": 482
+    },
+    {
+      "name": "최고급 바닐라 향초",
+      "kind": "material",
+      "aliases": [],
+      "references": [
+        "L44"
+      ],
+      "status": "ready",
+      "file": "png/최고급 바닐라 향초.png",
+      "englishName": "Finest Vanilla Scented Candle",
+      "sourcePage": "https://mabi.labanyu.com/item/NDIwMzg0/%EC%B5%9C%EA%B3%A0%EA%B8%89%20%EB%B0%94%EB%8B%90%EB%9D%BC%20%ED%96%A5%EC%B4%88",
+      "imageUrl": "https://tacask-cdn.com/mabi-labanyu/item-base-data/thumbnail/item-20384.png",
+      "width": 24,
+      "height": 48,
+      "mode": "RGBA",
+      "sha256": "d0126551b9225e698b6d18a433b7bc44280c4c52de62518a2ccdc9b4a34822e2",
+      "bytes": 1017
+    },
+    {
+      "name": "정제된 촉매제",
+      "kind": "material",
+      "aliases": [],
+      "references": [
+        "N44"
+      ],
+      "status": "ready",
+      "file": "png/정제된 촉매제.png",
+      "englishName": "Refined Catalyst",
+      "sourcePage": "https://mabi.labanyu.com/item/NDE0Mzcy/%EC%A0%95%EC%A0%9C%EB%90%9C%20%EC%B4%89%EB%A7%A4%EC%A0%9C",
+      "imageUrl": "https://tacask-cdn.com/mabi-labanyu/item-base-data/thumbnail/item-14372.png",
+      "width": 24,
+      "height": 24,
+      "mode": "RGBA",
+      "sha256": "8dcb4969a33e04698aee06164d089afdb8ed774852d47675b336f183ee56f676",
+      "bytes": 645
+    },
+    {
+      "name": "고급 바닐라 향초",
+      "kind": "material",
+      "aliases": [],
+      "references": [
+        "N45"
+      ],
+      "status": "ready",
+      "file": "png/고급 바닐라 향초.png",
+      "englishName": "Fine Vanilla Scented Candle",
+      "sourcePage": "https://mabi.labanyu.com/item/NDIwMzgz/%EA%B3%A0%EA%B8%89%20%EB%B0%94%EB%8B%90%EB%9D%BC%20%ED%96%A5%EC%B4%88",
+      "imageUrl": "https://tacask-cdn.com/mabi-labanyu/item-base-data/thumbnail/item-20383.png",
+      "width": 24,
+      "height": 48,
+      "mode": "RGBA",
+      "sha256": "396c8cfae4c923f4c133620135b26e7ecb574c462a5d0b6a94334ffd5532d716",
+      "bytes": 773
+    },
+    {
+      "name": "미니 바닐라 향초",
+      "kind": "material",
+      "aliases": [],
+      "references": [
+        "N46"
+      ],
+      "status": "ready",
+      "file": "png/미니 바닐라 향초.png",
+      "englishName": "Mini Vanilla Scented Candle",
+      "sourcePage": "https://mabi.labanyu.com/item/NDIwMzgy/%EB%AF%B8%EB%8B%88%20%EB%B0%94%EB%8B%90%EB%9D%BC%20%ED%96%A5%EC%B4%88",
+      "imageUrl": "https://tacask-cdn.com/mabi-labanyu/item-base-data/thumbnail/item-20382.png",
+      "width": 24,
+      "height": 24,
+      "mode": "RGBA",
+      "sha256": "6972461cd38989bf642c75d5a97f62b004ab5a3381b2849be7c12b328b7c1e06",
+      "bytes": 462
+    },
+    {
+      "name": "밀랍",
+      "kind": "material",
+      "aliases": [],
+      "references": [
+        "N47"
+      ],
+      "status": "ready",
+      "file": "png/밀랍.png",
+      "englishName": "Wax",
+      "sourcePage": "https://mabi.labanyu.com/item/NDIwMzgx/%EB%B0%80%EB%9E%8D",
+      "imageUrl": "https://tacask-cdn.com/mabi-labanyu/item-base-data/thumbnail/item-20381.png",
+      "width": 24,
+      "height": 24,
+      "mode": "RGBA",
+      "sha256": "6c07f7e6d815699832b69859c294aec36d3f9a11b037f58b72819483f544d539",
+      "bytes": 671
+    },
+    {
+      "name": "인조 잔디",
+      "kind": "material",
+      "aliases": [],
+      "references": [
+        "L48"
+      ],
+      "status": "ready",
+      "file": "png/인조 잔디.png",
+      "englishName": "Artificial Turf",
+      "sourcePage": "https://mabi.labanyu.com/item/NDE0MjA3/%EC%9D%B8%EC%A1%B0%20%EC%9E%94%EB%94%94",
+      "imageUrl": "https://tacask-cdn.com/mabi-labanyu/item-base-data/thumbnail/item-14207.png",
+      "width": 48,
+      "height": 48,
+      "mode": "RGBA",
+      "sha256": "3f3092b0153a3339e4ca21144697383215702ff8013a79fad86a62c5b11845fe",
+      "bytes": 1803
+    },
+    {
+      "name": "싱싱한 풀",
+      "kind": "material",
+      "aliases": [],
+      "references": [
+        "N48"
+      ],
+      "status": "ready",
+      "file": "png/싱싱한 풀.png",
+      "englishName": "Fresh Grass",
+      "sourcePage": "https://mabi.labanyu.com/item/NDE0MjA2/%EC%8B%B1%EC%8B%B1%ED%95%9C%20%ED%92%80",
+      "imageUrl": "https://tacask-cdn.com/mabi-labanyu/item-base-data/thumbnail/item-14206.png",
+      "width": 24,
+      "height": 24,
+      "mode": "RGBA",
+      "sha256": "bcc1410440a164b235bfaca592a2211c777240ece0aea685e5006ad3e9aa0de2",
+      "bytes": 472
+    },
+    {
+      "name": "꽃뭉치",
+      "kind": "material",
+      "aliases": [],
+      "references": [
+        "N49"
+      ],
+      "status": "ready",
+      "file": "png/꽃뭉치.png",
+      "englishName": "Bundle of Flowers",
+      "sourcePage": "https://mabi.labanyu.com/item/NDExMDQx/%EA%BD%83%EB%AD%89%EC%B9%98",
+      "imageUrl": "https://tacask-cdn.com/mabi-labanyu/item-base-data/thumbnail/item-11041.png",
+      "width": 24,
+      "height": 24,
+      "mode": "RGBA",
+      "sha256": "fb86e256e2fe10002590073f3d021faaf460ddd9b5aa585860816a7529f11ef4",
+      "bytes": 580
+    },
+    {
+      "name": "에메랄드 퓨즈",
+      "kind": "material",
+      "aliases": [],
+      "references": [
+        "L50"
+      ],
+      "status": "ready",
+      "file": "png/에메랄드 퓨즈.png",
+      "englishName": "Emerald Fuse",
+      "sourcePage": "https://mabi.labanyu.com/item/NDE0NjA2/%EC%97%90%EB%A9%94%EB%9E%84%EB%93%9C%20%ED%93%A8%EC%A6%88",
+      "imageUrl": "https://tacask-cdn.com/mabi-labanyu/item-base-data/thumbnail/item-14606.png",
+      "width": 48,
+      "height": 24,
+      "mode": "RGBA",
+      "sha256": "5962ef771aa788203cecaf8c44bce08583558986c124cbb4782693e234912ae3",
+      "bytes": 482
+    },
+    {
+      "name": "고급 가죽끈",
+      "kind": "material",
+      "aliases": [],
+      "references": [
+        "L51"
+      ],
+      "status": "ready",
+      "file": "png/고급 가죽끈.png",
+      "englishName": "Fine Leather Strap",
+      "sourcePage": "https://mabi.labanyu.com/item/NDEyOTM0/%EA%B3%A0%EA%B8%89%20%EA%B0%80%EC%A3%BD%EB%81%88",
+      "imageUrl": "https://tacask-cdn.com/mabi-labanyu/item-base-data/thumbnail/item-12934.png",
+      "width": 24,
+      "height": 24,
+      "mode": "RGBA",
+      "sha256": "37337be12b7bb56a2343c4cc42ff98b32ce0166a4e5b1e5431854e49bb622100",
+      "bytes": 497
+    },
+    {
+      "name": "고급 가죽",
+      "kind": "material",
+      "aliases": [],
+      "references": [
+        "N51"
+      ],
+      "status": "ready",
+      "file": "png/고급 가죽.png",
+      "englishName": "Fine Leather",
+      "sourcePage": "https://mabi.labanyu.com/item/NDEyOTMw/%EA%B3%A0%EA%B8%89%20%EA%B0%80%EC%A3%BD",
+      "imageUrl": "https://tacask-cdn.com/mabi-labanyu/item-base-data/thumbnail/item-12930.png",
+      "width": 48,
+      "height": 48,
+      "mode": "RGBA",
+      "sha256": "91708750fce44cafde1f5b177c016ef2a544889e69c62514b418b1892681635e",
+      "bytes": 1130
+    },
+    {
+      "name": "미스릴 대못",
+      "kind": "material",
+      "aliases": [],
+      "references": [
+        "L52"
+      ],
+      "status": "ready",
+      "file": "png/미스릴 대못.png",
+      "englishName": "Large Mythril Nail",
+      "sourcePage": "https://mabi.labanyu.com/item/NDE0MjAz/%EB%AF%B8%EC%8A%A4%EB%A6%B4%20%EB%8C%80%EB%AA%BB",
+      "imageUrl": "https://tacask-cdn.com/mabi-labanyu/item-base-data/thumbnail/item-14203.png",
+      "width": 24,
+      "height": 24,
+      "mode": "RGBA",
+      "sha256": "0133ed898fba1dbb064b2ca8ad14738aee4345f8f1e93ae5cd884f75b61561c2",
+      "bytes": 350
+    },
+    {
+      "name": "발리스타용 독 묻은 와이번 볼트",
+      "kind": "material",
+      "aliases": [],
+      "references": [
+        "L53"
+      ],
+      "status": "ready",
+      "file": "png/발리스타용 독 묻은 와이번 볼트.png",
+      "englishName": "Poison Tip Wyvern Ballista Bolt",
+      "sourcePage": "https://mabi.labanyu.com/item/NDA5MzI4/%EB%B0%9C%EB%A6%AC%EC%8A%A4%ED%83%80%EC%9A%A9%20%EB%8F%85%20%EB%AC%BB%EC%9D%80%20%EC%99%80%EC%9D%B4%EB%B2%88%20%EB%B3%BC%ED%8A%B8",
+      "imageUrl": "https://tacask-cdn.com/mabi-labanyu/item-base-data/thumbnail/item-9328.png",
+      "width": 24,
+      "height": 96,
+      "mode": "RGBA",
+      "sha256": "43ab8a48bd68261d810157a5446e58ced93d5567ca1f7b84234043cf684db52e",
+      "bytes": 1534
+    },
+    {
+      "name": "와이번의 발톱",
+      "kind": "material",
+      "aliases": [],
+      "references": [
+        "N54"
+      ],
+      "status": "ready",
+      "file": "png/와이번의 발톱.png",
+      "englishName": "Wyvern Claw",
+      "sourcePage": "https://mabi.labanyu.com/item/NDEyODQ2/%EC%99%80%EC%9D%B4%EB%B2%88%EC%9D%98%20%EB%B0%9C%ED%86%B1",
+      "imageUrl": "https://tacask-cdn.com/mabi-labanyu/item-base-data/thumbnail/item-12846.png",
+      "width": 24,
+      "height": 24,
+      "mode": "RGBA",
+      "sha256": "c30e4c944a5ac8cff3c968bbf3d7279d951b2147e72d799d1cb0d5cd28551528",
+      "bytes": 400
+    },
+    {
+      "name": "포이즌 포션",
+      "kind": "material",
+      "aliases": [],
+      "references": [
+        "N55"
+      ],
+      "status": "ready",
+      "file": "png/포이즌 포션.png",
+      "englishName": "Poison Potion",
+      "sourcePage": "https://mabi.labanyu.com/item/NDEwNTY3/%ED%8F%AC%EC%9D%B4%EC%A6%8C%20%ED%8F%AC%EC%85%98",
+      "imageUrl": "https://tacask-cdn.com/mabi-labanyu/item-base-data/thumbnail/item-10567.png",
+      "width": 24,
+      "height": 24,
+      "mode": "RGBA",
+      "sha256": "2bb3fda92c415a0656ad6c6ab3d77e449f9d08671fe9d3efa657ce0a053acf23",
+      "bytes": 557
+    },
+    {
+      "name": "금광석",
+      "kind": "material",
+      "aliases": [],
+      "references": [
+        "procurement:금광석"
+      ],
+      "status": "ready",
+      "file": "png/금광석.png",
+      "englishName": "Gold Ore",
+      "sourcePage": "https://mabi.labanyu.com/item/NDE0MDQy/%EA%B8%88%EA%B4%91%EC%84%9D",
+      "imageUrl": "https://tacask-cdn.com/mabi-labanyu/item-base-data/thumbnail/item-14042.png",
+      "width": 48,
+      "height": 48,
+      "mode": "RGBA",
+      "sha256": "7b3abe0ebb6f96860fc88f46237dd839252cb07f4a0af22d6de74aefd672d251",
+      "bytes": 1664
+    },
+    {
+      "name": "금광석 조각",
+      "kind": "material",
+      "aliases": [],
+      "references": [
+        "procurement:금광석 조각"
+      ],
+      "status": "ready",
+      "file": "png/금광석 조각.png",
+      "englishName": "Gold Ore Fragment",
+      "sourcePage": "https://mabi.labanyu.com/item/NDE0MDcz/%EA%B8%88%EA%B4%91%EC%84%9D%20%EC%A1%B0%EA%B0%81",
+      "imageUrl": "https://tacask-cdn.com/mabi-labanyu/item-base-data/thumbnail/item-14073.png",
+      "width": 24,
+      "height": 24,
+      "mode": "RGBA",
+      "sha256": "52fdd3046445f98c5bff020625f3ed556dccd6aca4775a074da44a16dbdb9b3f",
+      "bytes": 759
+    },
+    {
+      "name": "대못",
+      "kind": "material",
+      "aliases": [],
+      "references": [
+        "procurement:대못"
+      ],
+      "status": "ready",
+      "file": "png/대못.png",
+      "englishName": "Large Nail",
+      "sourcePage": "https://mabi.labanyu.com/item/NDExMDEz/%EB%8C%80%EB%AA%BB",
+      "imageUrl": "https://tacask-cdn.com/mabi-labanyu/item-base-data/thumbnail/item-11013.png",
+      "width": 24,
+      "height": 24,
+      "mode": "RGBA",
+      "sha256": "9be2f9fd57a4fe3d2ae2c2ff8e79b5360b591abf2bdf939d83daeb84cad104a5",
+      "bytes": 312
+    },
+    {
+      "name": "동광석",
+      "kind": "material",
+      "aliases": [],
+      "references": [
+        "procurement:동광석"
+      ],
+      "status": "ready",
+      "file": "png/동광석.png",
+      "englishName": "Copper Ore",
+      "sourcePage": "https://mabi.labanyu.com/item/NDE0MDM4/%EB%8F%99%EA%B4%91%EC%84%9D",
+      "imageUrl": "https://tacask-cdn.com/mabi-labanyu/item-base-data/thumbnail/item-14038.png",
+      "width": 48,
+      "height": 48,
+      "mode": "RGBA",
+      "sha256": "f658dfdcc163431f032bd0362e66f6ac698d0919414b78310a336eb91c18e17a",
+      "bytes": 1817
+    },
+    {
+      "name": "동광석 조각",
+      "kind": "material",
+      "aliases": [],
+      "references": [
+        "procurement:동광석 조각"
+      ],
+      "status": "ready",
+      "file": "png/동광석 조각.png",
+      "englishName": "Copper Ore Fragment",
+      "sourcePage": "https://mabi.labanyu.com/item/NDE0MDcx/%EB%8F%99%EA%B4%91%EC%84%9D%20%EC%A1%B0%EA%B0%81",
+      "imageUrl": "https://tacask-cdn.com/mabi-labanyu/item-base-data/thumbnail/item-14071.png",
+      "width": 24,
+      "height": 24,
+      "mode": "RGBA",
+      "sha256": "7152f736d3bde61d9415736d3126e54689018e000848529d300b3d9d7fefd29e",
+      "bytes": 856
+    },
+    {
+      "name": "물이 든 병",
+      "kind": "material",
+      "aliases": [],
+      "references": [
+        "procurement:물이 든 병"
+      ],
+      "status": "ready",
+      "file": "png/물이 든 병.png",
+      "englishName": "Bottled Water",
+      "sourcePage": "https://mabi.labanyu.com/item/NDA5Njg2/%EB%AC%BC%EC%9D%B4%20%EB%93%A0%20%EB%B3%91",
+      "imageUrl": "https://tacask-cdn.com/mabi-labanyu/item-base-data/thumbnail/item-9686.png",
+      "width": 24,
+      "height": 48,
+      "mode": "RGBA",
+      "sha256": "28ae412bc1b5e9c2725874f3efb3f769c58dd70bee78c5c0c714895a0652bc7d",
+      "bytes": 800
+    },
+    {
+      "name": "미스릴 광석",
+      "kind": "material",
+      "aliases": [
+        "미스릴광석"
+      ],
+      "references": [
+        "procurement:미스릴 광석"
+      ],
+      "status": "ready",
+      "file": "png/미스릴 광석.png",
+      "englishName": "Mythril Ore",
+      "sourcePage": "https://mabi.labanyu.com/item/NDE0MDQ0/%EB%AF%B8%EC%8A%A4%EB%A6%B4%EA%B4%91%EC%84%9D",
+      "imageUrl": "https://tacask-cdn.com/mabi-labanyu/item-base-data/thumbnail/item-14044.png",
+      "width": 48,
+      "height": 48,
+      "mode": "RGBA",
+      "sha256": "2dfbeaea210ebc472103fc0cac70165985f22dd4f537db2cc40cb4d792018320",
+      "bytes": 1666
+    },
+    {
+      "name": "미스릴 광석 조각",
+      "kind": "material",
+      "aliases": [
+        "미스릴광석 조각"
+      ],
+      "references": [
+        "procurement:미스릴 광석 조각"
+      ],
+      "status": "ready",
+      "file": "png/미스릴 광석 조각.png",
+      "englishName": "Mythril Ore Fragment",
+      "sourcePage": "https://mabi.labanyu.com/item/NDE0MDc0/%EB%AF%B8%EC%8A%A4%EB%A6%B4%EA%B4%91%EC%84%9D%20%EC%A1%B0%EA%B0%81",
+      "imageUrl": "https://tacask-cdn.com/mabi-labanyu/item-base-data/thumbnail/item-14074.png",
+      "width": 24,
+      "height": 24,
+      "mode": "RGBA",
+      "sha256": "682bdf306bbdef2c81c8d539ee81fd58830b3536dd7e400dcf84d9124125bbe1",
+      "bytes": 802
+    },
+    {
+      "name": "아라트의 결정",
+      "kind": "material",
+      "aliases": [],
+      "references": [
+        "procurement:아라트의 결정"
+      ],
+      "status": "ready",
+      "file": "png/아라트의 결정.png",
+      "englishName": "Arat Crystal",
+      "sourcePage": "https://mabi.labanyu.com/item/NDE0NDgz/%EC%95%84%EB%9D%BC%ED%8A%B8%EC%9D%98%20%EA%B2%B0%EC%A0%95",
+      "imageUrl": "https://tacask-cdn.com/mabi-labanyu/item-base-data/thumbnail/item-14483.png",
+      "width": 24,
+      "height": 24,
+      "mode": "RGBA",
+      "sha256": "a75e026da759dc047a9030348665b9d812532e861a29cd9d184e68941f812982",
+      "bytes": 692
+    },
+    {
+      "name": "은광석",
+      "kind": "material",
+      "aliases": [],
+      "references": [
+        "procurement:은광석"
+      ],
+      "status": "ready",
+      "file": "png/은광석.png",
+      "englishName": "Silver Ore",
+      "sourcePage": "https://mabi.labanyu.com/item/NDE0MDQw/%EC%9D%80%EA%B4%91%EC%84%9D",
+      "imageUrl": "https://tacask-cdn.com/mabi-labanyu/item-base-data/thumbnail/item-14040.png",
+      "width": 48,
+      "height": 48,
+      "mode": "RGBA",
+      "sha256": "2fc7dd9dccc3ed8f69c6573317e70fdc500ba5be359bcf6b8b7913d8acbe1f88",
+      "bytes": 1192
+    },
+    {
+      "name": "은광석 조각",
+      "kind": "material",
+      "aliases": [],
+      "references": [
+        "procurement:은광석 조각"
+      ],
+      "status": "ready",
+      "file": "png/은광석 조각.png",
+      "englishName": "Silver Ore Fragment",
+      "sourcePage": "https://mabi.labanyu.com/item/NDE0MDcy/%EC%9D%80%EA%B4%91%EC%84%9D%20%EC%A1%B0%EA%B0%81",
+      "imageUrl": "https://tacask-cdn.com/mabi-labanyu/item-base-data/thumbnail/item-14072.png",
+      "width": 24,
+      "height": 24,
+      "mode": "RGBA",
+      "sha256": "72d8a8823c96f59ec739ee05fd5803ce8d6d7ca8eaead9945d8cd7fea3f44c5a",
+      "bytes": 652
+    },
+    {
+      "name": "일반 가죽",
+      "kind": "material",
+      "aliases": [],
+      "references": [
+        "procurement:일반 가죽"
+      ],
+      "status": "ready",
+      "file": "png/일반 가죽.png",
+      "englishName": "Common Leather",
+      "sourcePage": "https://mabi.labanyu.com/item/NDEyOTI5/%EC%9D%BC%EB%B0%98%20%EA%B0%80%EC%A3%BD",
+      "imageUrl": "https://tacask-cdn.com/mabi-labanyu/item-base-data/thumbnail/item-12929.png",
+      "width": 48,
+      "height": 48,
+      "mode": "RGBA",
+      "sha256": "0033e0d1ba58f3d414042b942d9af47a372bd490cbfc7181bf415714f15c0497",
+      "bytes": 1157
+    },
+    {
+      "name": "저가형 가죽",
+      "kind": "material",
+      "aliases": [],
+      "references": [
+        "procurement:저가형 가죽"
+      ],
+      "status": "ready",
+      "file": "png/저가형 가죽.png",
+      "englishName": "Cheap Leather",
+      "sourcePage": "https://mabi.labanyu.com/item/NDEyOTI4/%EC%A0%80%EA%B0%80%ED%98%95%20%EA%B0%80%EC%A3%BD",
+      "imageUrl": "https://tacask-cdn.com/mabi-labanyu/item-base-data/thumbnail/item-12928.png",
+      "width": 48,
+      "height": 48,
+      "mode": "RGBA",
+      "sha256": "062a7619a3c4e231f422563a75e2ae1a0ec4a832019fb980f391f4d6d82bf32c",
+      "bytes": 1150
+    },
+    {
+      "name": "철광석",
+      "kind": "material",
+      "aliases": [],
+      "references": [
+        "procurement:철광석"
+      ],
+      "status": "ready",
+      "file": "png/철광석.png",
+      "englishName": "Iron Ore",
+      "sourcePage": "https://mabi.labanyu.com/item/NDE0MDM2/%EC%B2%A0%EA%B4%91%EC%84%9D",
+      "imageUrl": "https://tacask-cdn.com/mabi-labanyu/item-base-data/thumbnail/item-14036.png",
+      "width": 48,
+      "height": 48,
+      "mode": "RGBA",
+      "sha256": "929bd4d13ee1654e3bfe6c801c27859f076de9f920a0a7b92048d802bda34c4f",
+      "bytes": 1442
+    },
+    {
+      "name": "철광석 조각",
+      "kind": "material",
+      "aliases": [],
+      "references": [
+        "procurement:철광석 조각"
+      ],
+      "status": "ready",
+      "file": "png/철광석 조각.png",
+      "englishName": "Iron Ore Fragment",
+      "sourcePage": "https://mabi.labanyu.com/item/NDE0MDcw/%EC%B2%A0%EA%B4%91%EC%84%9D%20%EC%A1%B0%EA%B0%81",
+      "imageUrl": "https://tacask-cdn.com/mabi-labanyu/item-base-data/thumbnail/item-14070.png",
+      "width": 24,
+      "height": 24,
+      "mode": "RGBA",
+      "sha256": "dfad9ff0c83131694bffa0585caea3f9cb5a6d7138990e93bd2c2c46a4e7189b",
+      "bytes": 708
+    },
+    {
+      "name": "철괴",
+      "kind": "material",
+      "aliases": [],
+      "references": [
+        "procurement:철괴"
+      ],
+      "status": "ready",
+      "file": "png/철괴.png",
+      "englishName": "Iron Ingot",
+      "sourcePage": "https://mabi.labanyu.com/item/NDE0MDM1/%EC%B2%A0%EA%B4%B4",
+      "imageUrl": "https://tacask-cdn.com/mabi-labanyu/item-base-data/thumbnail/item-14035.png",
+      "width": 48,
+      "height": 24,
+      "mode": "RGBA",
+      "sha256": "6ffd1d58cfae55e4f1e750a25cb391bac5e8f3d6cc518bcf9c36097c332de19c",
+      "bytes": 504
+    },
+    {
+      "name": "철봉",
+      "kind": "material",
+      "aliases": [],
+      "references": [
+        "procurement:철봉"
+      ],
+      "status": "ready",
+      "file": "png/철봉.png",
+      "englishName": "Iron Bar",
+      "sourcePage": "https://mabi.labanyu.com/item/NDE0MDY0/%EC%B2%A0%EB%B4%89",
+      "imageUrl": "https://tacask-cdn.com/mabi-labanyu/item-base-data/thumbnail/item-14064.png",
+      "width": 24,
+      "height": 48,
+      "mode": "RGBA",
+      "sha256": "621d2d9ab41a9d8e0a98b77bcb1aa1c8b73119d5b93894583ca9f61d87e13b33",
+      "bytes": 755
+    },
+    {
+      "name": "축복의 포션",
+      "kind": "material",
+      "aliases": [],
+      "references": [
+        "procurement:축복의 포션"
+      ],
+      "status": "ready",
+      "file": "png/축복의 포션.png",
+      "englishName": "Holy Water of Lymilark",
+      "sourcePage": "https://mabi.labanyu.com/item/NDEzMzEx/%EC%B6%95%EB%B3%B5%EC%9D%98%20%ED%8F%AC%EC%85%98",
+      "imageUrl": "https://tacask-cdn.com/mabi-labanyu/item-base-data/thumbnail/item-13311.png",
+      "width": 24,
+      "height": 24,
+      "mode": "RGBA",
+      "sha256": "9a23f887fa819ca6ee702314bcce534a327cd180349181f49252aed8581da225",
+      "bytes": 550
+    },
+    {
+      "name": "힐웬 광석 조각",
+      "kind": "material",
+      "aliases": [],
+      "references": [
+        "procurement:힐웬 광석 조각"
+      ],
+      "status": "ready",
+      "file": "png/힐웬 광석 조각.png",
+      "englishName": "Hillwen Ore Fragment",
+      "sourcePage": "https://mabi.labanyu.com/item/NDE0NTk5/%ED%9E%90%EC%9B%AC%20%EA%B4%91%EC%84%9D%20%EC%A1%B0%EA%B0%81",
+      "imageUrl": "https://tacask-cdn.com/mabi-labanyu/item-base-data/thumbnail/item-14599.png",
+      "width": 24,
+      "height": 24,
+      "mode": "RGBA",
+      "sha256": "93a7d4b47869835b3ce4710983acb32ef155a2ba211f83411966e542f6565ffc",
+      "bytes": 836
+    }
+  ]
+}

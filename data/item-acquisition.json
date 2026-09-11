@@ -1,0 +1,3344 @@
+{
+  "version": 1,
+  "checkedAt": "2026-09-10",
+  "itemCount": 145,
+  "scope": "PC 마비노기 물물교환에 필요한 아이템의 획득·제작·구매 안내입니다.",
+  "items": [
+    {
+      "name": "고운 모래",
+      "methods": [
+        {
+          "kind": "물물교환",
+          "text": "오아시스 교역소의 교역도우미에게 교환합니다.",
+          "sources": [
+            {
+              "title": "넥슨 공식 가이드 · 교역",
+              "url": "https://mabinogi.nexon.com/page/archive/guide_view.asp?id=4887746"
+            }
+          ]
+        }
+      ],
+      "notes": [],
+      "checkedAt": "2026-09-10",
+      "aliases": []
+    },
+    {
+      "name": "프리즌 고스트의 날개",
+      "methods": [
+        {
+          "kind": "물물교환",
+          "text": "오아시스 교역소의 교역도우미에게 교환합니다.",
+          "sources": [
+            {
+              "title": "넥슨 공식 가이드 · 교역",
+              "url": "https://mabinogi.nexon.com/page/archive/guide_view.asp?id=4887746"
+            }
+          ]
+        }
+      ],
+      "notes": [],
+      "checkedAt": "2026-09-10",
+      "aliases": []
+    },
+    {
+      "name": "오아시스 그림",
+      "methods": [
+        {
+          "kind": "물물교환",
+          "text": "오아시스 교역소의 교역도우미에게 교환합니다.",
+          "sources": [
+            {
+              "title": "넥슨 공식 가이드 · 교역",
+              "url": "https://mabinogi.nexon.com/page/archive/guide_view.asp?id=4887746"
+            }
+          ]
+        }
+      ],
+      "notes": [],
+      "checkedAt": "2026-09-10",
+      "aliases": []
+    },
+    {
+      "name": "선인장 꽃",
+      "methods": [
+        {
+          "kind": "물물교환",
+          "text": "오아시스 교역소의 교역도우미에게 교환합니다.",
+          "sources": [
+            {
+              "title": "넥슨 공식 가이드 · 교역",
+              "url": "https://mabinogi.nexon.com/page/archive/guide_view.asp?id=4887746"
+            }
+          ]
+        }
+      ],
+      "notes": [],
+      "checkedAt": "2026-09-10",
+      "aliases": []
+    },
+    {
+      "name": "거대 송곳니 화석",
+      "methods": [
+        {
+          "kind": "물물교환",
+          "text": "오아시스 교역소의 교역도우미에게 교환합니다.",
+          "sources": [
+            {
+              "title": "넥슨 공식 가이드 · 교역",
+              "url": "https://mabinogi.nexon.com/page/archive/guide_view.asp?id=4887746"
+            }
+          ]
+        }
+      ],
+      "notes": [],
+      "checkedAt": "2026-09-10",
+      "aliases": []
+    },
+    {
+      "name": "화산 머드팩",
+      "methods": [
+        {
+          "kind": "물물교환",
+          "text": "페라 화산 교역소의 교역도우미에게 교환합니다.",
+          "sources": [
+            {
+              "title": "넥슨 공식 가이드 · 교역",
+              "url": "https://mabinogi.nexon.com/page/archive/guide_view.asp?id=4887746"
+            }
+          ]
+        }
+      ],
+      "notes": [],
+      "checkedAt": "2026-09-10",
+      "aliases": []
+    },
+    {
+      "name": "마그마 스톤",
+      "methods": [
+        {
+          "kind": "물물교환",
+          "text": "페라 화산 교역소의 교역도우미에게 교환합니다.",
+          "sources": [
+            {
+              "title": "넥슨 공식 가이드 · 교역",
+              "url": "https://mabinogi.nexon.com/page/archive/guide_view.asp?id=4887746"
+            }
+          ]
+        }
+      ],
+      "notes": [],
+      "checkedAt": "2026-09-10",
+      "aliases": []
+    },
+    {
+      "name": "익시온의 뿔",
+      "methods": [
+        {
+          "kind": "물물교환",
+          "text": "페라 화산 교역소의 교역도우미에게 교환합니다.",
+          "sources": [
+            {
+              "title": "넥슨 공식 가이드 · 교역",
+              "url": "https://mabinogi.nexon.com/page/archive/guide_view.asp?id=4887746"
+            }
+          ]
+        }
+      ],
+      "notes": [],
+      "checkedAt": "2026-09-10",
+      "aliases": []
+    },
+    {
+      "name": "화산 도마뱀의 알",
+      "methods": [
+        {
+          "kind": "물물교환",
+          "text": "페라 화산 교역소의 교역도우미에게 교환합니다.",
+          "sources": [
+            {
+              "title": "넥슨 공식 가이드 · 교역",
+              "url": "https://mabinogi.nexon.com/page/archive/guide_view.asp?id=4887746"
+            }
+          ]
+        }
+      ],
+      "notes": [],
+      "checkedAt": "2026-09-10",
+      "aliases": []
+    },
+    {
+      "name": "라스파 흑표범의 가죽",
+      "methods": [
+        {
+          "kind": "물물교환",
+          "text": "페라 화산 교역소의 교역도우미에게 교환합니다.",
+          "sources": [
+            {
+              "title": "넥슨 공식 가이드 · 교역",
+              "url": "https://mabinogi.nexon.com/page/archive/guide_view.asp?id=4887746"
+            }
+          ]
+        }
+      ],
+      "notes": [],
+      "checkedAt": "2026-09-10",
+      "aliases": []
+    },
+    {
+      "name": "우드 테이블",
+      "methods": [
+        {
+          "kind": "물물교환",
+          "text": "카루 숲 교역소의 교역도우미에게 교환합니다.",
+          "sources": [
+            {
+              "title": "넥슨 공식 가이드 · 교역",
+              "url": "https://mabinogi.nexon.com/page/archive/guide_view.asp?id=4887746"
+            }
+          ]
+        }
+      ],
+      "notes": [],
+      "checkedAt": "2026-09-10",
+      "aliases": []
+    },
+    {
+      "name": "목공예품",
+      "methods": [
+        {
+          "kind": "물물교환",
+          "text": "카루 숲 교역소의 교역도우미에게 교환합니다.",
+          "sources": [
+            {
+              "title": "넥슨 공식 가이드 · 교역",
+              "url": "https://mabinogi.nexon.com/page/archive/guide_view.asp?id=4887746"
+            }
+          ]
+        }
+      ],
+      "notes": [],
+      "checkedAt": "2026-09-10",
+      "aliases": []
+    },
+    {
+      "name": "스톤 홀스 조각상",
+      "methods": [
+        {
+          "kind": "물물교환",
+          "text": "카루 숲 교역소의 교역도우미에게 교환합니다.",
+          "sources": [
+            {
+              "title": "넥슨 공식 가이드 · 교역",
+              "url": "https://mabinogi.nexon.com/page/archive/guide_view.asp?id=4887746"
+            }
+          ]
+        }
+      ],
+      "notes": [],
+      "checkedAt": "2026-09-10",
+      "aliases": []
+    },
+    {
+      "name": "카루 표고 버섯",
+      "methods": [
+        {
+          "kind": "물물교환",
+          "text": "카루 숲 교역소의 교역도우미에게 교환합니다.",
+          "sources": [
+            {
+              "title": "넥슨 공식 가이드 · 교역",
+              "url": "https://mabinogi.nexon.com/page/archive/guide_view.asp?id=4887746"
+            }
+          ]
+        }
+      ],
+      "notes": [],
+      "checkedAt": "2026-09-10",
+      "aliases": []
+    },
+    {
+      "name": "조개 껍질 화석",
+      "methods": [
+        {
+          "kind": "물물교환",
+          "text": "카루 숲 교역소의 교역도우미에게 교환합니다.",
+          "sources": [
+            {
+              "title": "넥슨 공식 가이드 · 교역",
+              "url": "https://mabinogi.nexon.com/page/archive/guide_view.asp?id=4887746"
+            }
+          ]
+        }
+      ],
+      "notes": [],
+      "checkedAt": "2026-09-10",
+      "aliases": []
+    },
+    {
+      "name": "맥반석 계란",
+      "methods": [
+        {
+          "kind": "물물교환",
+          "text": "칼리다 호수 교역소의 교역도우미에게 교환합니다.",
+          "sources": [
+            {
+              "title": "넥슨 공식 가이드 · 교역",
+              "url": "https://mabinogi.nexon.com/page/archive/guide_view.asp?id=4887746"
+            }
+          ]
+        }
+      ],
+      "notes": [],
+      "checkedAt": "2026-09-10",
+      "aliases": []
+    },
+    {
+      "name": "칼리다 연어",
+      "methods": [
+        {
+          "kind": "물물교환",
+          "text": "칼리다 호수 교역소의 교역도우미에게 교환합니다.",
+          "sources": [
+            {
+              "title": "넥슨 공식 가이드 · 교역",
+              "url": "https://mabinogi.nexon.com/page/archive/guide_view.asp?id=4887746"
+            }
+          ]
+        }
+      ],
+      "notes": [],
+      "checkedAt": "2026-09-10",
+      "aliases": []
+    },
+    {
+      "name": "온천 입욕제",
+      "methods": [
+        {
+          "kind": "물물교환",
+          "text": "칼리다 호수 교역소의 교역도우미에게 교환합니다.",
+          "sources": [
+            {
+              "title": "넥슨 공식 가이드 · 교역",
+              "url": "https://mabinogi.nexon.com/page/archive/guide_view.asp?id=4887746"
+            }
+          ]
+        }
+      ],
+      "notes": [],
+      "checkedAt": "2026-09-10",
+      "aliases": []
+    },
+    {
+      "name": "대형 캠핑 텐트",
+      "methods": [
+        {
+          "kind": "물물교환",
+          "text": "칼리다 호수 교역소의 교역도우미에게 교환합니다.",
+          "sources": [
+            {
+              "title": "넥슨 공식 가이드 · 교역",
+              "url": "https://mabinogi.nexon.com/page/archive/guide_view.asp?id=4887746"
+            }
+          ]
+        }
+      ],
+      "notes": [],
+      "checkedAt": "2026-09-10",
+      "aliases": []
+    },
+    {
+      "name": "핑크 솔트",
+      "methods": [
+        {
+          "kind": "물물교환",
+          "text": "칼리다 호수 교역소의 교역도우미에게 교환합니다.",
+          "sources": [
+            {
+              "title": "넥슨 공식 가이드 · 교역",
+              "url": "https://mabinogi.nexon.com/page/archive/guide_view.asp?id=4887746"
+            }
+          ]
+        }
+      ],
+      "notes": [],
+      "checkedAt": "2026-09-10",
+      "aliases": []
+    },
+    {
+      "name": "매듭끈",
+      "methods": [
+        {
+          "kind": "제작",
+          "text": "물레에서 방직으로 만듭니다. 1개 제작에 가는 실뭉치 1개와 굵은 실뭉치 1개가 필요합니다.",
+          "sources": [
+            {
+              "title": "라바뉴 · 매듭끈 제작 정보",
+              "url": "https://mabi.labanyu.com/item/NDEyOTEw/%EB%A7%A4%EB%93%AD%EB%81%88"
+            },
+            {
+              "title": "마비노기 지식왕 · 방직 재료와 도구 (이용자 답변)",
+              "url": "https://mabinogi.nexon.com/page/community/kin_view.asp?id=294117"
+            }
+          ]
+        }
+      ],
+      "notes": [],
+      "checkedAt": "2026-09-10",
+      "aliases": []
+    },
+    {
+      "name": "가는 실뭉치",
+      "methods": [
+        {
+          "kind": "제작",
+          "text": "물레에서 방직으로 거미줄 5개를 가는 실뭉치 1개로 만듭니다.",
+          "sources": [
+            {
+              "title": "라바뉴 · 가는 실뭉치 제작 정보",
+              "url": "https://mabi.labanyu.com/item/NDEyOTEz/%EA%B0%80%EB%8A%94%20%EC%8B%A4%EB%AD%89%EC%B9%98"
+            },
+            {
+              "title": "마비노기 지식왕 · 방직 재료와 도구 (이용자 답변)",
+              "url": "https://mabinogi.nexon.com/page/community/kin_view.asp?id=294117"
+            }
+          ]
+        }
+      ],
+      "notes": [],
+      "checkedAt": "2026-09-10",
+      "aliases": []
+    },
+    {
+      "name": "굵은 실뭉치",
+      "methods": [
+        {
+          "kind": "제작",
+          "text": "물레에서 방직으로 양털 5개를 굵은 실뭉치 1개로 만듭니다.",
+          "sources": [
+            {
+              "title": "라바뉴 · 굵은 실뭉치 제작 정보",
+              "url": "https://mabi.labanyu.com/item/NDEyOTEy/%EA%B5%B5%EC%9D%80%20%EC%8B%A4%EB%AD%89%EC%B9%98"
+            },
+            {
+              "title": "마비노기 지식왕 · 방직 재료와 도구 (이용자 답변)",
+              "url": "https://mabinogi.nexon.com/page/community/kin_view.asp?id=294117"
+            }
+          ]
+        }
+      ],
+      "notes": [],
+      "checkedAt": "2026-09-10",
+      "aliases": []
+    },
+    {
+      "name": "스태미나 500 포션",
+      "methods": [
+        {
+          "kind": "거래",
+          "text": "경매장에서 스태미나 500 포션 완제품을 구매하는 기준으로 준비합니다.",
+          "sources": [
+            {
+              "title": "라바뉴 · 스태미나 500 포션 아이템 정보",
+              "url": "https://mabi.labanyu.com/item/NDEwNzAy/%EC%8A%A4%ED%83%9C%EB%AF%B8%EB%82%98%20500%20%ED%8F%AC%EC%85%98"
+            }
+          ]
+        }
+      ],
+      "notes": [
+        "이 앱에서는 완제품 구매 대상으로 계산하며 하위 재료와 제작법은 표시하지 않습니다. 매물과 가격은 경매장 갱신 결과를 확인하세요."
+      ],
+      "checkedAt": "2026-09-10",
+      "aliases": []
+    },
+    {
+      "name": "쿠션용 솜",
+      "methods": [
+        {
+          "kind": "제작",
+          "text": "핸디크래프트 키트로 제작합니다. 1개에 가는 실뭉치 5개와 고급 양털 20개가 필요합니다.",
+          "sources": [
+            {
+              "title": "라바뉴 · 쿠션용 솜 제작 정보",
+              "url": "https://mabi.labanyu.com/item/NDE0MjA1/%EC%BF%A0%EC%85%98%EC%9A%A9%20%EC%86%9C"
+            },
+            {
+              "title": "쉼플레이스 · 나무판 제작",
+              "url": "https://mabinogi.shimplace.com/infocenter/recipe/detail.php?n=92"
+            }
+          ]
+        }
+      ],
+      "notes": [],
+      "checkedAt": "2026-09-10",
+      "aliases": []
+    },
+    {
+      "name": "거미줄",
+      "methods": [
+        {
+          "kind": "채집",
+          "text": "티르코네일 묘지의 흰거미 주변에서 바닥에 생기는 거미줄을 줍습니다. 거미를 처치할 필요는 없습니다.",
+          "sources": [
+            {
+              "title": "마비노기 지식왕 · 흰거미 출현 지역 (이용자 답변)",
+              "url": "https://m.mabinogi.nexon.com/m/community/kin_view.asp?id=500485"
+            },
+            {
+              "title": "마비노기 지식왕 · 방직 재료와 도구 (이용자 답변)",
+              "url": "https://mabinogi.nexon.com/page/community/kin_view.asp?id=294117"
+            }
+          ]
+        }
+      ],
+      "notes": [],
+      "checkedAt": "2026-09-10",
+      "aliases": []
+    },
+    {
+      "name": "고급 양털",
+      "methods": [
+        {
+          "kind": "채집",
+          "text": "마을 주변이나 낭만 농장의 양에게서 양털깎기를 하면 확률로 얻습니다. 날이 있는 도구를 장착하고 채집하세요.",
+          "sources": [
+            {
+              "title": "마비노기 공식 가이드 · 채집",
+              "url": "https://mabinogi.nexon.com/page/archive/guide_view.asp?id=4888257&num=13"
+            }
+          ]
+        }
+      ],
+      "notes": [],
+      "checkedAt": "2026-09-10",
+      "aliases": []
+    },
+    {
+      "name": "최고급 실크",
+      "methods": [
+        {
+          "kind": "제작",
+          "text": "실크 방직 장갑을 장착하고 베틀에서 방직으로 만듭니다. 기본 레시피는 가는 실뭉치 6개로 최고급 실크 1개입니다.",
+          "sources": [
+            {
+              "title": "라바뉴 · 최고급 실크 제작 정보",
+              "url": "https://mabi.labanyu.com/item/NDEyOTE5/%EC%B5%9C%EA%B3%A0%EA%B8%89%20%EC%8B%A4%ED%81%AC"
+            },
+            {
+              "title": "마비노기 지식왕 · 방직 재료와 도구 (이용자 답변)",
+              "url": "https://mabinogi.nexon.com/page/community/kin_view.asp?id=294117"
+            },
+            {
+              "title": "마비노기 공식 · 생활 RE:form 등급별 옷감·실크 제작 개선",
+              "url": "https://mabinogi.nexon.com/page/news/notice_view.asp?id=4889486"
+            }
+          ]
+        }
+      ],
+      "notes": [
+        "현재는 원하는 등급을 선택해 제작합니다. 안내 수량은 선택한 등급의 기본 레시피 기준입니다."
+      ],
+      "checkedAt": "2026-09-10",
+      "aliases": []
+    },
+    {
+      "name": "최고급 가죽끈",
+      "methods": [
+        {
+          "kind": "제작",
+          "text": "날이 있는 도구를 장착하고 물레에서 방직으로 만듭니다. 최고급 가죽 1개로 최고급 가죽끈 1개를 제작합니다.",
+          "sources": [
+            {
+              "title": "라바뉴 · 최고급 가죽끈 제작 정보",
+              "url": "https://mabi.labanyu.com/item/NDEyOTM1/%EC%B5%9C%EA%B3%A0%EA%B8%89%20%EA%B0%80%EC%A3%BD%EB%81%88"
+            },
+            {
+              "title": "마비노기 지식왕 · 방직 재료와 도구 (이용자 답변)",
+              "url": "https://mabinogi.nexon.com/page/community/kin_view.asp?id=294117"
+            }
+          ]
+        }
+      ],
+      "notes": [],
+      "checkedAt": "2026-09-10",
+      "aliases": []
+    },
+    {
+      "name": "최고급 가죽",
+      "methods": [
+        {
+          "kind": "드롭",
+          "text": "스카하 해변의 갈색·회색 황야 늑대, 키아 상급 던전의 녹색 뱀 등에서 획득할 수 있습니다.",
+          "sources": [
+            {
+              "title": "마비노기 자유게시판 · 가죽 파밍 장소 (2026년 이용자 답변)",
+              "url": "https://mabinogi.nexon.com/page/community/free_view.asp?category=0&id=47032"
+            }
+          ]
+        }
+      ],
+      "notes": [
+        "몬스터 드롭은 확률 획득이며, 안내는 한국 서버 이용자의 2026년 파밍 정보에 근거합니다."
+      ],
+      "checkedAt": "2026-09-10",
+      "aliases": []
+    },
+    {
+      "name": "질긴 실",
+      "methods": [
+        {
+          "kind": "제작",
+          "text": "물레에서 방직으로 가는 실뭉치 5개를 질긴 실 1개로 만듭니다.",
+          "sources": [
+            {
+              "title": "라바뉴 · 질긴 실 제작 정보",
+              "url": "https://mabi.labanyu.com/item/NDEyOTU1/%EC%A7%88%EA%B8%B4%20%EC%8B%A4"
+            },
+            {
+              "title": "마비노기 지식왕 · 방직 재료와 도구 (이용자 답변)",
+              "url": "https://mabinogi.nexon.com/page/community/kin_view.asp?id=294117"
+            }
+          ]
+        }
+      ],
+      "notes": [],
+      "checkedAt": "2026-09-10",
+      "aliases": []
+    },
+    {
+      "name": "정령의 리큐르",
+      "methods": [
+        {
+          "kind": "제작",
+          "text": "포션 조제 키트로 만듭니다. 1개에 화이트 허브 1개, 고대 정령의 화석 조각 1개, 엘레멘탈 리무버 2개가 필요합니다.",
+          "sources": [
+            {
+              "title": "라바뉴 · 정령의 리큐르 제작 정보",
+              "url": "https://mabi.labanyu.com/item/NDEwNTY1/%EC%A0%95%EB%A0%B9%EC%9D%98%20%EB%A6%AC%ED%81%90%EB%A5%B4"
+            },
+            {
+              "title": "마비노기 비공식 센터 · 정령의 리큐르 만들기",
+              "url": "https://mabinogi.begchi.com/정령의-리큐르-10개-만들기"
+            }
+          ]
+        }
+      ],
+      "notes": [],
+      "checkedAt": "2026-09-10",
+      "aliases": []
+    },
+    {
+      "name": "화이트 허브",
+      "methods": [
+        {
+          "kind": "채집",
+          "text": "화이트 허브가 설치된 낭만 농장에서 약초학으로 채집합니다. 맨손으로 허브를 클릭해 뽑을 수 있습니다.",
+          "sources": [
+            {
+              "title": "마비노기 비공식 센터 · 정령의 리큐르 만들기",
+              "url": "https://mabinogi.begchi.com/정령의-리큐르-10개-만들기"
+            }
+          ]
+        }
+      ],
+      "notes": [],
+      "checkedAt": "2026-09-10",
+      "aliases": []
+    },
+    {
+      "name": "고대 정령의 화석 조각",
+      "methods": [
+        {
+          "kind": "보상",
+          "text": "반호르 길모어에게 바리 정령 던전 통행증을 구매하고, 던전 마지막 층의 광맥을 곡괭이로 캐서 고대 정령의 화석을 얻습니다. 반호르 대장간 아이데른에게 정령석 정련을 맡기면 화석 조각이 나옵니다.",
+          "sources": [
+            {
+              "title": "마비노기 비공식 센터 · 정령의 리큐르 만들기",
+              "url": "https://mabinogi.begchi.com/정령의-리큐르-10개-만들기"
+            }
+          ]
+        }
+      ],
+      "notes": [],
+      "checkedAt": "2026-09-10",
+      "aliases": []
+    },
+    {
+      "name": "엘레멘탈 리무버",
+      "methods": [
+        {
+          "kind": "NPC 구매",
+          "text": "티르코네일 학교의 라사 또는 이멘 마하 전망대의 갈빈에게 구매합니다. 기본 판매가는 1개 1,000골드입니다.",
+          "sources": [
+            {
+              "title": "마비노기 비공식 센터 · 정령의 리큐르 만들기",
+              "url": "https://mabinogi.begchi.com/정령의-리큐르-10개-만들기"
+            }
+          ]
+        }
+      ],
+      "notes": [],
+      "checkedAt": "2026-09-10",
+      "aliases": []
+    },
+    {
+      "name": "은판",
+      "methods": [
+        {
+          "kind": "제작",
+          "text": "반호르 등의 노에서 제련합니다. 은괴 1개로 은판 1개를 만듭니다. 반호르 노는 숀에게 말을 걸어 가동합니다.",
+          "sources": [
+            {
+              "title": "라바뉴 · 은판 제작 정보",
+              "url": "https://mabi.labanyu.com/item/NDE0MDYx/%EC%9D%80%ED%8C%90"
+            },
+            {
+              "title": "쉼플레이스 · 동판 제작과 노 사용법",
+              "url": "https://mabinogi.shimplace.com/helper/gboard/1/65/"
+            }
+          ]
+        }
+      ],
+      "notes": [],
+      "checkedAt": "2026-09-10",
+      "aliases": []
+    },
+    {
+      "name": "은괴",
+      "methods": [
+        {
+          "kind": "합성 · 추천",
+          "text": "괴 불리기를 추천합니다. 건식 화덕에서 은괴 1개, 아라트의 결정 1개, 축복의 포션 1개를 합성하면 성공 시 은괴 10개를 얻습니다. 합성 A랭크 이상이 필요합니다.",
+          "sources": [
+            {
+              "title": "라바뉴 · 은괴 합성 제작 정보",
+              "url": "https://mabi.labanyu.com/item/NDE0MDM5/%EC%9D%80%EA%B4%B4"
+            },
+            {
+              "title": "마비노기 위키 · 아라트의 결정과 합성 레시피",
+              "url": "https://mabinogi.fandom.com/ko/wiki/%EC%95%84%EB%9D%BC%ED%8A%B8%EC%9D%98_%EA%B2%B0%EC%A0%95"
+            }
+          ]
+        },
+        {
+          "kind": "제작",
+          "text": "반호르 등의 노에서 제련합니다. 은광석 5개 또는 은광석 조각 5개로 은괴 1개를 만듭니다. 두 재료를 섞어 넣는 방식은 아닙니다.",
+          "sources": [
+            {
+              "title": "라바뉴 · 은괴 제작 정보",
+              "url": "https://mabi.labanyu.com/item/NDE0MDM5/%EC%9D%80%EA%B4%B4"
+            },
+            {
+              "title": "쉼플레이스 · 동판 제작과 노 사용법",
+              "url": "https://mabinogi.shimplace.com/helper/gboard/1/65/"
+            }
+          ]
+        }
+      ],
+      "notes": [
+        "합성 성공 시 투입한 괴 1개가 10개가 되어 순수 증가량은 9개입니다. 만든 괴를 다음 합성의 재료로 재사용할 수 있습니다.",
+        "표시 재료는 성공 기준이며 실패로 추가 소모되는 재료는 포함하지 않습니다."
+      ],
+      "checkedAt": "2026-09-10",
+      "aliases": []
+    },
+    {
+      "name": "고급 옷감",
+      "methods": [
+        {
+          "kind": "제작",
+          "text": "베틀에서 방직으로 굵은 실뭉치 5개를 고급 옷감 1개로 만듭니다.",
+          "sources": [
+            {
+              "title": "라바뉴 · 고급 옷감 제작 정보",
+              "url": "https://mabi.labanyu.com/item/NDEyOTI2/%EA%B3%A0%EA%B8%89%20%EC%98%B7%EA%B0%90"
+            },
+            {
+              "title": "마비노기 지식왕 · 방직 재료와 도구 (이용자 답변)",
+              "url": "https://mabinogi.nexon.com/page/community/kin_view.asp?id=294117"
+            },
+            {
+              "title": "마비노기 공식 · 생활 RE:form 등급별 옷감·실크 제작 개선",
+              "url": "https://mabinogi.nexon.com/page/news/notice_view.asp?id=4889486"
+            }
+          ]
+        }
+      ],
+      "notes": [
+        "현재는 원하는 등급을 선택해 제작합니다. 안내 수량은 선택한 등급의 기본 레시피 기준입니다."
+      ],
+      "checkedAt": "2026-09-10",
+      "aliases": []
+    },
+    {
+      "name": "양털",
+      "methods": [
+        {
+          "kind": "채집",
+          "text": "마을 주변이나 낭만 농장의 양에게서 양털깎기로 채집합니다. 날이 있는 도구를 장착하고 서 있는 양을 클릭하세요.",
+          "sources": [
+            {
+              "title": "마비노기 공식 가이드 · 채집",
+              "url": "https://mabinogi.nexon.com/page/archive/guide_view.asp?id=4888257&num=13"
+            }
+          ]
+        }
+      ],
+      "notes": [],
+      "checkedAt": "2026-09-10",
+      "aliases": []
+    },
+    {
+      "name": "펫 놀이세트",
+      "methods": [
+        {
+          "kind": "제작",
+          "text": "핀벨을 장착하고 핀즈 크래프트로 만듭니다. 펫이 좋아하는 잡동사니 1개와 나무판 1개로 1개를 제작합니다.",
+          "sources": [
+            {
+              "title": "라바뉴 · 펫 놀이세트 제작 정보",
+              "url": "https://mabi.labanyu.com/item/NDE4MDI0/%ED%8E%AB%20%EB%86%80%EC%9D%B4%EC%84%B8%ED%8A%B8"
+            },
+            {
+              "title": "마비노기 한국어 위키 · 펫 놀이세트",
+              "url": "https://mabinogi.fandom.com/ko/wiki/펫_놀이세트"
+            },
+            {
+              "title": "마비노기 공식 · 2020년 2월 20일 패치 변경점",
+              "url": "https://mabinogi.nexon.com/page/news/notice_view.asp?id=4887947"
+            }
+          ]
+        }
+      ],
+      "notes": [],
+      "checkedAt": "2026-09-10",
+      "aliases": [
+        "펫 놀이 세트"
+      ]
+    },
+    {
+      "name": "펫이 좋아하는 잡동사니",
+      "methods": [
+        {
+          "kind": "NPC 구매",
+          "text": "마그 멜의 피오나트 상점에서 금박 솔방울 20개로 1개를 교환합니다.",
+          "sources": [
+            {
+              "title": "마비노기 공식 · 2020년 2월 20일 패치 변경점",
+              "url": "https://mabinogi.nexon.com/page/news/notice_view.asp?id=4887947"
+            },
+            {
+              "title": "마비노기 한국어 위키 · 펫이 좋아하는 잡동사니",
+              "url": "https://mabinogi.fandom.com/ko/wiki/펫이_좋아하는_잡동사니"
+            }
+          ]
+        }
+      ],
+      "notes": [],
+      "checkedAt": "2026-09-10",
+      "aliases": []
+    },
+    {
+      "name": "나무판",
+      "methods": [
+        {
+          "kind": "구매",
+          "text": "경매장에서 나무판 완제품을 구매해 준비합니다.",
+          "sources": [
+            {
+              "title": "라바뉴 · 나무판 아이템 정보",
+              "url": "https://mabi.labanyu.com/item/NDEyOTU5/%EB%82%98%EB%AC%B4%ED%8C%90"
+            }
+          ]
+        }
+      ],
+      "notes": [
+        "이 앱에서는 나무판을 경매장 구매 전용으로 계산하며 하위 제작 재료를 포함하지 않습니다."
+      ],
+      "checkedAt": "2026-09-10",
+      "aliases": []
+    },
+    {
+      "name": "건초 더미",
+      "methods": [
+        {
+          "kind": "제작",
+          "text": "핸디크래프트 키트로 제작합니다. 못쓰게 된 밀 이파리 20개와 최고급 가죽끈 1개로 건초 더미 1개를 만듭니다.",
+          "sources": [
+            {
+              "title": "라바뉴 · 건초 더미 제작 정보",
+              "url": "https://mabi.labanyu.com/item/NDE0MjEx/%EA%B1%B4%EC%B4%88%20%EB%8D%94%EB%AF%B8"
+            },
+            {
+              "title": "쉼플레이스 · 나무판 제작",
+              "url": "https://mabinogi.shimplace.com/infocenter/recipe/detail.php?n=92"
+            }
+          ]
+        }
+      ],
+      "notes": [],
+      "checkedAt": "2026-09-10",
+      "aliases": []
+    },
+    {
+      "name": "못쓰게 된 밀 이파리",
+      "methods": [
+        {
+          "kind": "채집",
+          "text": "티르코네일 밀밭이나 낭만 농장의 밀을 낫으로 추수할 때 확률로 얻습니다.",
+          "sources": [
+            {
+              "title": "마비노기 공식 가이드 · 채집",
+              "url": "https://mabinogi.nexon.com/page/archive/guide_view.asp?id=4888257&num=13"
+            }
+          ]
+        }
+      ],
+      "notes": [],
+      "checkedAt": "2026-09-10",
+      "aliases": []
+    },
+    {
+      "name": "마력이 깃든 나무장작",
+      "methods": [
+        {
+          "kind": "제작",
+          "text": "실리엔 생태 보호 지구의 마법의 가마솥에서 매직 크래프트로 만듭니다. 1개에 실리엔 1개, 힐웬 1개, 중급 나무장작 1개가 필요합니다.",
+          "sources": [
+            {
+              "title": "라바뉴 · 마력이 깃든 나무장작 제작 정보",
+              "url": "https://mabi.labanyu.com/item/NDE0NjQ4/%EB%A7%88%EB%A0%A5%EC%9D%B4%20%EA%B9%83%EB%93%A0%20%EB%82%98%EB%AC%B4%EC%9E%A5%EC%9E%91"
+            },
+            {
+              "title": "쉼플레이스 · 신비한 허브 가루 제작",
+              "url": "https://mabinogi.shimplace.com/helper/gboard/1/47/"
+            }
+          ]
+        }
+      ],
+      "notes": [],
+      "checkedAt": "2026-09-10",
+      "aliases": []
+    },
+    {
+      "name": "중급 나무장작",
+      "methods": [
+        {
+          "kind": "제작",
+          "text": "목공용 대패를 장착하고 목공 작업대에서 나무장작 3개를 중급 나무장작 1개로 가공합니다.",
+          "sources": [
+            {
+              "title": "라바뉴 · 중급 나무장작 제작 정보",
+              "url": "https://mabi.labanyu.com/item/NDEzNTA1/%EC%A4%91%EA%B8%89%20%EB%82%98%EB%AC%B4%EC%9E%A5%EC%9E%91"
+            },
+            {
+              "title": "쉼플레이스 · 중급 나무장작 제작",
+              "url": "https://mabinogi.shimplace.com/infocenter/recipe/detail.php?n=1009"
+            }
+          ]
+        },
+        {
+          "kind": "채집",
+          "text": "두갈드 아일 벌목 캠프 또는 낭만 농장의 모탕에서 장작용 도끼로 채집할 때 확률로 나옵니다.",
+          "sources": [
+            {
+              "title": "마비노기 공식 가이드 · 채집",
+              "url": "https://mabinogi.nexon.com/page/archive/guide_view.asp?id=4888257&num=13"
+            }
+          ]
+        }
+      ],
+      "notes": [],
+      "checkedAt": "2026-09-10",
+      "aliases": []
+    },
+    {
+      "name": "실리엔",
+      "methods": [
+        {
+          "kind": "제작",
+          "text": "실리엔 생태 보호 지구의 마법의 가마솥에서 매직 크래프트로 제작합니다. 실리엔 결정 5개로 실리엔 1개를 만듭니다.",
+          "sources": [
+            {
+              "title": "라바뉴 · 실리엔 제작 정보",
+              "url": "https://mabi.labanyu.com/item/NDE0NjQx/%EC%8B%A4%EB%A6%AC%EC%97%94"
+            },
+            {
+              "title": "쉼플레이스 · 신비한 허브 가루 제작",
+              "url": "https://mabinogi.shimplace.com/helper/gboard/1/47/"
+            },
+            {
+              "title": "쉼플레이스 · 힐웬과 에너지 컨버터 제작",
+              "url": "https://mabinogi.shimplace.com/helper/gboard/1/78/"
+            }
+          ]
+        }
+      ],
+      "notes": [
+        "원재료인 실리엔 결정과 완제품 실리엔은 서로 다른 아이템입니다."
+      ],
+      "checkedAt": "2026-09-10",
+      "aliases": []
+    },
+    {
+      "name": "힐웬",
+      "methods": [
+        {
+          "kind": "제작",
+          "text": "힐웬 광산의 공학 선반에서 힐웬 공학으로 힐웬 광석 조각 5개를 힐웬 1개로 만듭니다. 광석 조각은 광산 아래층에서 채광 드릴로 채집합니다.",
+          "sources": [
+            {
+              "title": "라바뉴 · 힐웬 제작 정보",
+              "url": "https://mabi.labanyu.com/item/NDE0NjAw/%ED%9E%90%EC%9B%AC"
+            },
+            {
+              "title": "쉼플레이스 · 힐웬과 에너지 컨버터 제작",
+              "url": "https://mabinogi.shimplace.com/helper/gboard/1/78/"
+            }
+          ]
+        }
+      ],
+      "notes": [],
+      "checkedAt": "2026-09-10",
+      "aliases": []
+    },
+    {
+      "name": "동판",
+      "methods": [
+        {
+          "kind": "제작",
+          "text": "반호르 등의 노에서 제련합니다. 동괴 1개로 동판 1개를 만듭니다. 반호르 노는 숀에게 말을 걸어 가동합니다.",
+          "sources": [
+            {
+              "title": "라바뉴 · 동판 제작 정보",
+              "url": "https://mabi.labanyu.com/item/NDE0MDYw/%EB%8F%99%ED%8C%90"
+            },
+            {
+              "title": "쉼플레이스 · 동판 제작과 노 사용법",
+              "url": "https://mabinogi.shimplace.com/helper/gboard/1/65/"
+            }
+          ]
+        }
+      ],
+      "notes": [],
+      "checkedAt": "2026-09-10",
+      "aliases": []
+    },
+    {
+      "name": "동괴",
+      "methods": [
+        {
+          "kind": "합성 · 추천",
+          "text": "괴 불리기를 추천합니다. 건식 화덕에서 동괴 1개, 아라트의 결정 1개, 축복의 포션 1개를 합성하면 성공 시 동괴 10개를 얻습니다. 합성 C랭크 이상이 필요합니다.",
+          "sources": [
+            {
+              "title": "라바뉴 · 동괴 합성 제작 정보",
+              "url": "https://mabi.labanyu.com/item/NDE0MDM3/%EB%8F%99%EA%B4%B4"
+            },
+            {
+              "title": "마비노기 위키 · 아라트의 결정과 합성 레시피",
+              "url": "https://mabinogi.fandom.com/ko/wiki/%EC%95%84%EB%9D%BC%ED%8A%B8%EC%9D%98_%EA%B2%B0%EC%A0%95"
+            }
+          ]
+        },
+        {
+          "kind": "제작",
+          "text": "반호르 등의 노에서 제련합니다. 동광석 5개 또는 동광석 조각 5개로 동괴 1개를 만듭니다. 두 재료를 섞어 넣는 방식은 아닙니다.",
+          "sources": [
+            {
+              "title": "라바뉴 · 동괴 제작 정보",
+              "url": "https://mabi.labanyu.com/item/NDE0MDM3/%EB%8F%99%EA%B4%B4"
+            },
+            {
+              "title": "쉼플레이스 · 동판 제작과 노 사용법",
+              "url": "https://mabinogi.shimplace.com/helper/gboard/1/65/"
+            }
+          ]
+        }
+      ],
+      "notes": [
+        "합성 성공 시 투입한 괴 1개가 10개가 되어 순수 증가량은 9개입니다. 만든 괴를 다음 합성의 재료로 재사용할 수 있습니다.",
+        "표시 재료는 성공 기준이며 실패로 추가 소모되는 재료는 포함하지 않습니다."
+      ],
+      "checkedAt": "2026-09-10",
+      "aliases": []
+    },
+    {
+      "name": "신비한 허브 가루",
+      "methods": [
+        {
+          "kind": "제작",
+          "text": "실리엔 생태 보호 지구의 마법의 가마솥에서 매직 크래프트로 만듭니다. 블러디 허브 1개, 마나 허브 1개, 포이즌 허브 1개로 가루 1개를 제작합니다.",
+          "sources": [
+            {
+              "title": "라바뉴 · 신비한 허브 가루 제작 정보",
+              "url": "https://mabi.labanyu.com/item/NDE0NjQ3/%EC%8B%A0%EB%B9%84%ED%95%9C%20%ED%97%88%EB%B8%8C%20%EA%B0%80%EB%A3%A8"
+            },
+            {
+              "title": "쉼플레이스 · 신비한 허브 가루 제작",
+              "url": "https://mabinogi.shimplace.com/helper/gboard/1/47/"
+            }
+          ]
+        }
+      ],
+      "notes": [],
+      "checkedAt": "2026-09-10",
+      "aliases": []
+    },
+    {
+      "name": "블러디 허브",
+      "methods": [
+        {
+          "kind": "채집",
+          "text": "실리엔 생태 보호 지구에서 벼락 맞은 떡갈나무 지팡이를 사용해 실리엔 생태학으로 채집합니다. 결정과 여러 허브가 함께 나올 수 있습니다.",
+          "sources": [
+            {
+              "title": "마비노기 공식 가이드 · 채집",
+              "url": "https://mabinogi.nexon.com/page/archive/guide_view.asp?id=4888257&num=13"
+            },
+            {
+              "title": "쉼플레이스 · 신비한 허브 가루 제작",
+              "url": "https://mabinogi.shimplace.com/helper/gboard/1/47/"
+            }
+          ]
+        },
+        {
+          "kind": "채집",
+          "text": "해당 허브가 심어진 낭만 농장에서도 약초학으로 채집할 수 있습니다.",
+          "sources": [
+            {
+              "title": "마비노기 공식 가이드 · 채집",
+              "url": "https://mabinogi.nexon.com/page/archive/guide_view.asp?id=4888257&num=13"
+            }
+          ]
+        }
+      ],
+      "notes": [],
+      "checkedAt": "2026-09-10",
+      "aliases": []
+    },
+    {
+      "name": "마나 허브",
+      "methods": [
+        {
+          "kind": "채집",
+          "text": "실리엔 생태 보호 지구에서 벼락 맞은 떡갈나무 지팡이를 사용해 실리엔 생태학으로 채집합니다. 결정과 여러 허브가 함께 나올 수 있습니다.",
+          "sources": [
+            {
+              "title": "마비노기 공식 가이드 · 채집",
+              "url": "https://mabinogi.nexon.com/page/archive/guide_view.asp?id=4888257&num=13"
+            },
+            {
+              "title": "쉼플레이스 · 신비한 허브 가루 제작",
+              "url": "https://mabinogi.shimplace.com/helper/gboard/1/47/"
+            }
+          ]
+        },
+        {
+          "kind": "채집",
+          "text": "해당 허브가 심어진 낭만 농장에서도 약초학으로 채집할 수 있습니다.",
+          "sources": [
+            {
+              "title": "마비노기 공식 가이드 · 채집",
+              "url": "https://mabinogi.nexon.com/page/archive/guide_view.asp?id=4888257&num=13"
+            }
+          ]
+        }
+      ],
+      "notes": [],
+      "checkedAt": "2026-09-10",
+      "aliases": []
+    },
+    {
+      "name": "포이즌 허브",
+      "methods": [
+        {
+          "kind": "채집",
+          "text": "실리엔 생태 보호 지구에서 벼락 맞은 떡갈나무 지팡이를 사용해 실리엔 생태학으로 채집합니다. 결정과 여러 허브가 함께 나올 수 있습니다.",
+          "sources": [
+            {
+              "title": "마비노기 공식 가이드 · 채집",
+              "url": "https://mabinogi.nexon.com/page/archive/guide_view.asp?id=4888257&num=13"
+            },
+            {
+              "title": "쉼플레이스 · 신비한 허브 가루 제작",
+              "url": "https://mabinogi.shimplace.com/helper/gboard/1/47/"
+            }
+          ]
+        },
+        {
+          "kind": "채집",
+          "text": "포이즌 허브가 설치된 낭만 농장에서도 약초학으로 채집할 수 있습니다.",
+          "sources": [
+            {
+              "title": "마비노기 공식 · 낭만 농장 포이즌 허브 설치물 추가",
+              "url": "https://mabinogi.nexon.com/page/news/notice_view.asp?id=4889486"
+            }
+          ]
+        }
+      ],
+      "notes": [],
+      "checkedAt": "2026-09-10",
+      "aliases": []
+    },
+    {
+      "name": "미스릴판",
+      "methods": [
+        {
+          "kind": "제작",
+          "text": "반호르 등의 노에서 제련합니다. 미스릴괴 1개로 미스릴판 1개를 만듭니다. 반호르 노는 숀에게 말을 걸어 가동합니다.",
+          "sources": [
+            {
+              "title": "라바뉴 · 미스릴판 제작 정보",
+              "url": "https://mabi.labanyu.com/item/NDE0MDYz/%EB%AF%B8%EC%8A%A4%EB%A6%B4%ED%8C%90"
+            },
+            {
+              "title": "쉼플레이스 · 동판 제작과 노 사용법",
+              "url": "https://mabinogi.shimplace.com/helper/gboard/1/65/"
+            }
+          ]
+        }
+      ],
+      "notes": [],
+      "checkedAt": "2026-09-10",
+      "aliases": []
+    },
+    {
+      "name": "미스릴괴",
+      "methods": [
+        {
+          "kind": "합성 · 추천",
+          "text": "괴 불리기를 추천합니다. 건식 화덕에서 미스릴괴 1개, 아라트의 결정 1개, 축복의 포션 1개를 합성하면 성공 시 미스릴괴 10개를 얻습니다. 합성 6랭크 이상이 필요합니다.",
+          "sources": [
+            {
+              "title": "라바뉴 · 미스릴괴 합성 제작 정보",
+              "url": "https://mabi.labanyu.com/item/NDE0MDQz/%EB%AF%B8%EC%8A%A4%EB%A6%B4%EA%B4%B4"
+            },
+            {
+              "title": "마비노기 위키 · 미스릴괴 합성",
+              "url": "https://mabinogi.fandom.com/ko/wiki/%EB%AF%B8%EC%8A%A4%EB%A6%B4%EA%B4%B4"
+            }
+          ]
+        },
+        {
+          "kind": "제작",
+          "text": "반호르 등의 노에서 제련합니다. 미스릴 광석 5개 또는 미스릴 광석 조각 5개로 미스릴괴 1개를 만듭니다. 두 재료를 섞어 넣는 방식은 아닙니다.",
+          "sources": [
+            {
+              "title": "라바뉴 · 미스릴괴 제작 정보",
+              "url": "https://mabi.labanyu.com/item/NDE0MDQz/%EB%AF%B8%EC%8A%A4%EB%A6%B4%EA%B4%B4"
+            },
+            {
+              "title": "쉼플레이스 · 동판 제작과 노 사용법",
+              "url": "https://mabinogi.shimplace.com/helper/gboard/1/65/"
+            }
+          ]
+        }
+      ],
+      "notes": [
+        "합성 성공 시 투입한 괴 1개가 10개가 되어 순수 증가량은 9개입니다. 만든 괴를 다음 합성의 재료로 재사용할 수 있습니다.",
+        "표시 재료는 성공 기준이며 실패로 추가 소모되는 재료는 포함하지 않습니다."
+      ],
+      "checkedAt": "2026-09-10",
+      "aliases": []
+    },
+    {
+      "name": "보릿가루",
+      "methods": [
+        {
+          "kind": "제작",
+          "text": "티르코네일 풍차에서 제분. 보리 10개 → 보릿가루 1개. 알리사에게 가동료를 내고 풍차를 사용한다.",
+          "sources": [
+            {
+              "title": "보릿가루 제분과 보리밭 위치",
+              "url": "https://mabinogi.begchi.com/%EB%B3%B4%EB%A6%BF%EA%B0%80%EB%A3%A8-%EC%83%9D%EC%82%B0%EB%B2%95-%EB%B3%B4%EB%A6%AC-%EB%B0%AD-%EC%9C%84%EC%B9%98"
+            },
+            {
+              "title": "라바뉴 · 보릿가루 제작 정보",
+              "url": "https://mabi.labanyu.com/item/NDA5NTky/%EB%B3%B4%EB%A6%BF%EA%B0%80%EB%A3%A8",
+              "evidenceUrl": "https://mabi.labanyu.com/api/item/NDA5NTky/production"
+            }
+          ]
+        }
+      ],
+      "notes": [],
+      "checkedAt": "2026-09-10",
+      "aliases": []
+    },
+    {
+      "name": "보리",
+      "methods": [
+        {
+          "kind": "채집",
+          "text": "낫을 착용하고 티르코네일 학교 아래 보리밭에서 추수. 낭만 농장에 설치한 보리밭도 이용할 수 있다.",
+          "sources": [
+            {
+              "title": "마비노기 공식 가이드 · 채집",
+              "url": "https://mabinogi.nexon.com/page/archive/guide_view.asp?id=4888257&num=13"
+            },
+            {
+              "title": "보릿가루 제분과 보리밭 위치",
+              "url": "https://mabinogi.begchi.com/%EB%B3%B4%EB%A6%BF%EA%B0%80%EB%A3%A8-%EC%83%9D%EC%82%B0%EB%B2%95-%EB%B3%B4%EB%A6%AC-%EB%B0%AD-%EC%9C%84%EC%B9%98"
+            }
+          ]
+        }
+      ],
+      "notes": [],
+      "checkedAt": "2026-09-10",
+      "aliases": []
+    },
+    {
+      "name": "금판",
+      "methods": [
+        {
+          "kind": "제작",
+          "text": "제련 2랭크 이상. 제련용 노에서 금괴 1개로 금판 1개 제작.",
+          "sources": [
+            {
+              "title": "라바뉴 · 금판 제작 정보",
+              "url": "https://mabi.labanyu.com/item/NDE0MDYy/%EA%B8%88%ED%8C%90",
+              "evidenceUrl": "https://mabi.labanyu.com/api/item/NDE0MDYy/production"
+            },
+            {
+              "title": "마비노기 지식왕 · 금판 제련",
+              "url": "https://m.mabinogi.nexon.com/m/community/kin_view.asp?id=212185"
+            }
+          ]
+        }
+      ],
+      "notes": [],
+      "checkedAt": "2026-09-10",
+      "aliases": []
+    },
+    {
+      "name": "금괴",
+      "methods": [
+        {
+          "kind": "합성 · 추천",
+          "text": "괴 불리기를 추천합니다. 건식 화덕에서 금괴 1개, 아라트의 결정 1개, 축복의 포션 1개를 합성하면 성공 시 금괴 10개를 얻습니다. 합성 8랭크 이상이 필요합니다.",
+          "sources": [
+            {
+              "title": "라바뉴 · 금괴 합성 제작 정보",
+              "url": "https://mabi.labanyu.com/item/NDE0MDQx/%EA%B8%88%EA%B4%B4"
+            }
+          ]
+        },
+        {
+          "kind": "제작",
+          "text": "제련 8랭크 이상. 제련용 노에서 금광석 5개 또는 금광석 조각 5개로 금괴 1개 제작.",
+          "sources": [
+            {
+              "title": "라바뉴 · 금괴 제작 정보",
+              "url": "https://mabi.labanyu.com/item/NDE0MDQx/%EA%B8%88%EA%B4%B4",
+              "evidenceUrl": "https://mabi.labanyu.com/api/item/NDE0MDQx/production"
+            },
+            {
+              "title": "마비노기 지식왕 · 금괴와 금판",
+              "url": "https://m.mabinogi.nexon.com/m/community/kin_view.asp?id=212185"
+            }
+          ]
+        }
+      ],
+      "notes": [
+        "합성 성공 시 투입한 괴 1개가 10개가 되어 순수 증가량은 9개입니다. 만든 괴를 다음 합성의 재료로 재사용할 수 있습니다.",
+        "표시 재료는 성공 기준이며 실패로 추가 소모되는 재료는 포함하지 않습니다."
+      ],
+      "checkedAt": "2026-09-10",
+      "aliases": []
+    },
+    {
+      "name": "마리오네트 500 포션",
+      "methods": [
+        {
+          "kind": "거래",
+          "text": "경매장에서 이름이 정확히 같은 완제품을 구매해 준비한다.",
+          "sources": [
+            {
+              "title": "쉼플레이스 · 마리오네트 포션 거래 품목",
+              "url": "https://mabinogi.shimplace.com/infocenter/item/list.php?fynny=2&page=4&subclass=1301"
+            }
+          ]
+        },
+        {
+          "kind": "NPC 구매",
+          "text": "금요일에 던바튼 또는 벨바스트의 인장 상인에게 모험가의 인장 1개로 1개 구매. 5개 묶음은 인장 5개.",
+          "sources": [
+            {
+              "title": "마비노기 공식 · 모험가의 인장 상점",
+              "url": "https://mabinogi.nexon.com/page/news/notice_view.asp?id=4890312"
+            }
+          ]
+        }
+      ],
+      "notes": [
+        "이 앱에서는 완제품 구매 대상으로 계산하며 제작법과 하위 재료는 표시하지 않습니다."
+      ],
+      "checkedAt": "2026-09-10",
+      "aliases": []
+    },
+    {
+      "name": "최고급 옷감",
+      "methods": [
+        {
+          "kind": "제작",
+          "text": "베틀에서 방직. 굵은 실뭉치 6개 → 최고급 옷감 1개.",
+          "sources": [
+            {
+              "title": "라바뉴 · 최고급 옷감 제작 정보",
+              "url": "https://mabi.labanyu.com/item/NDEyOTI3/%EC%B5%9C%EA%B3%A0%EA%B8%89%20%EC%98%B7%EA%B0%90",
+              "evidenceUrl": "https://mabi.labanyu.com/api/item/NDEyOTI3/production"
+            },
+            {
+              "title": "마비노기 위키 · 최고급 옷감",
+              "url": "https://mabinogi.fandom.com/ko/wiki/%EC%B5%9C%EA%B3%A0%EA%B8%89_%EC%98%B7%EA%B0%90"
+            }
+          ]
+        }
+      ],
+      "notes": [],
+      "checkedAt": "2026-09-10",
+      "aliases": []
+    },
+    {
+      "name": "생명력 500 포션",
+      "methods": [
+        {
+          "kind": "거래",
+          "text": "경매장에서 생명력 500 포션 완제품을 구매해 준비한다.",
+          "sources": [
+            {
+              "title": "물물교역 재료 구매 기록",
+              "url": "https://geesdom.tistory.com/61"
+            }
+          ]
+        }
+      ],
+      "notes": [
+        "이 앱에서는 완제품 구매 대상으로 계산하며 제작법과 하위 재료는 표시하지 않습니다."
+      ],
+      "checkedAt": "2026-09-10",
+      "aliases": []
+    },
+    {
+      "name": "빤짝이 종이",
+      "methods": [
+        {
+          "kind": "제작",
+          "text": "합성으로 종이 10개와 작은 녹색구슬·파란구슬·빨간구슬·은색구슬 각 1개를 사용하면 10개 생산.",
+          "sources": [
+            {
+              "title": "라바뉴 · 빤짝이 종이 제작 정보",
+              "url": "https://mabi.labanyu.com/item/NDE0MDg1/%EB%B9%A4%EC%A7%9D%EC%9D%B4%20%EC%A2%85%EC%9D%B4",
+              "evidenceUrl": "https://mabi.labanyu.com/api/item/NDE0MDg1/production"
+            },
+            {
+              "title": "라바뉴의 마비노기 · 빤짝이 종이",
+              "url": "https://mabi.labanyu.com/item/NDE0MDg1/%EB%B9%A4%EC%A7%9D%EC%9D%B4%20%EC%A2%85%EC%9D%B4"
+            }
+          ]
+        }
+      ],
+      "notes": [],
+      "checkedAt": "2026-09-10",
+      "aliases": []
+    },
+    {
+      "name": "종이",
+      "methods": [
+        {
+          "kind": "NPC 구매",
+          "text": "던바튼 잡화점 발터 또는 티르코네일 잡화점 말콤에게 구매.",
+          "sources": [
+            {
+              "title": "마비노기 위키 · 종이",
+              "url": "https://mabinogi.fandom.com/ko/wiki/%EC%A2%85%EC%9D%B4"
+            },
+            {
+              "title": "마비노기 · 빤짝이 종이 합성 및 종이 구입처",
+              "url": "https://ladeca.tistory.com/category/%EC%A0%9C%EB%B3%B4?page=4"
+            }
+          ]
+        }
+      ],
+      "notes": [],
+      "checkedAt": "2026-09-10",
+      "aliases": []
+    },
+    {
+      "name": "작은 빨간구슬",
+      "methods": [
+        {
+          "kind": "채집",
+          "text": "가로등 같은 타격 가능한 시설물을 일반 공격하여 떨어지는 구슬을 줍는다. 색상은 무작위다.",
+          "sources": [
+            {
+              "title": "마비노기 위키 · 작은 빨간구슬",
+              "url": "https://mabinogi.fandom.com/ko/wiki/%EC%9E%91%EC%9D%80_%EB%B9%A8%EA%B0%84%EA%B5%AC%EC%8A%AC"
+            }
+          ]
+        }
+      ],
+      "notes": [],
+      "checkedAt": "2026-09-10",
+      "aliases": []
+    },
+    {
+      "name": "작은 녹색구슬",
+      "methods": [
+        {
+          "kind": "채집",
+          "text": "가로등 같은 타격 가능한 시설물을 일반 공격하여 떨어지는 구슬을 줍는다. 색상은 무작위다.",
+          "sources": [
+            {
+              "title": "마비노기 위키 · 작은 녹색구슬",
+              "url": "https://mabinogi.fandom.com/ko/wiki/%EC%9E%91%EC%9D%80_%EB%85%B9%EC%83%89%EA%B5%AC%EC%8A%AC"
+            }
+          ]
+        }
+      ],
+      "notes": [],
+      "checkedAt": "2026-09-10",
+      "aliases": []
+    },
+    {
+      "name": "작은 은색구슬",
+      "methods": [
+        {
+          "kind": "채집",
+          "text": "가로등 같은 타격 가능한 시설물을 일반 공격하여 떨어지는 구슬을 줍는다. 색상은 무작위다.",
+          "sources": [
+            {
+              "title": "마비노기 위키 · 작은 은색구슬",
+              "url": "https://mabinogi.fandom.com/ko/wiki/%EC%9E%91%EC%9D%80_%EC%9D%80%EC%83%89%EA%B5%AC%EC%8A%AC"
+            }
+          ]
+        }
+      ],
+      "notes": [],
+      "checkedAt": "2026-09-10",
+      "aliases": []
+    },
+    {
+      "name": "작은 파란구슬",
+      "methods": [
+        {
+          "kind": "채집",
+          "text": "가로등 같은 타격 가능한 시설물을 일반 공격하여 떨어지는 구슬을 줍는다. 색상은 무작위다.",
+          "sources": [
+            {
+              "title": "마비노기 위키 · 작은 파란구슬",
+              "url": "https://mabinogi.fandom.com/ko/wiki/%EC%9E%91%EC%9D%80_%ED%8C%8C%EB%9E%80%EA%B5%AC%EC%8A%AC"
+            }
+          ]
+        }
+      ],
+      "notes": [],
+      "checkedAt": "2026-09-10",
+      "aliases": []
+    },
+    {
+      "name": "뮤턴트",
+      "methods": [
+        {
+          "kind": "제작",
+          "text": "매직 크래프트 6랭크 이상. 실리엔 생태 보호 지구의 마법의 가마솥에서 돌연변이 토끼의 발 10개 + 돌연변이 식물의 점액질 5개 + 사스콰치의 심장 3개로 1개 제작.",
+          "sources": [
+            {
+              "title": "라바뉴 · 뮤턴트 제작 정보",
+              "url": "https://mabi.labanyu.com/item/NDE0NjUz/%EB%AE%A4%ED%84%B4%ED%8A%B8",
+              "evidenceUrl": "https://mabi.labanyu.com/api/item/NDE0NjUz/production"
+            },
+            {
+              "title": "마비노기 위키 · 뮤턴트",
+              "url": "https://mabinogi.fandom.com/ko/wiki/%EB%AE%A4%ED%84%B4%ED%8A%B8"
+            }
+          ]
+        }
+      ],
+      "notes": [],
+      "checkedAt": "2026-09-10",
+      "aliases": []
+    },
+    {
+      "name": "돌연변이 토끼의 발",
+      "methods": [
+        {
+          "kind": "드롭",
+          "text": "실리엔 생태 보호 지구 외곽의 돌연변이 토끼를 처치하고 획득.",
+          "sources": [
+            {
+              "title": "마비노기 공식 가이드 · 채집",
+              "url": "https://mabinogi.nexon.com/page/archive/guide_view.asp?id=4888257&num=13"
+            },
+            {
+              "title": "마비노기 위키 · 돌연변이 토끼의 발",
+              "url": "https://mabinogi.fandom.com/ko/wiki/%EB%8F%8C%EC%97%B0%EB%B3%80%EC%9D%B4_%ED%86%A0%EB%81%BC%EC%9D%98_%EB%B0%9C"
+            }
+          ]
+        }
+      ],
+      "notes": [],
+      "checkedAt": "2026-09-10",
+      "aliases": []
+    },
+    {
+      "name": "돌연변이 식물의 점액질",
+      "methods": [
+        {
+          "kind": "드롭",
+          "text": "실리엔 생태 보호 지구 외곽 1~2지구의 돌연변이 식충식물·식인식물을 처치하고 획득.",
+          "sources": [
+            {
+              "title": "마비노기 공식 가이드 · 채집",
+              "url": "https://mabinogi.nexon.com/page/archive/guide_view.asp?id=4888257&num=13"
+            },
+            {
+              "title": "마비노기 위키 · 돌연변이 식물의 점액질",
+              "url": "https://mabinogi.fandom.com/ko/wiki/%EB%8F%8C%EC%97%B0%EB%B3%80%EC%9D%B4_%EC%8B%9D%EB%AC%BC%EC%9D%98_%EC%A0%90%EC%95%A1%EC%A7%88"
+            },
+            {
+              "title": "쉼플레이스 · 실리엔 외곽 재료 수급",
+              "url": "https://mabinogi.shimplace.com/helper/gboard/1/73/"
+            }
+          ]
+        }
+      ],
+      "notes": [],
+      "checkedAt": "2026-09-10",
+      "aliases": [
+        "돌연변이 식물의 점액"
+      ]
+    },
+    {
+      "name": "사스콰치의 심장",
+      "methods": [
+        {
+          "kind": "드롭",
+          "text": "실리엔 생태 보호 지구 외곽에서 중독된 사스콰치를 처치하고 획득.",
+          "sources": [
+            {
+              "title": "마비노기 공식 가이드 · 채집",
+              "url": "https://mabinogi.nexon.com/page/archive/guide_view.asp?id=4888257&num=13"
+            },
+            {
+              "title": "라바뉴의 마비노기 · 사스콰치의 심장",
+              "url": "https://mabi.labanyu.com/item/NDE0NjQ0/%EC%82%AC%EC%8A%A4%EC%BD%B0%EC%B9%98%EC%9D%98%20%EC%8B%AC%EC%9E%A5"
+            },
+            {
+              "title": "Mabinogi World Wiki · Sasquatch Heart",
+              "url": "https://wiki.mabinogiworld.com/view/Sasquatch_Heart"
+            }
+          ]
+        }
+      ],
+      "notes": [
+        "서버별로 획득처가 다를 수 있습니다."
+      ],
+      "sourceNotes": ["획득처 안내는 국내 공식 가이드와 해외 PC 위키를 참고합니다. 서버별로 차이가 있을 수 있습니다."],
+      "checkedAt": "2026-09-10",
+      "aliases": []
+    },
+    {
+      "name": "특급 나무장작",
+      "methods": [
+        {
+          "kind": "제작",
+          "text": "목공으로 최고급 나무장작 1개 + 순도 높은 강화제 1개 → 특급 나무장작 1개.",
+          "sources": [
+            {
+              "title": "라바뉴 · 특급 나무장작 제작 정보",
+              "url": "https://mabi.labanyu.com/item/NDEzNjMy/%ED%8A%B9%EA%B8%89%20%EB%82%98%EB%AC%B4%EC%9E%A5%EC%9E%91",
+              "evidenceUrl": "https://mabi.labanyu.com/api/item/NDEzNjMy/production"
+            },
+            {
+              "title": "쉼플레이스 · 특급 나무장작",
+              "url": "https://mabinogi.shimplace.com/infocenter/item/detail.php?n=71"
+            }
+          ]
+        }
+      ],
+      "notes": [],
+      "checkedAt": "2026-09-10",
+      "aliases": []
+    },
+    {
+      "name": "최고급 나무장작",
+      "methods": [
+        {
+          "kind": "제작",
+          "text": "목공용 대패를 장착하고 목공 작업대에서 고급 나무장작 3개로 1개 제작.",
+          "sources": [
+            {
+              "title": "쉼플레이스 · 최고급 나무장작 제작",
+              "url": "https://mabinogi.shimplace.com/infocenter/recipe/detail.php?n=1010"
+            }
+          ]
+        },
+        {
+          "kind": "채집",
+          "text": "두갈드 아일 벌목 캠프 또는 낭만 농장의 모탕을 장작용 도끼로 채집하면 일정 확률로 획득.",
+          "sources": [
+            {
+              "title": "마비노기 공식 가이드 · 채집",
+              "url": "https://mabinogi.nexon.com/page/archive/guide_view.asp?id=4888257&num=13"
+            }
+          ]
+        }
+      ],
+      "notes": [
+        "1개를 처음부터 제작하려면 고급 나무장작 3개 = 중급 나무장작 9개 = 나무장작 27개입니다. 각 단계는 대체 관계입니다."
+      ],
+      "checkedAt": "2026-09-10",
+      "aliases": []
+    },
+    {
+      "name": "순도 높은 강화제",
+      "methods": [
+        {
+          "kind": "제작",
+          "text": "분해 스킬로 산산조각난 검은 금속 5개 또는 균열된 검은 금속 5개를 분해하면 1~3개 획득. 분해 대상에 따라 수량이 달라진다.",
+          "sources": [
+            {
+              "title": "순도 높은 강화제 분해 재료와 결과",
+              "url": "https://box0101.tistory.com/46"
+            },
+            {
+              "title": "라바뉴 · 순도 높은 강화제 제작 정보",
+              "url": "https://mabi.labanyu.com/item/NDE0Mzcw/%EC%88%9C%EB%8F%84%20%EB%86%92%EC%9D%80%20%EA%B0%95%ED%99%94%EC%A0%9C",
+              "evidenceUrl": "https://mabi.labanyu.com/api/item/NDE0Mzcw/production"
+            }
+          ]
+        }
+      ],
+      "notes": [],
+      "checkedAt": "2026-09-10",
+      "aliases": []
+    },
+    {
+      "name": "조화의 코스모스 퍼퓸",
+      "methods": [
+        {
+          "kind": "제작",
+          "text": "핀 벨을 착용하고 핀즈 크래프트. 빈 병 1개 + 마법가루 10개 + 베이스 허브 10개 + 코스모스 추출액 1개로 1개 제작.",
+          "sources": [
+            {
+              "title": "마비노기 공식 · 펫 핸들러 재능 안내",
+              "url": "https://mabinogi.nexon.com/page/news/notice_view.asp?id=4887788"
+            },
+            {
+              "title": "라바뉴 · 조화의 코스모스 퍼퓸 제작 정보",
+              "url": "https://mabi.labanyu.com/item/NDE0MTc4/%EC%A1%B0%ED%99%94%EC%9D%98%20%EC%BD%94%EC%8A%A4%EB%AA%A8%EC%8A%A4%20%ED%8D%BC%ED%93%B8",
+              "evidenceUrl": "https://mabi.labanyu.com/api/item/NDE0MTc4/production"
+            }
+          ]
+        },
+        {
+          "kind": "NPC 구매",
+          "text": "화요일에 던바튼/벨바스트 인장 상인에게 모험가의 인장 5개로 1개 구매. 하루 3회 제한.",
+          "sources": [
+            {
+              "title": "마비노기 공식 · 모험가의 인장 상점",
+              "url": "https://mabinogi.nexon.com/page/news/notice_view.asp?id=4890312"
+            }
+          ]
+        }
+      ],
+      "notes": [],
+      "checkedAt": "2026-09-10",
+      "aliases": []
+    },
+    {
+      "name": "코스모스 추출액",
+      "methods": [
+        {
+          "kind": "NPC 구매",
+          "text": "마그 멜 상인 피오나트에게 금박 솔방울 10개로 1개 구매. 금박 솔방울은 피니 펫 호루라기를 피오나트에게 판매해 얻는다.",
+          "sources": [
+            {
+              "title": "마비노기 공식 · 펫 핸들러 재능 안내",
+              "url": "https://mabinogi.nexon.com/page/news/notice_view.asp?id=4887788"
+            }
+          ]
+        }
+      ],
+      "notes": [],
+      "checkedAt": "2026-09-10",
+      "aliases": []
+    },
+    {
+      "name": "빈 병",
+      "methods": [
+        {
+          "kind": "NPC 구매",
+          "text": "던바튼 잡화점 발터에게 구매. 우물에서 물을 담기 전의 빈 병을 재료로 준비한다.",
+          "sources": [
+            {
+              "title": "마비노기 공식 가이드 · 채집",
+              "url": "https://mabinogi.nexon.com/page/archive/guide_view.asp?id=4888257&num=13"
+            },
+            {
+              "title": "마비노기 · 빈 병 구입처와 우유 채집",
+              "url": "https://rfv1479.tistory.com/65"
+            }
+          ]
+        }
+      ],
+      "notes": [],
+      "checkedAt": "2026-09-10",
+      "aliases": []
+    },
+    {
+      "name": "마법가루",
+      "methods": [
+        {
+          "kind": "제작",
+          "text": "핸디크래프트 C랭크 이상. 베이스 허브 1개 + 작은 파란구슬 1개로 1개 제작. 파란구슬 대신 작은 빨간구슬 또는 작은 은색구슬을 쓰는 조합도 있다.",
+          "sources": [
+            {
+              "title": "라바뉴 · 마법가루 제작 정보",
+              "url": "https://mabi.labanyu.com/item/NDEzMjM5/%EB%A7%88%EB%B2%95%EA%B0%80%EB%A3%A8",
+              "evidenceUrl": "https://mabi.labanyu.com/api/item/NDEzMjM5/production"
+            },
+            {
+              "title": "마비노기 위키 · 작은 은색구슬",
+              "url": "https://mabinogi.fandom.com/ko/wiki/%EC%9E%91%EC%9D%80_%EC%9D%80%EC%83%89%EA%B5%AC%EC%8A%AC"
+            }
+          ]
+        }
+      ],
+      "notes": [],
+      "checkedAt": "2026-09-10",
+      "aliases": []
+    },
+    {
+      "name": "베이스 허브",
+      "methods": [
+        {
+          "kind": "채집",
+          "text": "낭만 농장의 베이스 허브를 맨손으로 채집. 클로버 누·클로버 돼지 같은 허브 펫에서도 얻을 수 있다.",
+          "sources": [
+            {
+              "title": "마비노기 공식 가이드 · 채집",
+              "url": "https://mabinogi.nexon.com/page/archive/guide_view.asp?id=4888257&num=13"
+            },
+            {
+              "title": "쉼플레이스 · 허브 채집 가이드",
+              "url": "https://mabinogi.shimplace.com/helper/gboard/1/9/"
+            }
+          ]
+        }
+      ],
+      "notes": [],
+      "checkedAt": "2026-09-10",
+      "aliases": []
+    },
+    {
+      "name": "실리엔 결정",
+      "methods": [
+        {
+          "kind": "채집",
+          "text": "실리엔 생태 보호 지구에서 벼락맞은 떡갈나무 지팡이를 착용하고 실리엔 생태학으로 채집. 도구는 현지 실비아·바이스가 판매.",
+          "sources": [
+            {
+              "title": "마비노기 공식 가이드 · 채집",
+              "url": "https://mabinogi.nexon.com/page/archive/guide_view.asp?id=4888257&num=13"
+            },
+            {
+              "title": "쉼플레이스 · 실리엔 결정 수급",
+              "url": "https://mabinogi.shimplace.com/helper/gboard/1/51/"
+            }
+          ]
+        }
+      ],
+      "notes": [],
+      "checkedAt": "2026-09-10",
+      "aliases": []
+    },
+    {
+      "name": "새우 조련 미끼",
+      "methods": [
+        {
+          "kind": "제작",
+          "text": "요리 D랭크 이상, 반죽. 반죽용 밀대와 간이 테이블을 착용하고 새우 30%·설탕 38%·마늘 32%로 제작. 재료는 각 1개가 소모되며 성공 1회에 미끼 10개 생산.",
+          "sources": [
+            {
+              "title": "쉼플레이스 · 새우 조련 미끼 제작",
+              "url": "https://mabinogi.shimplace.com/helper/gboard/1/46/?page=4"
+            },
+            {
+              "title": "라바뉴 · 새우 조련 미끼 제작 정보",
+              "url": "https://mabi.labanyu.com/item/NDEwMjI2/%EC%83%88%EC%9A%B0%20%EC%A1%B0%EB%A0%A8%20%EB%AF%B8%EB%81%BC",
+              "evidenceUrl": "https://mabi.labanyu.com/api/item/NDEwMjI2/production"
+            }
+          ]
+        }
+      ],
+      "notes": [],
+      "checkedAt": "2026-09-10",
+      "aliases": []
+    },
+    {
+      "name": "새우",
+      "methods": [
+        {
+          "kind": "NPC 구매",
+          "text": "던바튼 식료품점 글리니스에게 구매. 티르코네일의 케이틴 등 다른 식료품점과 포장마차 펫에서도 판매.",
+          "sources": [
+            {
+              "title": "PC 마비노기 지역별 식료품점 판매 재료",
+              "url": "https://box0101.tistory.com/37"
+            },
+            {
+              "title": "쉼플레이스 · 새우 조련 미끼 제작",
+              "url": "https://mabinogi.shimplace.com/helper/gboard/1/46/?page=4"
+            }
+          ]
+        }
+      ],
+      "notes": [],
+      "checkedAt": "2026-09-10",
+      "aliases": []
+    },
+    {
+      "name": "설탕",
+      "methods": [
+        {
+          "kind": "NPC 구매",
+          "text": "던바튼 식료품점 글리니스에게 구매. 티르코네일의 케이틴 등 다른 식료품점과 포장마차 펫에서도 판매.",
+          "sources": [
+            {
+              "title": "PC 마비노기 지역별 식료품점 판매 재료",
+              "url": "https://box0101.tistory.com/37"
+            },
+            {
+              "title": "쉼플레이스 · 새우 조련 미끼 제작",
+              "url": "https://mabinogi.shimplace.com/helper/gboard/1/46/?page=4"
+            }
+          ]
+        }
+      ],
+      "notes": [],
+      "checkedAt": "2026-09-10",
+      "aliases": []
+    },
+    {
+      "name": "마늘",
+      "methods": [
+        {
+          "kind": "NPC 구매",
+          "text": "던바튼 식료품점 글리니스에게 구매. 티르코네일의 케이틴 등 다른 식료품점과 포장마차 펫에서도 판매.",
+          "sources": [
+            {
+              "title": "PC 마비노기 지역별 식료품점 판매 재료",
+              "url": "https://box0101.tistory.com/37"
+            },
+            {
+              "title": "쉼플레이스 · 새우 조련 미끼 제작",
+              "url": "https://mabinogi.shimplace.com/helper/gboard/1/46/?page=4"
+            }
+          ]
+        }
+      ],
+      "notes": [],
+      "checkedAt": "2026-09-10",
+      "aliases": []
+    },
+    {
+      "name": "질긴 끈",
+      "methods": [
+        {
+          "kind": "제작",
+          "text": "물레에서 방직. 굵은 실뭉치 5개 → 질긴 끈 1개.",
+          "sources": [
+            {
+              "title": "라바뉴 · 질긴 끈 제작 정보",
+              "url": "https://mabi.labanyu.com/item/NDEyOTU2/%EC%A7%88%EA%B8%B4%20%EB%81%88",
+              "evidenceUrl": "https://mabi.labanyu.com/api/item/NDEyOTU2/production"
+            },
+            {
+              "title": "마비노기 지식왕 · 방직 물레 재료",
+              "url": "https://mabinogi.nexon.com/page/community/kin_view.asp?id=294117"
+            }
+          ]
+        }
+      ],
+      "notes": [],
+      "checkedAt": "2026-09-10",
+      "aliases": []
+    },
+    {
+      "name": "마법의 양피지",
+      "methods": [
+        {
+          "kind": "제작",
+          "text": "필기구 크래프트로 부드러운 양피지 1개 + 마나 허브 10개 + 선라이트 허브 10개를 사용하여 1개 제작.",
+          "sources": [
+            {
+              "title": "마비노기 공식 가이드 · 마기그래피",
+              "url": "https://mabinogi.nexon.com/page/archive/guide_view.asp?id=4888333"
+            },
+            {
+              "title": "라바뉴 · 마법의 양피지 제작 정보",
+              "url": "https://mabi.labanyu.com/item/NDMxNjQy/%EB%A7%88%EB%B2%95%EC%9D%98%20%EC%96%91%ED%94%BC%EC%A7%80",
+              "evidenceUrl": "https://mabi.labanyu.com/api/item/NDMxNjQy/production"
+            }
+          ]
+        }
+      ],
+      "notes": [],
+      "checkedAt": "2026-09-10",
+      "aliases": []
+    },
+    {
+      "name": "부드러운 양피지",
+      "methods": [
+        {
+          "kind": "제작",
+          "text": "필기구 크래프트로 가죽을 가공. 저가형 가죽 20개 / 일반 가죽 10개 / 고급 가죽 5개 / 최고급 가죽 2개 중 한 조합을 사용하여 1개 제작.",
+          "sources": [
+            {
+              "title": "마비노기 공식 가이드 · 마기그래피",
+              "url": "https://mabinogi.nexon.com/page/archive/guide_view.asp?id=4888333"
+            },
+            {
+              "title": "라바뉴 · 부드러운 양피지 제작 정보",
+              "url": "https://mabi.labanyu.com/item/NDMxNjQ0/%EB%B6%80%EB%93%9C%EB%9F%AC%EC%9A%B4%20%EC%96%91%ED%94%BC%EC%A7%80",
+              "evidenceUrl": "https://mabi.labanyu.com/api/item/NDMxNjQ0/production"
+            }
+          ]
+        }
+      ],
+      "notes": [],
+      "checkedAt": "2026-09-10",
+      "aliases": []
+    },
+    {
+      "name": "선라이트 허브",
+      "methods": [
+        {
+          "kind": "채집",
+          "text": "낭만 농장의 선라이트 허브(노란 약초)를 맨손으로 채집. 울라 던전의 허브방이나 클로버 누·클로버 돼지 펫에서도 얻을 수 있다.",
+          "sources": [
+            {
+              "title": "마비노기 공식 가이드 · 채집",
+              "url": "https://mabinogi.nexon.com/page/archive/guide_view.asp?id=4888257&num=13"
+            },
+            {
+              "title": "쉼플레이스 · 허브 채집 가이드",
+              "url": "https://mabinogi.shimplace.com/helper/gboard/1/9/"
+            }
+          ]
+        }
+      ],
+      "notes": [],
+      "checkedAt": "2026-09-10",
+      "aliases": []
+    },
+    {
+      "name": "밀가루",
+      "methods": [
+        {
+          "kind": "제작",
+          "text": "티르코네일 풍차에서 제분. 밀 10개 → 밀가루 1개. 알리사에게 가동료를 내거나 이미 작동 중인 풍차를 사용한다.",
+          "sources": [
+            {
+              "title": "쉼플레이스 · 밀가루 제분",
+              "url": "https://mabinogi.shimplace.com/helper/gboard/1/35/"
+            },
+            {
+              "title": "라바뉴 · 밀가루 제작 정보",
+              "url": "https://mabi.labanyu.com/item/NDA5NTkx/%EB%B0%80%EA%B0%80%EB%A3%A8",
+              "evidenceUrl": "https://mabi.labanyu.com/api/item/NDA5NTkx/production"
+            }
+          ]
+        }
+      ],
+      "notes": [],
+      "checkedAt": "2026-09-10",
+      "aliases": []
+    },
+    {
+      "name": "밀",
+      "methods": [
+        {
+          "kind": "채집",
+          "text": "티르 코네일 학교 남쪽 농경지의 밀밭에서 낫을 장비하고 밀을 벤다. 낫은 마을 대장간의 퍼거스에게 구입할 수 있다.",
+          "sources": [
+            {
+              "title": "마비노기 공식 가이드 · 채집",
+              "url": "https://mabinogi.nexon.com/page/archive/guide_view.asp?id=4888257&num=13"
+            },
+            {
+              "title": "마비노기 공식 게시판 · 밀과 보리 채집 안내",
+              "url": "https://mabinogi.nexon.com/page/community/free_view.asp?category=0&id=42104"
+            }
+          ]
+        }
+      ],
+      "notes": [],
+      "checkedAt": "2026-09-10",
+      "aliases": []
+    },
+    {
+      "name": "힐웬 합금",
+      "methods": [
+        {
+          "kind": "제작",
+          "text": "힐웬 광산의 공학 선반에서 힐웬 공학으로 제작한다. 무른 힐웬 광석 조각 15개로 합금 1개를 만든다. 다른 조합은 힐웬·니켈광석 조각·아연광석 조각·주석광석 조각·에메랄드 코어 각 1개다.",
+          "sources": [
+            {
+              "title": "라바뉴 · 힐웬 합금 제작 정보",
+              "url": "https://mabi.labanyu.com/item/NDE0NjA5/%ED%9E%90%EC%9B%AC%20%ED%95%A9%EA%B8%88",
+              "evidenceUrl": "https://mabi.labanyu.com/api/item/NDE0NjA5/production"
+            },
+            {
+              "title": "쉼플레이스 · 힐웬 합금",
+              "url": "https://mabinogi.shimplace.com/infocenter/recipe/detail.php?n=986"
+            },
+            {
+              "title": "쉼플레이스 · 에메랄드 퓨즈 제작과 힐웬 광산",
+              "url": "https://mabinogi.shimplace.com/helper/gboard/1/64/"
+            }
+          ]
+        },
+        {
+          "kind": "NPC 구매",
+          "text": "월요일에 던바튼 또는 벨바스트의 인장 상인에게 모험가의 인장 30개를 주고 20개를 받는다. 마비노기 ID당 하루 1회.",
+          "sources": [
+            {
+              "title": "마비노기 공식 가이드 · 모험가의 인장",
+              "url": "https://mabinogi.nexon.com/page/archive/guide_view.asp?id=4892986"
+            }
+          ]
+        }
+      ],
+      "notes": [],
+      "checkedAt": "2026-09-10",
+      "aliases": []
+    },
+    {
+      "name": "무른 힐웬 광석 조각",
+      "methods": [
+        {
+          "kind": "채집",
+          "text": "발레스의 힐웬 광산에서 채광 드릴을 장비하고 힐웬 광석을 채집할 때 확률적으로 얻는다. 깊은 층 중앙의 큰 광석 채집 지점이 안내되어 있으며, 낭만 농장 광석과 구분한다.",
+          "sources": [
+            {
+              "title": "마비노기 공식 가이드 · 채집",
+              "url": "https://mabinogi.nexon.com/page/archive/guide_view.asp?id=4888257&num=13"
+            },
+            {
+              "title": "마비노기 공식 게시판 · 무른 힐웬 광석 채집 위치",
+              "url": "https://m.mabinogi.nexon.com/m/community/free_view.asp?id=46986"
+            },
+            {
+              "title": "힐웬·매직 크래프트 수련 자료 · 광산 중앙 채집",
+              "url": "https://gamezone.live/board_vJGK77/9022455?order_type=desc&sort_index=title"
+            }
+          ]
+        }
+      ],
+      "notes": [
+        "힐웬 광산 안의 중앙 대형 광석을 기준으로 찾으세요. 층수 표기는 자료마다 다를 수 있습니다."
+      ],
+      "checkedAt": "2026-09-10",
+      "aliases": []
+    },
+    {
+      "name": "나무장작",
+      "methods": [
+        {
+          "kind": "채집",
+          "text": "두갈드 아일 벌목 캠프에서 장작용 도끼를 장비하고 모탕을 클릭해 장작을 팬다. 도끼는 캠프의 트레이시가 판매한다.",
+          "sources": [
+            {
+              "title": "마비노기 공식 가이드 · 채집",
+              "url": "https://mabinogi.nexon.com/page/archive/guide_view.asp?id=4888257&num=13"
+            },
+            {
+              "title": "쉼플레이스 · 벌목 캠프 장작 채집",
+              "url": "https://mabinogi.shimplace.com/helper/gboard/1/159/?page=4"
+            }
+          ]
+        }
+      ],
+      "notes": [],
+      "checkedAt": "2026-09-10",
+      "aliases": []
+    },
+    {
+      "name": "고급 실크",
+      "methods": [
+        {
+          "kind": "제작",
+          "text": "베틀에서 고급 실크를 선택하고 방직으로 제작한다. 실크방직 장갑을 장비하고 가는 실뭉치 5개를 사용하여 고급 실크 1개를 만든다.",
+          "sources": [
+            {
+              "title": "라바뉴 · 고급 실크 제작 정보",
+              "url": "https://mabi.labanyu.com/item/NDEyOTE4/%EA%B3%A0%EA%B8%89%20%EC%8B%A4%ED%81%AC",
+              "evidenceUrl": "https://mabi.labanyu.com/api/item/NDEyOTE4/production"
+            },
+            {
+              "title": "넥슨 공식 패치 · 실크 등급 지정 제작",
+              "url": "https://mabinogi.nexon.com/page/news/notice_view.asp?id=4889486"
+            }
+          ]
+        },
+        {
+          "kind": "NPC 구매",
+          "text": "월요일에 던바튼 또는 벨바스트의 인장 상인에게 모험가의 인장 15개로 10개를 교환한다. 마비노기 ID당 하루 1회.",
+          "sources": [
+            {
+              "title": "마비노기 공식 가이드 · 모험가의 인장",
+              "url": "https://mabinogi.nexon.com/page/archive/guide_view.asp?id=4892986"
+            }
+          ]
+        }
+      ],
+      "notes": [],
+      "checkedAt": "2026-09-10",
+      "aliases": []
+    },
+    {
+      "name": "스핀 기어",
+      "methods": [
+        {
+          "kind": "제작",
+          "text": "힐웬 광산의 공학 선반에서 힐웬 공학으로 힐웬 2개, 육각 볼트 5개, 육각 너트 5개를 사용해 1개를 만든다.",
+          "sources": [
+            {
+              "title": "라바뉴 · 스핀 기어 제작 정보",
+              "url": "https://mabi.labanyu.com/item/NDE0NjEw/%EC%8A%A4%ED%95%80%20%EA%B8%B0%EC%96%B4",
+              "evidenceUrl": "https://mabi.labanyu.com/api/item/NDE0NjEw/production"
+            },
+            {
+              "title": "쉼플레이스 · 에메랄드 퓨즈 제작과 힐웬 광산",
+              "url": "https://mabinogi.shimplace.com/helper/gboard/1/64/"
+            }
+          ]
+        }
+      ],
+      "notes": [],
+      "checkedAt": "2026-09-10",
+      "aliases": []
+    },
+    {
+      "name": "육각 볼트",
+      "methods": [
+        {
+          "kind": "제작",
+          "text": "힐웬 광산의 공학 선반에서 힐웬 공학으로 힐웬 광석 조각 1개를 사용해 1개를 만든다.",
+          "sources": [
+            {
+              "title": "라바뉴 · 육각 볼트 제작 정보",
+              "url": "https://mabi.labanyu.com/item/NDE0NjAx/%EC%9C%A1%EA%B0%81%20%EB%B3%BC%ED%8A%B8",
+              "evidenceUrl": "https://mabi.labanyu.com/api/item/NDE0NjAx/production"
+            },
+            {
+              "title": "쉼플레이스 · 에메랄드 퓨즈 제작과 힐웬 광산",
+              "url": "https://mabinogi.shimplace.com/helper/gboard/1/64/"
+            }
+          ]
+        }
+      ],
+      "notes": [],
+      "checkedAt": "2026-09-10",
+      "aliases": []
+    },
+    {
+      "name": "육각 너트",
+      "methods": [
+        {
+          "kind": "제작",
+          "text": "힐웬 광산의 공학 선반에서 힐웬 공학으로 힐웬 광석 조각 1개를 사용해 1개를 만든다.",
+          "sources": [
+            {
+              "title": "라바뉴 · 육각 너트 제작 정보",
+              "url": "https://mabi.labanyu.com/item/NDE0NjAy/%EC%9C%A1%EA%B0%81%20%EB%84%88%ED%8A%B8",
+              "evidenceUrl": "https://mabi.labanyu.com/api/item/NDE0NjAy/production"
+            },
+            {
+              "title": "쉼플레이스 · 에메랄드 퓨즈 제작과 힐웬 광산",
+              "url": "https://mabinogi.shimplace.com/helper/gboard/1/64/"
+            }
+          ]
+        }
+      ],
+      "notes": [],
+      "checkedAt": "2026-09-10",
+      "aliases": []
+    },
+    {
+      "name": "마법의 깃털펜",
+      "methods": [
+        {
+          "kind": "제작",
+          "text": "필기구 크래프트로 생기 있는 깃털 1개, 마나 허브 10개, 골드 허브 10개를 사용해 1개를 만든다. 별도 생산 시설 없이 스킬을 사용한다.",
+          "sources": [
+            {
+              "title": "라바뉴 · 마법의 깃털펜 제작 정보",
+              "url": "https://mabi.labanyu.com/item/NDMxNjQx/%EB%A7%88%EB%B2%95%EC%9D%98%20%EA%B9%83%ED%84%B8%ED%8E%9C",
+              "evidenceUrl": "https://mabi.labanyu.com/api/item/NDMxNjQx/production"
+            },
+            {
+              "title": "마비노기 공식 가이드 · 마기그래피",
+              "url": "https://mabinogi.nexon.com/page/archive/guide_view.asp?id=4888333"
+            }
+          ]
+        }
+      ],
+      "notes": [],
+      "checkedAt": "2026-09-10",
+      "aliases": []
+    },
+    {
+      "name": "생기 있는 깃털",
+      "methods": [
+        {
+          "kind": "NPC 구매",
+          "text": "던바튼 잡화점의 발터 또는 티르 코네일 잡화점의 말콤 등에게 구입한다. 마법의 깃털펜 제작용 깃털이며 기본 판매가는 1개 1,000골드다.",
+          "sources": [
+            {
+              "title": "마비노기 한국어 위키 · 생기 있는 깃털",
+              "url": "https://mabinogi.fandom.com/ko/wiki/생기_있는_깃털"
+            },
+            {
+              "title": "마비노기 공식 가이드 · 마기그래피",
+              "url": "https://mabinogi.nexon.com/page/archive/guide_view.asp?id=4888333"
+            }
+          ]
+        }
+      ],
+      "notes": [],
+      "checkedAt": "2026-09-10",
+      "aliases": []
+    },
+    {
+      "name": "골드 허브",
+      "methods": [
+        {
+          "kind": "채집",
+          "text": "골드 허브가 설치된 낭만 농장에서 약초학으로 채집한다. 다른 사람의 농장을 이용할 때는 입장·채집이 허용된 곳을 고른다.",
+          "sources": [
+            {
+              "title": "마비노기 공식 가이드 · 채집",
+              "url": "https://mabinogi.nexon.com/page/archive/guide_view.asp?id=4888257&num=13"
+            }
+          ]
+        },
+        {
+          "kind": "채집",
+          "text": "클로버 돼지나 클로버 누 펫에서 약초를 채집할 때 골드 허브를 확률적으로 얻을 수 있다.",
+          "sources": [
+            {
+              "title": "마비노기 공식 가이드 · 채집",
+              "url": "https://mabinogi.nexon.com/page/archive/guide_view.asp?id=4888257&num=13"
+            },
+            {
+              "title": "마비노기 한국어 위키 · 클로버 돼지",
+              "url": "https://mabinogi.fandom.com/ko/wiki/클로버_돼지"
+            },
+            {
+              "title": "마비노기 한국어 위키 · 클로버 누",
+              "url": "https://mabinogi.fandom.com/ko/wiki/클로버_누"
+            }
+          ]
+        }
+      ],
+      "notes": [],
+      "checkedAt": "2026-09-10",
+      "aliases": []
+    },
+    {
+      "name": "튼튼한 고리",
+      "methods": [
+        {
+          "kind": "제작",
+          "text": "물레에서 방직으로 매듭끈 1개와 어둠이 깃든 칼날 조각 1개를 사용해 1개를 만든다.",
+          "sources": [
+            {
+              "title": "라바뉴 · 튼튼한 고리 제작 정보",
+              "url": "https://mabi.labanyu.com/item/NDMxNjkx/%ED%8A%BC%ED%8A%BC%ED%95%9C%20%EA%B3%A0%EB%A6%AC",
+              "evidenceUrl": "https://mabi.labanyu.com/api/item/NDMxNjkx/production"
+            },
+            {
+              "title": "쉼플레이스 · 튼튼한 고리",
+              "url": "https://mabinogi.shimplace.com/infocenter/recipe/detail.php?n=875"
+            }
+          ]
+        }
+      ],
+      "notes": [],
+      "checkedAt": "2026-09-10",
+      "aliases": []
+    },
+    {
+      "name": "어둠이 깃든 칼날 조각",
+      "methods": [
+        {
+          "kind": "보상",
+          "text": "탈틴·타라의 엘리트 그림자 미션 보상에서 얻는다. 예: 새도우 위자드 퇴치, 제물, 그들의 방식, 그림자 세계의 유황거미.",
+          "sources": [
+            {
+              "title": "쉼플레이스 · 어둠이 깃든 칼날 조각 획득 던전",
+              "url": "https://mabinogi.shimplace.com/infocenter/item/detail.php?class=15&n=1130&page=3"
+            }
+          ]
+        }
+      ],
+      "notes": [],
+      "checkedAt": "2026-09-10",
+      "aliases": []
+    },
+    {
+      "name": "에너지 증폭 장치",
+      "methods": [
+        {
+          "kind": "제작",
+          "text": "힐웬 광산의 공학 선반에서 힐웬 공학으로 에너지 컨버터 3개와 에메랄드 코어 3개를 사용해 1개를 만든다.",
+          "sources": [
+            {
+              "title": "라바뉴 · 에너지 증폭 장치 제작 정보",
+              "url": "https://mabi.labanyu.com/item/NDE0NjEz/%EC%97%90%EB%84%88%EC%A7%80%20%EC%A6%9D%ED%8F%AD%20%EC%9E%A5%EC%B9%98",
+              "evidenceUrl": "https://mabi.labanyu.com/api/item/NDE0NjEz/production"
+            },
+            {
+              "title": "쉼플레이스 · 에메랄드 퓨즈 제작과 힐웬 광산",
+              "url": "https://mabinogi.shimplace.com/helper/gboard/1/64/"
+            }
+          ]
+        }
+      ],
+      "notes": [],
+      "checkedAt": "2026-09-10",
+      "aliases": []
+    },
+    {
+      "name": "에메랄드 코어",
+      "methods": [
+        {
+          "kind": "드롭",
+          "text": "힐웬 광산 내부의 에메랄드 골렘·바이슨·쉬리커·하이에나 계열 몬스터를 처치해 확률적으로 얻는다.",
+          "sources": [
+            {
+              "title": "마비노기 공식 가이드 · 채집",
+              "url": "https://mabinogi.nexon.com/page/archive/guide_view.asp?id=4888257&num=13"
+            },
+            {
+              "title": "마비노기 한국어 위키 · 에메랄드 코어",
+              "url": "https://mabinogi.fandom.com/ko/wiki/에메랄드_코어"
+            },
+            {
+              "title": "쉼플레이스 · 에메랄드 퓨즈 제작과 힐웬 광산",
+              "url": "https://mabinogi.shimplace.com/helper/gboard/1/64/"
+            }
+          ]
+        }
+      ],
+      "notes": [],
+      "checkedAt": "2026-09-10",
+      "aliases": []
+    },
+    {
+      "name": "에너지 컨버터",
+      "methods": [
+        {
+          "kind": "제작",
+          "text": "힐웬 광산의 공학 선반에서 힐웬 공학으로 실리엔 1개와 힐웬 1개를 사용해 1개를 만든다.",
+          "sources": [
+            {
+              "title": "라바뉴 · 에너지 컨버터 제작 정보",
+              "url": "https://mabi.labanyu.com/item/NDE0NjA3/%EC%97%90%EB%84%88%EC%A7%80%20%EC%BB%A8%EB%B2%84%ED%84%B0",
+              "evidenceUrl": "https://mabi.labanyu.com/api/item/NDE0NjA3/production"
+            },
+            {
+              "title": "쉼플레이스 · 에메랄드 퓨즈 제작과 힐웬 광산",
+              "url": "https://mabinogi.shimplace.com/helper/gboard/1/64/"
+            }
+          ]
+        }
+      ],
+      "notes": [],
+      "checkedAt": "2026-09-10",
+      "aliases": []
+    },
+    {
+      "name": "고급 나무장작",
+      "methods": [
+        {
+          "kind": "제작",
+          "text": "목공용 대패를 장비하고 목공 작업대에서 목공으로 중급 나무장작 3개를 가공해 1개를 만든다.",
+          "sources": [
+            {
+              "title": "라바뉴 · 고급 나무장작 제작 정보",
+              "url": "https://mabi.labanyu.com/item/NDEzNTA2/%EA%B3%A0%EA%B8%89%20%EB%82%98%EB%AC%B4%EC%9E%A5%EC%9E%91",
+              "evidenceUrl": "https://mabi.labanyu.com/api/item/NDEzNTA2/production"
+            },
+            {
+              "title": "마비노기 한국어 위키 · 고급 나무장작",
+              "url": "https://mabinogi.fandom.com/ko/wiki/고급_나무장작"
+            }
+          ]
+        },
+        {
+          "kind": "채집",
+          "text": "두갈드 아일 벌목 캠프 등의 모탕에서 장작용 도끼로 장작을 패면 확률적으로 얻을 수 있다.",
+          "sources": [
+            {
+              "title": "마비노기 공식 가이드 · 채집",
+              "url": "https://mabinogi.nexon.com/page/archive/guide_view.asp?id=4888257&num=13"
+            },
+            {
+              "title": "마비노기 한국어 위키 · 고급 나무장작",
+              "url": "https://mabinogi.fandom.com/ko/wiki/고급_나무장작"
+            },
+            {
+              "title": "쉼플레이스 · 벌목 캠프 장작 채집",
+              "url": "https://mabinogi.shimplace.com/helper/gboard/1/159/?page=4"
+            }
+          ]
+        }
+      ],
+      "notes": [],
+      "checkedAt": "2026-09-10",
+      "aliases": []
+    },
+    {
+      "name": "마나 500 포션",
+      "methods": [
+        {
+          "kind": "거래",
+          "text": "경매장에서 정확한 이름인 마나 500 포션을 검색해 완제품을 구매한다. 구매 수량과 개당 가격을 확인한다.",
+          "sources": [
+            {
+              "title": "라바뉴 · 마나 500 포션",
+              "url": "https://mabi.labanyu.com/item/NDEwNzAx/%EB%A7%88%EB%82%98%20500%20%ED%8F%AC%EC%85%98"
+            }
+          ]
+        }
+      ],
+      "notes": [
+        "이 앱에서는 완제품 구매 대상으로 계산하며 하위 재료와 제작법은 표시하지 않습니다."
+      ],
+      "checkedAt": "2026-09-10",
+      "aliases": []
+    },
+    {
+      "name": "정화된 토끼의 발",
+      "methods": [
+        {
+          "kind": "제작",
+          "text": "실리엔 생태 보호 지구의 마법의 가마솥에서 매직 크래프트로 실리엔 1개와 돌연변이 토끼의 발 1개를 사용해 1개를 만든다.",
+          "sources": [
+            {
+              "title": "라바뉴 · 정화된 토끼의 발 제작 정보",
+              "url": "https://mabi.labanyu.com/item/NDE0NjQ1/%EC%A0%95%ED%99%94%EB%90%9C%20%ED%86%A0%EB%81%BC%EC%9D%98%20%EB%B0%9C",
+              "evidenceUrl": "https://mabi.labanyu.com/api/item/NDE0NjQ1/production"
+            },
+            {
+              "title": "쉼플레이스 · 정화된 토끼의 발",
+              "url": "https://mabinogi.shimplace.com/infocenter/recipe/detail.php?n=813"
+            },
+            {
+              "title": "쉼플레이스 · 실리엔 생태 보호 지구의 매직 크래프트",
+              "url": "https://mabinogi.shimplace.com/helper/gboard/1/104/"
+            }
+          ]
+        }
+      ],
+      "notes": [],
+      "checkedAt": "2026-09-10",
+      "aliases": []
+    },
+    {
+      "name": "끈끈이 풀",
+      "methods": [
+        {
+          "kind": "제작",
+          "text": "실리엔 생태 보호 지구의 마법의 가마솥에서 매직 크래프트로 실리엔 1개와 돌연변이 식물의 점액질 1개를 사용해 1개를 만든다.",
+          "sources": [
+            {
+              "title": "라바뉴 · 끈끈이 풀 제작 정보",
+              "url": "https://mabi.labanyu.com/item/NDE0NjQ2/%EB%81%88%EB%81%88%EC%9D%B4%20%ED%92%80",
+              "evidenceUrl": "https://mabi.labanyu.com/api/item/NDE0NjQ2/production"
+            },
+            {
+              "title": "쉼플레이스 · 실리엔 생태 보호 지구의 매직 크래프트",
+              "url": "https://mabinogi.shimplace.com/helper/gboard/1/104/"
+            }
+          ]
+        }
+      ],
+      "notes": [],
+      "checkedAt": "2026-09-10",
+      "aliases": []
+    },
+    {
+      "name": "최고급 바닐라 향초",
+      "methods": [
+        {
+          "kind": "제작",
+          "text": "핸디크래프트 키트를 장비하고 핸디크래프트로 고급 바닐라 향초 1개와 정제된 촉매제 1개를 사용해 1개를 만든다.",
+          "sources": [
+            {
+              "title": "라바뉴 · 최고급 바닐라 향초 제작 정보",
+              "url": "https://mabi.labanyu.com/item/NDIwMzg0/%EC%B5%9C%EA%B3%A0%EA%B8%89%20%EB%B0%94%EB%8B%90%EB%9D%BC%20%ED%96%A5%EC%B4%88",
+              "evidenceUrl": "https://mabi.labanyu.com/api/item/NDIwMzg0/production"
+            },
+            {
+              "title": "쉼플레이스 · 고급 바닐라 향초 / 핸디크래프트 키트",
+              "url": "https://mabinogi.shimplace.com/infocenter/recipe/detail.php?n=78"
+            }
+          ]
+        }
+      ],
+      "notes": [],
+      "checkedAt": "2026-09-10",
+      "aliases": []
+    },
+    {
+      "name": "정제된 촉매제",
+      "methods": [
+        {
+          "kind": "보상",
+          "text": "하드모드 알비·키아·룬다 던전 또는 몽환의 라비 던전의 꿈속의 유혹에서 획득 가능한 재료로 안내되어 있다.",
+          "sources": [
+            {
+              "title": "라바뉴 · 정제된 촉매제 획득 던전",
+              "url": "https://mabi.labanyu.com/item/NDE0Mzcy/%EC%A0%95%EC%A0%9C%EB%90%9C%20%EC%B4%89%EB%A7%A4%EC%A0%9C",
+              "evidenceUrl": "https://mabi.labanyu.com/api/item/NDE0Mzcy/sections"
+            }
+          ]
+        }
+      ],
+      "notes": [
+        "세부 난이도별 획득 확률과 지급 수량은 확인되지 않았습니다."
+      ],
+      "sourceNotes": ["획득처는 국내 던전 개편 이후 정보를 기준으로 안내합니다. 세부 난이도별 확률과 지급 수량은 확인되지 않았습니다."],
+      "checkedAt": "2026-09-10",
+      "aliases": []
+    },
+    {
+      "name": "고급 바닐라 향초",
+      "methods": [
+        {
+          "kind": "제작",
+          "text": "핸디크래프트 키트를 장비하고 핸디크래프트로 미니 바닐라 향초 1개와 밀랍 1개를 사용해 1개를 만든다.",
+          "sources": [
+            {
+              "title": "라바뉴 · 고급 바닐라 향초 제작 정보",
+              "url": "https://mabi.labanyu.com/item/NDIwMzgz/%EA%B3%A0%EA%B8%89%20%EB%B0%94%EB%8B%90%EB%9D%BC%20%ED%96%A5%EC%B4%88",
+              "evidenceUrl": "https://mabi.labanyu.com/api/item/NDIwMzgz/production"
+            },
+            {
+              "title": "쉼플레이스 · 고급 바닐라 향초 / 핸디크래프트 키트",
+              "url": "https://mabinogi.shimplace.com/infocenter/recipe/detail.php?n=78"
+            }
+          ]
+        }
+      ],
+      "notes": [],
+      "checkedAt": "2026-09-10",
+      "aliases": []
+    },
+    {
+      "name": "미니 바닐라 향초",
+      "methods": [
+        {
+          "kind": "NPC 구매",
+          "text": "던바튼 힐러집의 마누스 또는 티르 코네일 힐러집의 딜리스 등 힐러 NPC가 판매한다. 기본 판매가는 1개 10,000골드다.",
+          "sources": [
+            {
+              "title": "마비노기 한국어 위키 · 미니 바닐라 향초",
+              "url": "https://mabinogi.fandom.com/ko/wiki/미니_바닐라_향초"
+            }
+          ]
+        }
+      ],
+      "notes": [],
+      "checkedAt": "2026-09-10",
+      "aliases": []
+    },
+    {
+      "name": "밀랍",
+      "methods": [
+        {
+          "kind": "채집",
+          "text": "코리브 계곡의 벌집이 달린 아카시아나무 또는 낭만 농장의 석청을 타격해 벌집을 얻는다. 벌집의 꿀따기를 실행하면 밀랍이 확률적으로 나온다.",
+          "sources": [
+            {
+              "title": "마비노기 한국어 위키 · 벌집",
+              "url": "https://mabinogi.fandom.com/ko/wiki/벌집"
+            },
+            {
+              "title": "코리브 계곡 · 벌집과 밀랍",
+              "url": "https://m.namu.moe/w/코리브%20계곡"
+            }
+          ]
+        }
+      ],
+      "notes": [],
+      "checkedAt": "2026-09-10",
+      "aliases": []
+    },
+    {
+      "name": "인조 잔디",
+      "methods": [
+        {
+          "kind": "제작",
+          "text": "핸디크래프트 키트를 장비하고 핸디크래프트로 싱싱한 풀 20개와 꽃뭉치 5개를 사용해 1개를 만든다.",
+          "sources": [
+            {
+              "title": "라바뉴 · 인조 잔디 제작 정보",
+              "url": "https://mabi.labanyu.com/item/NDE0MjA3/%EC%9D%B8%EC%A1%B0%20%EC%9E%94%EB%94%94",
+              "evidenceUrl": "https://mabi.labanyu.com/api/item/NDE0MjA3/production"
+            },
+            {
+              "title": "쉼플레이스 · 고급 바닐라 향초 / 핸디크래프트 키트",
+              "url": "https://mabinogi.shimplace.com/infocenter/recipe/detail.php?n=78"
+            },
+            {
+              "title": "마비노기 공식 게시판 · 펫하우스 재료 가이드",
+              "url": "https://mabinogi.nexon.com/page/community/free_view.asp?category=0&id=22993"
+            }
+          ]
+        }
+      ],
+      "notes": [],
+      "checkedAt": "2026-09-10",
+      "aliases": []
+    },
+    {
+      "name": "싱싱한 풀",
+      "methods": [
+        {
+          "kind": "채집",
+          "text": "호미를 장비하고 이멘 마하 북문·서문 문게이트 앞의 흰 꽃밭을 채집하면 확률적으로 얻는다. 공식 가이드에는 케오숲·스쿠압틴 꽃밭도 안내되어 있다.",
+          "sources": [
+            {
+              "title": "마비노기 공식 가이드 · 채집",
+              "url": "https://mabinogi.nexon.com/page/archive/guide_view.asp?id=4888257&num=13"
+            },
+            {
+              "title": "마비노기 공식 게시판 · 싱싱한 풀과 꽃뭉치 채집",
+              "url": "https://mabinogi.nexon.com/page/community/free_view.asp?category=0&id=20459"
+            }
+          ]
+        }
+      ],
+      "notes": [],
+      "checkedAt": "2026-09-10",
+      "aliases": []
+    },
+    {
+      "name": "꽃뭉치",
+      "methods": [
+        {
+          "kind": "채집",
+          "text": "호미를 장비하고 이멘 마하 북문·서문 문게이트 앞의 흰 꽃밭을 채집한다. 공식 가이드에는 케오숲·스쿠압틴 꽃밭도 안내되어 있다.",
+          "sources": [
+            {
+              "title": "마비노기 공식 가이드 · 채집",
+              "url": "https://mabinogi.nexon.com/page/archive/guide_view.asp?id=4888257&num=13"
+            },
+            {
+              "title": "마비노기 공식 게시판 · 싱싱한 풀과 꽃뭉치 채집",
+              "url": "https://mabinogi.nexon.com/page/community/free_view.asp?category=0&id=20459"
+            },
+            {
+              "title": "마비노기 한국어 위키 · 꽃뭉치",
+              "url": "https://mabinogi.fandom.com/ko/wiki/꽃뭉치"
+            }
+          ]
+        }
+      ],
+      "notes": [],
+      "checkedAt": "2026-09-10",
+      "aliases": []
+    },
+    {
+      "name": "에메랄드 퓨즈",
+      "methods": [
+        {
+          "kind": "제작",
+          "text": "힐웬 광산의 공학 선반에서 힐웬 공학으로 에메랄드 코어 1개를 사용해 1개를 만든다.",
+          "sources": [
+            {
+              "title": "라바뉴 · 에메랄드 퓨즈 제작 정보",
+              "url": "https://mabi.labanyu.com/item/NDE0NjA2/%EC%97%90%EB%A9%94%EB%9E%84%EB%93%9C%20%ED%93%A8%EC%A6%88",
+              "evidenceUrl": "https://mabi.labanyu.com/api/item/NDE0NjA2/production"
+            },
+            {
+              "title": "쉼플레이스 · 에메랄드 퓨즈 제작과 힐웬 광산",
+              "url": "https://mabinogi.shimplace.com/helper/gboard/1/64/"
+            }
+          ]
+        }
+      ],
+      "notes": [],
+      "checkedAt": "2026-09-10",
+      "aliases": []
+    },
+    {
+      "name": "고급 가죽끈",
+      "methods": [
+        {
+          "kind": "제작",
+          "text": "날이 있는 도구를 장비하고 물레에서 방직으로 고급 가죽 1개를 가공해 고급 가죽끈 1개를 만든다.",
+          "sources": [
+            {
+              "title": "라바뉴 · 고급 가죽끈 제작 정보",
+              "url": "https://mabi.labanyu.com/item/NDEyOTM0/%EA%B3%A0%EA%B8%89%20%EA%B0%80%EC%A3%BD%EB%81%88",
+              "evidenceUrl": "https://mabi.labanyu.com/api/item/NDEyOTM0/production"
+            },
+            {
+              "title": "마비노기 공식 지식왕 · 방직 재료와 물레·베틀",
+              "url": "https://mabinogi.nexon.com/page/community/kin_view.asp?id=294117"
+            }
+          ]
+        }
+      ],
+      "notes": [],
+      "checkedAt": "2026-09-10",
+      "aliases": []
+    },
+    {
+      "name": "고급 가죽",
+      "methods": [
+        {
+          "kind": "NPC 구매",
+          "text": "월요일에 던바튼 또는 벨바스트의 인장 상인에게 모험가의 인장 18개로 10개를 교환한다. 마비노기 ID당 하루 1회.",
+          "sources": [
+            {
+              "title": "마비노기 공식 가이드 · 모험가의 인장",
+              "url": "https://mabinogi.nexon.com/page/archive/guide_view.asp?id=4892986"
+            }
+          ]
+        },
+        {
+          "kind": "드롭",
+          "text": "코볼트와 그렘린 계열 몬스터가 확률적으로 드롭한다. 개별 던전 난이도별 드롭 확률은 확인되지 않았다.",
+          "sources": [
+            {
+              "title": "마비노기 공식 지식왕 · 방직 재료와 물레·베틀",
+              "url": "https://mabinogi.nexon.com/page/community/kin_view.asp?id=294117"
+            }
+          ]
+        }
+      ],
+      "notes": [],
+      "checkedAt": "2026-09-10",
+      "aliases": []
+    },
+    {
+      "name": "미스릴 대못",
+      "methods": [
+        {
+          "kind": "제작",
+          "text": "노에서 제련 스킬로 미스릴괴 20개를 가공해 미스릴 대못 1개를 만든다.",
+          "sources": [
+            {
+              "title": "라바뉴 · 미스릴 대못 제작 정보",
+              "url": "https://mabi.labanyu.com/item/NDE0MjAz/%EB%AF%B8%EC%8A%A4%EB%A6%B4%20%EB%8C%80%EB%AA%BB",
+              "evidenceUrl": "https://mabi.labanyu.com/api/item/NDE0MjAz/production"
+            },
+            {
+              "title": "쉼플레이스 · 미스릴 대못",
+              "url": "https://mabinogi.shimplace.com/infocenter/recipe/detail.php?n=843"
+            }
+          ]
+        }
+      ],
+      "notes": [],
+      "checkedAt": "2026-09-10",
+      "aliases": []
+    },
+    {
+      "name": "발리스타용 독 묻은 와이번 볼트",
+      "methods": [
+        {
+          "kind": "제작",
+          "text": "핸디크래프트 키트를 장비하고 핸디크래프트로 나무장작 1개, 와이번의 발톱 1개, 포이즌 포션 1개를 사용하면 볼트 3개를 만든다.",
+          "sources": [
+            {
+              "title": "라바뉴 · 발리스타용 독 묻은 와이번 볼트 제작 정보",
+              "url": "https://mabi.labanyu.com/item/NDA5MzI4/%EB%B0%9C%EB%A6%AC%EC%8A%A4%ED%83%80%EC%9A%A9%20%EB%8F%85%20%EB%AC%BB%EC%9D%80%20%EC%99%80%EC%9D%B4%EB%B2%88%20%EB%B3%BC%ED%8A%B8",
+              "evidenceUrl": "https://mabi.labanyu.com/api/item/NDA5MzI4/production"
+            },
+            {
+              "title": "쉼플레이스 · 고급 바닐라 향초 / 핸디크래프트 키트",
+              "url": "https://mabinogi.shimplace.com/infocenter/recipe/detail.php?n=78"
+            }
+          ]
+        }
+      ],
+      "notes": [],
+      "checkedAt": "2026-09-10",
+      "aliases": []
+    },
+    {
+      "name": "와이번의 발톱",
+      "methods": [
+        {
+          "kind": "보상",
+          "text": "자르딘 화산 온천 부근에서 열기구를 타고 와이번을 사냥해 별을 모은 뒤, 칼리다 탐사 캠프의 켈피에게 별을 보상으로 교환한다. 큰 별 9개와 작은 별 1~4개 구간에서 발톱 5개 보상이 확인된 안내가 있다.",
+          "sources": [
+            {
+              "title": "국내 공략 · 응급치료 9랭크와 와이번의 발톱",
+              "url": "https://thfma.tistory.com/30"
+            },
+            {
+              "title": "마비노기 한국어 위키 · 켈피",
+              "url": "https://mabinogi.fandom.com/ko/wiki/켈피"
+            }
+          ]
+        }
+      ],
+      "notes": [
+        "별 수에 따라 보상 구성이 달라지므로 사냥을 더 하기 전에 켈피의 보상 구간을 확인한다."
+      ],
+      "checkedAt": "2026-09-10",
+      "aliases": []
+    },
+    {
+      "name": "포이즌 포션",
+      "methods": [
+        {
+          "kind": "제작",
+          "text": "포션 조제 키트를 장비하고 포션 조제로 베이스 허브 1개, 포이즌 허브 1개, 물이 든 병 1개를 사용해 1개를 만든다.",
+          "sources": [
+            {
+              "title": "라바뉴 · 포이즌 포션 제작 정보",
+              "url": "https://mabi.labanyu.com/item/NDEwNTY3/%ED%8F%AC%EC%9D%B4%EC%A6%8C%20%ED%8F%AC%EC%85%98",
+              "evidenceUrl": "https://mabi.labanyu.com/api/item/NDEwNTY3/production"
+            },
+            {
+              "title": "쉼플레이스 · 포션 조제 도구 사용",
+              "url": "https://mabinogi.shimplace.com/helper/gboard/1/39/"
+            }
+          ]
+        }
+      ],
+      "notes": [],
+      "checkedAt": "2026-09-10",
+      "aliases": []
+    },
+    {
+      "name": "금광석",
+      "methods": [
+        {
+          "kind": "채광",
+          "text": "곡괭이를 장비하고 바리 던전의 광석 더미를 채광합니다. 여러 종류의 광석 중에서 확률적으로 얻습니다.",
+          "sources": [
+            {
+              "title": "마비노기 공식 가이드 · 채집",
+              "url": "https://mabinogi.nexon.com/page/archive/guide_view.asp?id=4888257&num=13"
+            }
+          ]
+        }
+      ],
+      "notes": [
+        "같은 금속의 광석 5개 또는 광석 조각 5개로 괴 1개를 제련합니다. 두 종류는 대체 재료입니다."
+      ],
+      "checkedAt": "2026-09-10",
+      "aliases": []
+    },
+    {
+      "name": "금광석 조각",
+      "methods": [
+        {
+          "kind": "야금",
+          "text": "야금용 체를 장비하고 켈라 해변 등 모래가 반짝이는 야금지에서 야금술을 사용합니다. 광석 조각의 종류는 확률로 정해집니다. 낭만 농장의 야금터에서도 채집할 수 있습니다.",
+          "sources": [
+            {
+              "title": "쉼플레이스 · 광석 조각 야금 위치와 방법",
+              "url": "https://mabinogi.shimplace.com/helper/gboard/1/16/"
+            }
+          ]
+        }
+      ],
+      "notes": [
+        "괴 제련에 사용할 때는 광석 조각 5개가 괴 1개 분량입니다."
+      ],
+      "checkedAt": "2026-09-10",
+      "aliases": []
+    },
+    {
+      "name": "대못",
+      "methods": [
+        {
+          "kind": "채집",
+          "text": "카브 항구 등의 가로등이나 표지판을 일반 공격으로 치면 확률적으로 바닥에 떨어집니다.",
+          "sources": [
+            {
+              "title": "쉼플레이스 · 대못 채집 위치",
+              "url": "https://mabinogi.shimplace.com/helper/gboard/1/135/?page=6"
+            }
+          ]
+        }
+      ],
+      "notes": [],
+      "checkedAt": "2026-09-10",
+      "aliases": []
+    },
+    {
+      "name": "동광석",
+      "methods": [
+        {
+          "kind": "채광",
+          "text": "곡괭이를 장비하고 바리 던전의 광석 더미를 채광합니다. 여러 종류의 광석 중에서 확률적으로 얻습니다.",
+          "sources": [
+            {
+              "title": "마비노기 공식 가이드 · 채집",
+              "url": "https://mabinogi.nexon.com/page/archive/guide_view.asp?id=4888257&num=13"
+            }
+          ]
+        }
+      ],
+      "notes": [
+        "같은 금속의 광석 5개 또는 광석 조각 5개로 괴 1개를 제련합니다. 두 종류는 대체 재료입니다."
+      ],
+      "checkedAt": "2026-09-10",
+      "aliases": []
+    },
+    {
+      "name": "동광석 조각",
+      "methods": [
+        {
+          "kind": "야금",
+          "text": "야금용 체를 장비하고 켈라 해변 등 모래가 반짝이는 야금지에서 야금술을 사용합니다. 광석 조각의 종류는 확률로 정해집니다. 낭만 농장의 야금터에서도 채집할 수 있습니다.",
+          "sources": [
+            {
+              "title": "쉼플레이스 · 광석 조각 야금 위치와 방법",
+              "url": "https://mabinogi.shimplace.com/helper/gboard/1/16/"
+            }
+          ]
+        }
+      ],
+      "notes": [
+        "괴 제련에 사용할 때는 광석 조각 5개가 괴 1개 분량입니다."
+      ],
+      "checkedAt": "2026-09-10",
+      "aliases": []
+    },
+    {
+      "name": "물이 든 병",
+      "methods": [
+        {
+          "kind": "채집",
+          "text": "빈 병을 장비하고 마을 또는 낭만 농장의 우물을 클릭해 물을 뜹니다. 바닥에 놓인 물이 든 병을 주워 준비하세요.",
+          "sources": [
+            {
+              "title": "쉼플레이스 · 빈 병으로 우물에서 물 뜨기",
+              "url": "https://mabinogi.shimplace.com/helper/gboard/1/124/"
+            }
+          ]
+        }
+      ],
+      "notes": [
+        "포션 조제로 포이즌 포션 1개를 만들 때 베이스 허브 1개, 포이즌 허브 1개와 함께 사용합니다."
+      ],
+      "checkedAt": "2026-09-10",
+      "aliases": []
+    },
+    {
+      "name": "미스릴 광석",
+      "methods": [
+        {
+          "kind": "채광",
+          "text": "곡괭이를 장비하고 바리 상급 던전의 미스릴 광석 더미를 채광합니다. 일반 바리 던전의 광석 더미와 구분하세요.",
+          "sources": [
+            {
+              "title": "쉼플레이스 · 미스릴 광석과 광석 조각 채집",
+              "url": "https://mabinogi.shimplace.com/helper/gboard/1/101/"
+            }
+          ]
+        }
+      ],
+      "notes": [
+        "미스릴괴 제련에는 미스릴 광석 5개 또는 미스릴 광석 조각 5개 중 한 종류를 사용합니다."
+      ],
+      "checkedAt": "2026-09-10",
+      "aliases": [
+        "미스릴광석"
+      ]
+    },
+    {
+      "name": "미스릴 광석 조각",
+      "methods": [
+        {
+          "kind": "야금",
+          "text": "야금용 체를 장비하고 켈라 해변 등 모래가 반짝이는 야금지에서 야금술을 사용합니다. 광석 조각의 종류는 확률로 정해집니다. 낭만 농장의 야금터에서도 채집할 수 있습니다.",
+          "sources": [
+            {
+              "title": "쉼플레이스 · 광석 조각 야금 위치와 방법",
+              "url": "https://mabinogi.shimplace.com/helper/gboard/1/16/"
+            }
+          ]
+        }
+      ],
+      "notes": [
+        "괴 제련에 사용할 때는 광석 조각 5개가 괴 1개 분량입니다."
+      ],
+      "checkedAt": "2026-09-10",
+      "aliases": [
+        "미스릴광석 조각"
+      ]
+    },
+    {
+      "name": "아라트의 결정",
+      "methods": [
+        {
+          "kind": "NPC 구매",
+          "text": "울라 각 마을 교역소의 교역상인에게 두카트로 구매할 수 있습니다.",
+          "sources": [
+            {
+              "title": "마비노기 위키 · 교역상인 판매 목록",
+              "url": "https://mabinogi.fandom.com/ko/wiki/%EA%B5%90%EC%97%AD%EC%83%81%EC%9D%B8"
+            }
+          ]
+        },
+        {
+          "kind": "그림자 미션",
+          "text": "그림자 미션에서 몬스터를 처치하거나 완료 보상 상자를 열면 확률적으로 얻습니다.",
+          "sources": [
+            {
+              "title": "마비노기 공식 가이드 · 던전과 그림자 미션",
+              "url": "https://mabinogi.nexon.com/page/archive/guide_view.asp?id=4885044&num=52"
+            }
+          ]
+        }
+      ],
+      "notes": [
+        "괴 불리기 합성 성공 1회에는 아라트의 결정 1개와 축복의 포션 1개, 불릴 괴 1개를 사용합니다."
+      ],
+      "checkedAt": "2026-09-10",
+      "aliases": []
+    },
+    {
+      "name": "은광석",
+      "methods": [
+        {
+          "kind": "채광",
+          "text": "곡괭이를 장비하고 바리 던전의 광석 더미를 채광합니다. 여러 종류의 광석 중에서 확률적으로 얻습니다.",
+          "sources": [
+            {
+              "title": "마비노기 공식 가이드 · 채집",
+              "url": "https://mabinogi.nexon.com/page/archive/guide_view.asp?id=4888257&num=13"
+            }
+          ]
+        }
+      ],
+      "notes": [
+        "같은 금속의 광석 5개 또는 광석 조각 5개로 괴 1개를 제련합니다. 두 종류는 대체 재료입니다."
+      ],
+      "checkedAt": "2026-09-10",
+      "aliases": []
+    },
+    {
+      "name": "은광석 조각",
+      "methods": [
+        {
+          "kind": "야금",
+          "text": "야금용 체를 장비하고 켈라 해변 등 모래가 반짝이는 야금지에서 야금술을 사용합니다. 광석 조각의 종류는 확률로 정해집니다. 낭만 농장의 야금터에서도 채집할 수 있습니다.",
+          "sources": [
+            {
+              "title": "쉼플레이스 · 광석 조각 야금 위치와 방법",
+              "url": "https://mabinogi.shimplace.com/helper/gboard/1/16/"
+            }
+          ]
+        }
+      ],
+      "notes": [
+        "괴 제련에 사용할 때는 광석 조각 5개가 괴 1개 분량입니다."
+      ],
+      "checkedAt": "2026-09-10",
+      "aliases": []
+    },
+    {
+      "name": "일반 가죽",
+      "methods": [
+        {
+          "kind": "드롭",
+          "text": "재료 찾기 스킬을 익힌 뒤 몬스터를 처치하면 확률적으로 얻습니다.",
+          "sources": [
+            {
+              "title": "마비노기 위키 · 일반 가죽 입수 방법",
+              "url": "https://mabinogi.fandom.com/ko/wiki/%EC%9D%BC%EB%B0%98_%EA%B0%80%EC%A3%BD"
+            }
+          ]
+        }
+      ],
+      "notes": [
+        "부드러운 양피지 1개 제작에는 저가형 가죽 20개 / 일반 가죽 10개 / 고급 가죽 5개 / 최고급 가죽 2개 중 한 조합을 사용합니다."
+      ],
+      "checkedAt": "2026-09-10",
+      "aliases": []
+    },
+    {
+      "name": "저가형 가죽",
+      "methods": [
+        {
+          "kind": "드롭",
+          "text": "재료 찾기 스킬을 익힌 뒤 몬스터를 처치하면 확률적으로 얻습니다.",
+          "sources": [
+            {
+              "title": "마비노기 위키 · 저가형 가죽 입수 방법",
+              "url": "https://mabinogi.fandom.com/ko/wiki/%EC%A0%80%EA%B0%80%ED%98%95_%EA%B0%80%EC%A3%BD"
+            }
+          ]
+        }
+      ],
+      "notes": [
+        "부드러운 양피지 1개 제작에는 저가형 가죽 20개 / 일반 가죽 10개 / 고급 가죽 5개 / 최고급 가죽 2개 중 한 조합을 사용합니다."
+      ],
+      "checkedAt": "2026-09-10",
+      "aliases": []
+    },
+    {
+      "name": "철광석",
+      "methods": [
+        {
+          "kind": "채광",
+          "text": "곡괭이를 장비하고 바리 던전의 광석 더미를 채광합니다. 여러 종류의 광석 중에서 확률적으로 얻습니다.",
+          "sources": [
+            {
+              "title": "마비노기 공식 가이드 · 채집",
+              "url": "https://mabinogi.nexon.com/page/archive/guide_view.asp?id=4888257&num=13"
+            }
+          ]
+        }
+      ],
+      "notes": [
+        "같은 금속의 광석 5개 또는 광석 조각 5개로 괴 1개를 제련합니다. 두 종류는 대체 재료입니다."
+      ],
+      "checkedAt": "2026-09-10",
+      "aliases": []
+    },
+    {
+      "name": "철광석 조각",
+      "methods": [
+        {
+          "kind": "야금",
+          "text": "야금용 체를 장비하고 켈라 해변 등 모래가 반짝이는 야금지에서 야금술을 사용합니다. 광석 조각의 종류는 확률로 정해집니다. 낭만 농장의 야금터에서도 채집할 수 있습니다.",
+          "sources": [
+            {
+              "title": "쉼플레이스 · 광석 조각 야금 위치와 방법",
+              "url": "https://mabinogi.shimplace.com/helper/gboard/1/16/"
+            }
+          ]
+        }
+      ],
+      "notes": [
+        "괴 제련에 사용할 때는 광석 조각 5개가 괴 1개 분량입니다."
+      ],
+      "checkedAt": "2026-09-10",
+      "aliases": []
+    },
+    {
+      "name": "철괴",
+      "methods": [
+        {
+          "kind": "합성 · 추천",
+          "text": "괴 불리기를 추천합니다. 건식 화덕에서 철괴 1개, 아라트의 결정 1개, 축복의 포션 1개를 합성하면 성공 시 철괴 10개를 얻습니다. 합성 연습 랭크부터 가능합니다.",
+          "sources": [
+            {
+              "title": "라바뉴 · 철괴 제작 정보",
+              "url": "https://mabi.labanyu.com/item/NDE0MDM1/%EC%B2%A0%EA%B4%B4"
+            },
+            {
+              "title": "마비노기 위키 · 아라트의 결정과 합성 레시피",
+              "url": "https://mabinogi.fandom.com/ko/wiki/%EC%95%84%EB%9D%BC%ED%8A%B8%EC%9D%98_%EA%B2%B0%EC%A0%95"
+            }
+          ]
+        },
+        {
+          "kind": "제련",
+          "text": "제련용 노에서 철광석 5개 또는 철광석 조각 5개로 철괴 1개를 만듭니다.",
+          "sources": [
+            {
+              "title": "라바뉴 · 철괴 제작 정보",
+              "url": "https://mabi.labanyu.com/item/NDE0MDM1/%EC%B2%A0%EA%B4%B4"
+            }
+          ]
+        }
+      ],
+      "notes": [
+        "합성은 성공 기준으로 순수 증가량이 9개이며 만든 괴를 다시 재료로 사용할 수 있습니다. 실패로 추가 소모되는 재료는 계산하지 않습니다."
+      ],
+      "checkedAt": "2026-09-10",
+      "aliases": []
+    },
+    {
+      "name": "철봉",
+      "methods": [
+        {
+          "kind": "제작",
+          "text": "대장장이 망치와 철봉 도면을 장비하고 모루에서 블랙스미스를 사용합니다. 철괴 1개로 철봉 1개를 제작하며 도면은 반호르 길모어에게 구입할 수 있습니다.",
+          "sources": [
+            {
+              "title": "쉼플레이스 · 철봉 제작 레시피",
+              "url": "https://mabinogi.shimplace.com/infocenter/recipe/detail.php?n=1548"
+            },
+            {
+              "title": "마비노기 지식왕 · 나무판 재료와 철봉 도면 (이용자 답변)",
+              "url": "https://m.mabinogi.nexon.com/m/community/kin_view.asp?id=502427"
+            }
+          ]
+        }
+      ],
+      "notes": [
+        "표시 재료는 성공 기준이며 도면·도구 구매 비용은 포함하지 않습니다."
+      ],
+      "checkedAt": "2026-09-10",
+      "aliases": []
+    },
+    {
+      "name": "축복의 포션",
+      "methods": [
+        {
+          "kind": "아르바이트",
+          "text": "티르코네일·던바튼·이멘마하·반호르 성당의 성직자에게 아르바이트를 받아 완수하고 보상으로 얻습니다. 티르코네일에서는 엔델리온에게 문의하세요.",
+          "sources": [
+            {
+              "title": "마비노기 공식 게시판 · 축복의 포션 수급 (이용자 답변)",
+              "url": "https://mabinogi.nexon.com/page/community/free_view.asp?category=0&id=20393"
+            },
+            {
+              "title": "플레이 기록 · 엔델리온의 생활 스킬과 아르바이트",
+              "url": "https://sims34story.tistory.com/entry/%EB%A7%88%EB%B9%84%EB%85%B8%EA%B8%B0-%ED%80%98%EC%8A%A4%ED%8A%B8-%ED%8A%9C%ED%86%A0%EB%A6%AC%EC%96%BC-%EC%83%9D%ED%99%9C-%EC%8A%A4%ED%82%AC%EA%B3%BC-%EC%95%84%EB%A5%B4%EB%B0%94%EC%9D%B4%ED%8A%B8"
+            }
+          ]
+        }
+      ],
+      "notes": [
+        "괴 불리기 합성에 사용하는 일반 축복의 포션입니다. 500 포션류와 별개의 재료입니다."
+      ],
+      "checkedAt": "2026-09-10",
+      "aliases": []
+    },
+    {
+      "name": "힐웬 광석 조각",
+      "methods": [
+        {
+          "kind": "채집",
+          "text": "발레스의 힐웬 광산에서 채광 드릴을 장비하고 빛나는 힐웬 광석 더미에 희귀 광물학을 사용합니다. 채광 드릴은 광산 로비의 헥터가 판매합니다.",
+          "sources": [
+            {
+              "title": "마비노기 공식 패치 · 힐웬 광산과 희귀 광물학",
+              "url": "https://mabinogi.nexon.com/page/news/notice_view.asp?id=4880575"
+            },
+            {
+              "title": "마비노기 공식 가이드 · 채집",
+              "url": "https://mabinogi.nexon.com/page/archive/guide_view.asp?id=4888257&num=13"
+            }
+          ]
+        }
+      ],
+      "notes": [
+        "힐웬 1개에 광석 조각 5개, 육각 볼트·육각 너트 1개에는 각각 광석 조각 1개를 사용합니다."
+      ],
+      "checkedAt": "2026-09-10",
+      "aliases": []
+    }
+  ]
+}

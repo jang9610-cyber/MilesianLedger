@@ -1,0 +1,45 @@
+# Build outputs and verification profiles
+/dist/
+/artifacts/
+/build/
+/release/
+/tmp/
+**/bin/
+**/obj/
+**/verification/
+*.exe
+*.dll
+*.pdb
+*.zip
+
+# Local API credentials, prices and player progress (including backups)
+**/auction-key.dat*
+**/auction-settings.json*
+**/auction-cache.json*
+**/progress.json*
+**/progress-history.json*
+**/pip-settings.json*
+**/appearance.txt*
+.env
+.env.*
+*.pfx
+*.p12
+*.pem
+*.key
+
+# Editor and OS files
+.vs/
+.idea/
+*.user
+*.suo
+*.bak
+*.tmp
+*.log
+Thumbs.db
+desktop.ini
+.DS_Store
+
+# Server development secrets and persistent quota/cache state
+!.env.example
+**/node_modules/
+/server/.runtime/

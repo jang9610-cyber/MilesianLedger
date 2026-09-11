@@ -1,0 +1,3144 @@
+{
+  "Version": "prototype-2.1",
+  "Notes": [
+    "물물교환 품목과 재료 수량 계산에 사용하는 데이터입니다. 게임 업데이트에 따라 실제 수량과 차이가 있을 수 있습니다.",
+    "괄호 안 수량은 해당 재료를 더 아래 원재료부터 만들 때 필요한 대체 준비량입니다.",
+    "빤짝이 종이는 1회 10개 생산을 기준으로 필요한 제작 횟수를 올림하여 계산합니다.",
+    "이 앱은 새우 조련 미끼를 1회 10개 생산하는 기준으로 계산합니다. 실제 제작 수량은 게임 내에서 확인하세요.",
+    "500 포션 4종은 완제품 구매 수량만 계산합니다.",
+    "여러 재료가 함께 필요한 제작법은 각 재료의 필요 수량을 따로 표시합니다.",
+    "같은 재료는 동일한 환산 비율로 합산합니다. 대체 원재료 수량은 별도 필요 목록에 중복 합산하지 않습니다.",
+    "여러 품목에서 함께 쓰는 재료는 필요한 수량을 합산하여 표시합니다.",
+    "준비 체크는 재료 확보 상태입니다. 실제 제작 완료, 재고 소모, 교환 완료 기록은 포함하지 않습니다."
+  ],
+  "Trades": [
+    {
+      "Id": "C6",
+      "Name": "고운 모래",
+      "Station": "오아시스",
+      "Tier": 1,
+      "Limit": 25,
+      "DefaultQuantity": 25,
+      "SourceCell": "물물교환!B6:C6",
+      "Groups": [
+        {
+          "Id": "D6",
+          "Name": "매듭끈",
+          "PerTrade": 2.0,
+          "OriginalQuantity": 50.0,
+          "SourceCell": "물물교환!D6:E6",
+          "Formula": "=C6*2",
+          "Note": "",
+          "OutputPerBatch": 1,
+          "IsPurchased": false,
+          "Lines": [
+            {
+              "Id": "F6.1",
+              "Name": "가는 실뭉치",
+              "SourceName": "가는 실&굵은 실",
+              "PerTrade": 2.0,
+              "AlternateName": "",
+              "AlternatePerTrade": 0,
+              "OriginalQuantity": 50.0,
+              "OriginalAlternateQuantity": 0,
+              "Depth": 0,
+              "ParentId": "",
+              "CheckId": "H6.1",
+              "LegacyCheckId": "H6",
+              "ChildCheckIds": [],
+              "Components": [
+                "가는 실뭉치"
+              ],
+              "SourceCell": "물물교환!F6:H6",
+              "Formula": "=E6",
+              "CheckFormula": "",
+              "Note": "",
+              "BatchSize": 0,
+              "BatchDemandPerTrade": 0,
+              "BatchInputPerBatch": 0
+            },
+            {
+              "Id": "F6.2",
+              "Name": "굵은 실뭉치",
+              "SourceName": "가는 실&굵은 실",
+              "PerTrade": 2.0,
+              "AlternateName": "",
+              "AlternatePerTrade": 0,
+              "OriginalQuantity": 50.0,
+              "OriginalAlternateQuantity": 0,
+              "Depth": 0,
+              "ParentId": "",
+              "CheckId": "H6.2",
+              "LegacyCheckId": "H6",
+              "ChildCheckIds": [],
+              "Components": [
+                "굵은 실뭉치"
+              ],
+              "SourceCell": "물물교환!F6:H6",
+              "Formula": "=E6",
+              "CheckFormula": "",
+              "Note": "",
+              "BatchSize": 0,
+              "BatchDemandPerTrade": 0,
+              "BatchInputPerBatch": 0
+            }
+          ]
+        },
+        {
+          "Id": "D7",
+          "Name": "스태미나 500 포션",
+          "PerTrade": 3.0,
+          "OriginalQuantity": 75.0,
+          "SourceCell": "물물교환!D7:E7",
+          "Formula": "=C6*3",
+          "Note": "완제품으로 구매하는 포션입니다. 제작 밑재료는 계산하지 않습니다.",
+          "OutputPerBatch": 1,
+          "IsPurchased": true,
+          "Lines": [
+            {
+              "Id": "D7.purchase",
+              "Name": "스태미나 500 포션",
+              "SourceName": "스태미나 500 포션",
+              "PerTrade": 3.0,
+              "AlternateName": "",
+              "AlternatePerTrade": 0,
+              "OriginalQuantity": 75.0,
+              "OriginalAlternateQuantity": 0,
+              "Depth": 0,
+              "ParentId": "",
+              "CheckId": "D7.purchase",
+              "LegacyCheckId": "",
+              "ChildCheckIds": [],
+              "Components": [
+                "스태미나 500 포션"
+              ],
+              "SourceCell": "물물교환!D7:E7",
+              "Formula": "=C6*3",
+              "CheckFormula": "",
+              "Note": "완제품으로 구매하는 포션입니다. 제작 밑재료는 계산하지 않습니다.",
+              "BatchSize": 0,
+              "BatchDemandPerTrade": 0,
+              "BatchInputPerBatch": 0
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "Id": "C10",
+      "Name": "프리즌 고스트의 날개",
+      "Station": "오아시스",
+      "Tier": 2,
+      "Limit": 15,
+      "DefaultQuantity": 15,
+      "SourceCell": "물물교환!B10:C10",
+      "Groups": [
+        {
+          "Id": "D10",
+          "Name": "쿠션용 솜",
+          "PerTrade": 1.0,
+          "OriginalQuantity": 15.0,
+          "SourceCell": "물물교환!D10:E10",
+          "Formula": "=C10",
+          "Note": "",
+          "OutputPerBatch": 1,
+          "IsPurchased": false,
+          "Lines": [
+            {
+              "Id": "F10",
+              "Name": "가는 실뭉치",
+              "SourceName": "가는 실 (거미줄)",
+              "PerTrade": 5.0,
+              "AlternateName": "거미줄",
+              "AlternatePerTrade": 25.0,
+              "OriginalQuantity": 75.0,
+              "OriginalAlternateQuantity": 375.0,
+              "Depth": 0,
+              "ParentId": "",
+              "CheckId": "H10",
+              "LegacyCheckId": "",
+              "ChildCheckIds": [],
+              "Components": [
+                "가는 실뭉치"
+              ],
+              "SourceCell": "물물교환!F10:H10",
+              "Formula": "=E10*5&\"(\"&E10*25&\")\"",
+              "CheckFormula": "",
+              "Note": "",
+              "BatchSize": 0,
+              "BatchDemandPerTrade": 0,
+              "BatchInputPerBatch": 0
+            },
+            {
+              "Id": "F11",
+              "Name": "고급 양털",
+              "SourceName": "고급 양털",
+              "PerTrade": 20.0,
+              "AlternateName": "",
+              "AlternatePerTrade": 0,
+              "OriginalQuantity": 300.0,
+              "OriginalAlternateQuantity": 0,
+              "Depth": 0,
+              "ParentId": "",
+              "CheckId": "H11",
+              "LegacyCheckId": "",
+              "ChildCheckIds": [],
+              "Components": [
+                "고급 양털"
+              ],
+              "SourceCell": "물물교환!F11:H11",
+              "Formula": "=E10*20",
+              "CheckFormula": "",
+              "Note": "",
+              "BatchSize": 0,
+              "BatchDemandPerTrade": 0,
+              "BatchInputPerBatch": 0
+            }
+          ]
+        },
+        {
+          "Id": "D12",
+          "Name": "최고급 실크",
+          "PerTrade": 2.0,
+          "OriginalQuantity": 30.0,
+          "SourceCell": "물물교환!D12:E12",
+          "Formula": "=C10*2",
+          "Note": "",
+          "OutputPerBatch": 1,
+          "IsPurchased": false,
+          "Lines": [
+            {
+              "Id": "F12",
+              "Name": "가는 실뭉치",
+              "SourceName": "가는 실 (거미줄)",
+              "PerTrade": 12.0,
+              "AlternateName": "거미줄",
+              "AlternatePerTrade": 60.0,
+              "OriginalQuantity": 180.0,
+              "OriginalAlternateQuantity": 900.0,
+              "Depth": 0,
+              "ParentId": "",
+              "CheckId": "H12",
+              "LegacyCheckId": "",
+              "ChildCheckIds": [],
+              "Components": [
+                "가는 실뭉치"
+              ],
+              "SourceCell": "물물교환!F12:H12",
+              "Formula": "=E12*6&\"(\"&E12*6*5&\")\"",
+              "CheckFormula": "",
+              "Note": "",
+              "BatchSize": 0,
+              "BatchDemandPerTrade": 0,
+              "BatchInputPerBatch": 0
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "Id": "C13",
+      "Name": "오아시스 그림",
+      "Station": "오아시스",
+      "Tier": 3,
+      "Limit": 10,
+      "DefaultQuantity": 10,
+      "SourceCell": "물물교환!B13:C13",
+      "Groups": [
+        {
+          "Id": "D13",
+          "Name": "최고급 가죽끈",
+          "PerTrade": 1.0,
+          "OriginalQuantity": 10.0,
+          "SourceCell": "물물교환!D13:E13",
+          "Formula": "=C13",
+          "Note": "",
+          "OutputPerBatch": 1,
+          "IsPurchased": false,
+          "Lines": [
+            {
+              "Id": "F13",
+              "Name": "최고급 가죽",
+              "SourceName": "최고급 가죽",
+              "PerTrade": 1.0,
+              "AlternateName": "",
+              "AlternatePerTrade": 0,
+              "OriginalQuantity": 10.0,
+              "OriginalAlternateQuantity": 0,
+              "Depth": 0,
+              "ParentId": "",
+              "CheckId": "H13",
+              "LegacyCheckId": "",
+              "ChildCheckIds": [],
+              "Components": [
+                "최고급 가죽"
+              ],
+              "SourceCell": "물물교환!F13:H13",
+              "Formula": "=E13",
+              "CheckFormula": "",
+              "Note": "",
+              "BatchSize": 0,
+              "BatchDemandPerTrade": 0,
+              "BatchInputPerBatch": 0
+            }
+          ]
+        },
+        {
+          "Id": "D14",
+          "Name": "질긴 실",
+          "PerTrade": 3.0,
+          "OriginalQuantity": 30.0,
+          "SourceCell": "물물교환!D14:E14",
+          "Formula": "=C13*3",
+          "Note": "",
+          "OutputPerBatch": 1,
+          "IsPurchased": false,
+          "Lines": [
+            {
+              "Id": "F14",
+              "Name": "가는 실뭉치",
+              "SourceName": "가는 실 (거미줄)",
+              "PerTrade": 15.0,
+              "AlternateName": "거미줄",
+              "AlternatePerTrade": 75.0,
+              "OriginalQuantity": 150.0,
+              "OriginalAlternateQuantity": 750.0,
+              "Depth": 0,
+              "ParentId": "",
+              "CheckId": "H14",
+              "LegacyCheckId": "",
+              "ChildCheckIds": [],
+              "Components": [
+                "가는 실뭉치"
+              ],
+              "SourceCell": "물물교환!F14:H14",
+              "Formula": "=E14*5&\"(\"&E14*25&\")\"",
+              "CheckFormula": "",
+              "Note": "",
+              "BatchSize": 0,
+              "BatchDemandPerTrade": 0,
+              "BatchInputPerBatch": 0
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "Id": "C15",
+      "Name": "선인장 꽃",
+      "Station": "오아시스",
+      "Tier": 4,
+      "Limit": 8,
+      "DefaultQuantity": 8,
+      "SourceCell": "물물교환!B15:C15",
+      "Groups": [
+        {
+          "Id": "D15",
+          "Name": "정령의 리큐르",
+          "PerTrade": 1.0,
+          "OriginalQuantity": 8.0,
+          "SourceCell": "물물교환!D15:E15",
+          "Formula": "=C15",
+          "Note": "",
+          "OutputPerBatch": 1,
+          "IsPurchased": false,
+          "Lines": [
+            {
+              "Id": "F15",
+              "Name": "화이트 허브",
+              "SourceName": "화이트 허브",
+              "PerTrade": 1.0,
+              "AlternateName": "",
+              "AlternatePerTrade": 0,
+              "OriginalQuantity": 8.0,
+              "OriginalAlternateQuantity": 0,
+              "Depth": 0,
+              "ParentId": "",
+              "CheckId": "H15",
+              "LegacyCheckId": "",
+              "ChildCheckIds": [],
+              "Components": [
+                "화이트 허브"
+              ],
+              "SourceCell": "물물교환!F15:H15",
+              "Formula": "=E15",
+              "CheckFormula": "",
+              "Note": "",
+              "BatchSize": 0,
+              "BatchDemandPerTrade": 0,
+              "BatchInputPerBatch": 0
+            },
+            {
+              "Id": "F16",
+              "Name": "고대 정령의 화석 조각",
+              "SourceName": "고대 정령의 화석 조각",
+              "PerTrade": 1.0,
+              "AlternateName": "",
+              "AlternatePerTrade": 0,
+              "OriginalQuantity": 8.0,
+              "OriginalAlternateQuantity": 0,
+              "Depth": 0,
+              "ParentId": "",
+              "CheckId": "H16",
+              "LegacyCheckId": "",
+              "ChildCheckIds": [],
+              "Components": [
+                "고대 정령의 화석 조각"
+              ],
+              "SourceCell": "물물교환!F16:H16",
+              "Formula": "=E15",
+              "CheckFormula": "",
+              "Note": "",
+              "BatchSize": 0,
+              "BatchDemandPerTrade": 0,
+              "BatchInputPerBatch": 0
+            },
+            {
+              "Id": "F17",
+              "Name": "엘레멘탈 리무버",
+              "SourceName": "엘리멘탈 리무버",
+              "PerTrade": 2.0,
+              "AlternateName": "",
+              "AlternatePerTrade": 0,
+              "OriginalQuantity": 16.0,
+              "OriginalAlternateQuantity": 0,
+              "Depth": 0,
+              "ParentId": "",
+              "CheckId": "H17",
+              "LegacyCheckId": "",
+              "ChildCheckIds": [],
+              "Components": [
+                "엘레멘탈 리무버"
+              ],
+              "SourceCell": "물물교환!F17:H17",
+              "Formula": "=E15*2",
+              "CheckFormula": "",
+              "Note": "",
+              "BatchSize": 0,
+              "BatchDemandPerTrade": 0,
+              "BatchInputPerBatch": 0
+            }
+          ]
+        },
+        {
+          "Id": "D18",
+          "Name": "은판",
+          "PerTrade": 2.0,
+          "OriginalQuantity": 16.0,
+          "SourceCell": "물물교환!D18:E18",
+          "Formula": "=C15*2",
+          "Note": "",
+          "OutputPerBatch": 1,
+          "IsPurchased": false,
+          "Lines": [
+            {
+              "Id": "F18",
+              "Name": "은괴",
+              "SourceName": "은괴",
+              "PerTrade": 2.0,
+              "AlternateName": "",
+              "AlternatePerTrade": 0,
+              "OriginalQuantity": 16.0,
+              "OriginalAlternateQuantity": 0,
+              "Depth": 0,
+              "ParentId": "",
+              "CheckId": "H18",
+              "LegacyCheckId": "",
+              "ChildCheckIds": [],
+              "Components": [
+                "은괴"
+              ],
+              "SourceCell": "물물교환!F18:H18",
+              "Formula": "=E18",
+              "CheckFormula": "",
+              "Note": "",
+              "BatchSize": 0,
+              "BatchDemandPerTrade": 0,
+              "BatchInputPerBatch": 0
+            }
+          ]
+        },
+        {
+          "Id": "D19",
+          "Name": "고급 옷감",
+          "PerTrade": 4.0,
+          "OriginalQuantity": 32.0,
+          "SourceCell": "물물교환!D19:E19",
+          "Formula": "=C15*4",
+          "Note": "",
+          "OutputPerBatch": 1,
+          "IsPurchased": false,
+          "Lines": [
+            {
+              "Id": "F19",
+              "Name": "굵은 실뭉치",
+              "SourceName": "굵은 실 (양털)",
+              "PerTrade": 20.0,
+              "AlternateName": "양털",
+              "AlternatePerTrade": 100.0,
+              "OriginalQuantity": 160.0,
+              "OriginalAlternateQuantity": 800.0,
+              "Depth": 0,
+              "ParentId": "",
+              "CheckId": "H19",
+              "LegacyCheckId": "",
+              "ChildCheckIds": [],
+              "Components": [
+                "굵은 실뭉치"
+              ],
+              "SourceCell": "물물교환!F19:H19",
+              "Formula": "=E19*5&\"(\"&E19*25&\")\"",
+              "CheckFormula": "",
+              "Note": "",
+              "BatchSize": 0,
+              "BatchDemandPerTrade": 0,
+              "BatchInputPerBatch": 0
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "Id": "C20",
+      "Name": "거대 송곳니 화석",
+      "Station": "오아시스",
+      "Tier": 5,
+      "Limit": 3,
+      "DefaultQuantity": 3,
+      "SourceCell": "물물교환!B20:C20",
+      "Groups": [
+        {
+          "Id": "D20",
+          "Name": "펫 놀이세트",
+          "PerTrade": 1.0,
+          "OriginalQuantity": 3.0,
+          "SourceCell": "물물교환!D20:E20",
+          "Formula": "=C20",
+          "Note": "",
+          "OutputPerBatch": 1,
+          "IsPurchased": false,
+          "Lines": [
+            {
+              "Id": "F20",
+              "Name": "펫이 좋아하는 잡동사니",
+              "SourceName": "펫이 좋아하는 잡동사니",
+              "PerTrade": 1.0,
+              "AlternateName": "",
+              "AlternatePerTrade": 0,
+              "OriginalQuantity": 3.0,
+              "OriginalAlternateQuantity": 0,
+              "Depth": 0,
+              "ParentId": "",
+              "CheckId": "H20",
+              "LegacyCheckId": "",
+              "ChildCheckIds": [],
+              "Components": [
+                "펫이 좋아하는 잡동사니"
+              ],
+              "SourceCell": "물물교환!F20:H20",
+              "Formula": "=E20",
+              "CheckFormula": "",
+              "Note": "",
+              "BatchSize": 0,
+              "BatchDemandPerTrade": 0,
+              "BatchInputPerBatch": 0
+            },
+            {
+              "Id": "F21",
+              "Name": "나무판",
+              "SourceName": "나무판",
+              "PerTrade": 1.0,
+              "AlternateName": "",
+              "AlternatePerTrade": 0,
+              "OriginalQuantity": 3.0,
+              "OriginalAlternateQuantity": 0,
+              "Depth": 0,
+              "ParentId": "",
+              "CheckId": "H21",
+              "LegacyCheckId": "",
+              "ChildCheckIds": [],
+              "Components": [
+                "나무판"
+              ],
+              "SourceCell": "물물교환!F21:H21",
+              "Formula": "=E20",
+              "CheckFormula": "",
+              "Note": "",
+              "BatchSize": 0,
+              "BatchDemandPerTrade": 0,
+              "BatchInputPerBatch": 0
+            }
+          ]
+        },
+        {
+          "Id": "D22",
+          "Name": "건초 더미",
+          "PerTrade": 3.0,
+          "OriginalQuantity": 9.0,
+          "SourceCell": "물물교환!D22:E22",
+          "Formula": "=C20*3",
+          "Note": "",
+          "OutputPerBatch": 1,
+          "IsPurchased": false,
+          "Lines": [
+            {
+              "Id": "F22",
+              "Name": "최고급 가죽끈",
+              "SourceName": "최고급 가죽끈 (=최고급 가죽)",
+              "PerTrade": 3.0,
+              "AlternateName": "최고급 가죽",
+              "AlternatePerTrade": 3.0,
+              "OriginalQuantity": 9.0,
+              "OriginalAlternateQuantity": 9.0,
+              "Depth": 0,
+              "ParentId": "",
+              "CheckId": "H22",
+              "LegacyCheckId": "",
+              "ChildCheckIds": [],
+              "Components": [
+                "최고급 가죽끈"
+              ],
+              "SourceCell": "물물교환!F22:H22",
+              "Formula": "=E22",
+              "CheckFormula": "",
+              "Note": "",
+              "BatchSize": 0,
+              "BatchDemandPerTrade": 0,
+              "BatchInputPerBatch": 0
+            },
+            {
+              "Id": "F23",
+              "Name": "못쓰게 된 밀 이파리",
+              "SourceName": "못 쓰게 된 밀 이파리",
+              "PerTrade": 60.0,
+              "AlternateName": "",
+              "AlternatePerTrade": 0,
+              "OriginalQuantity": 180.0,
+              "OriginalAlternateQuantity": 0,
+              "Depth": 0,
+              "ParentId": "",
+              "CheckId": "H23",
+              "LegacyCheckId": "",
+              "ChildCheckIds": [],
+              "Components": [
+                "못쓰게 된 밀 이파리"
+              ],
+              "SourceCell": "물물교환!F23:H23",
+              "Formula": "=E22*20",
+              "CheckFormula": "",
+              "Note": "",
+              "BatchSize": 0,
+              "BatchDemandPerTrade": 0,
+              "BatchInputPerBatch": 0
+            }
+          ]
+        },
+        {
+          "Id": "D24",
+          "Name": "마력이 깃든 나무장작",
+          "PerTrade": 5.0,
+          "OriginalQuantity": 15.0,
+          "SourceCell": "물물교환!D24:E24",
+          "Formula": "=C20*5",
+          "Note": "",
+          "OutputPerBatch": 1,
+          "IsPurchased": false,
+          "Lines": [
+            {
+              "Id": "F24",
+              "Name": "중급 나무장작",
+              "SourceName": "중급 나무장작",
+              "PerTrade": 5.0,
+              "AlternateName": "",
+              "AlternatePerTrade": 0,
+              "OriginalQuantity": 15.0,
+              "OriginalAlternateQuantity": 0,
+              "Depth": 0,
+              "ParentId": "",
+              "CheckId": "H24",
+              "LegacyCheckId": "",
+              "ChildCheckIds": [],
+              "Components": [
+                "중급 나무장작"
+              ],
+              "SourceCell": "물물교환!F24:H24",
+              "Formula": "=E24",
+              "CheckFormula": "",
+              "Note": "",
+              "BatchSize": 0,
+              "BatchDemandPerTrade": 0,
+              "BatchInputPerBatch": 0
+            },
+            {
+              "Id": "F25",
+              "Name": "실리엔",
+              "SourceName": "실리엔",
+              "PerTrade": 5.0,
+              "AlternateName": "",
+              "AlternatePerTrade": 0,
+              "OriginalQuantity": 15.0,
+              "OriginalAlternateQuantity": 0,
+              "Depth": 0,
+              "ParentId": "",
+              "CheckId": "H25",
+              "LegacyCheckId": "",
+              "ChildCheckIds": [],
+              "Components": [
+                "실리엔"
+              ],
+              "SourceCell": "물물교환!F25:H25",
+              "Formula": "=E24",
+              "CheckFormula": "",
+              "Note": "",
+              "BatchSize": 0,
+              "BatchDemandPerTrade": 0,
+              "BatchInputPerBatch": 0
+            },
+            {
+              "Id": "F26",
+              "Name": "힐웬",
+              "SourceName": "힐웬",
+              "PerTrade": 5.0,
+              "AlternateName": "",
+              "AlternatePerTrade": 0,
+              "OriginalQuantity": 15.0,
+              "OriginalAlternateQuantity": 0,
+              "Depth": 0,
+              "ParentId": "",
+              "CheckId": "H26",
+              "LegacyCheckId": "",
+              "ChildCheckIds": [],
+              "Components": [
+                "힐웬"
+              ],
+              "SourceCell": "물물교환!F26:H26",
+              "Formula": "=E24",
+              "CheckFormula": "",
+              "Note": "",
+              "BatchSize": 0,
+              "BatchDemandPerTrade": 0,
+              "BatchInputPerBatch": 0
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "Id": "K6",
+      "Name": "화산 머드팩",
+      "Station": "페라 화산",
+      "Tier": 1,
+      "Limit": 25,
+      "DefaultQuantity": 25,
+      "SourceCell": "물물교환!J6:K6",
+      "Groups": [
+        {
+          "Id": "L6",
+          "Name": "동판",
+          "PerTrade": 2.0,
+          "OriginalQuantity": 50.0,
+          "SourceCell": "물물교환!L6:M6",
+          "Formula": "=K6*2",
+          "Note": "",
+          "OutputPerBatch": 1,
+          "IsPurchased": false,
+          "Lines": [
+            {
+              "Id": "N6",
+              "Name": "동괴",
+              "SourceName": "동괴",
+              "PerTrade": 2.0,
+              "AlternateName": "",
+              "AlternatePerTrade": 0,
+              "OriginalQuantity": 50.0,
+              "OriginalAlternateQuantity": 0,
+              "Depth": 0,
+              "ParentId": "",
+              "CheckId": "P6",
+              "LegacyCheckId": "",
+              "ChildCheckIds": [],
+              "Components": [
+                "동괴"
+              ],
+              "SourceCell": "물물교환!N6:P6",
+              "Formula": "=M6",
+              "CheckFormula": "",
+              "Note": "",
+              "BatchSize": 0,
+              "BatchDemandPerTrade": 0,
+              "BatchInputPerBatch": 0
+            }
+          ]
+        },
+        {
+          "Id": "L7",
+          "Name": "신비한 허브 가루",
+          "PerTrade": 3.0,
+          "OriginalQuantity": 75.0,
+          "SourceCell": "물물교환!L7:M7",
+          "Formula": "=K6*3",
+          "Note": "",
+          "OutputPerBatch": 1,
+          "IsPurchased": false,
+          "Lines": [
+            {
+              "Id": "N7",
+              "Name": "블러디 허브",
+              "SourceName": "블러디 허브",
+              "PerTrade": 3.0,
+              "AlternateName": "",
+              "AlternatePerTrade": 0,
+              "OriginalQuantity": 75.0,
+              "OriginalAlternateQuantity": 0,
+              "Depth": 0,
+              "ParentId": "",
+              "CheckId": "P7",
+              "LegacyCheckId": "",
+              "ChildCheckIds": [],
+              "Components": [
+                "블러디 허브"
+              ],
+              "SourceCell": "물물교환!N7:P7",
+              "Formula": "=M7",
+              "CheckFormula": "",
+              "Note": "",
+              "BatchSize": 0,
+              "BatchDemandPerTrade": 0,
+              "BatchInputPerBatch": 0
+            },
+            {
+              "Id": "N8",
+              "Name": "마나 허브",
+              "SourceName": "마나 허브",
+              "PerTrade": 3.0,
+              "AlternateName": "",
+              "AlternatePerTrade": 0,
+              "OriginalQuantity": 75.0,
+              "OriginalAlternateQuantity": 0,
+              "Depth": 0,
+              "ParentId": "",
+              "CheckId": "P8",
+              "LegacyCheckId": "",
+              "ChildCheckIds": [],
+              "Components": [
+                "마나 허브"
+              ],
+              "SourceCell": "물물교환!N8:P8",
+              "Formula": "=M7",
+              "CheckFormula": "",
+              "Note": "",
+              "BatchSize": 0,
+              "BatchDemandPerTrade": 0,
+              "BatchInputPerBatch": 0
+            },
+            {
+              "Id": "N9",
+              "Name": "포이즌 허브",
+              "SourceName": "포이즌 허브",
+              "PerTrade": 3.0,
+              "AlternateName": "",
+              "AlternatePerTrade": 0,
+              "OriginalQuantity": 75.0,
+              "OriginalAlternateQuantity": 0,
+              "Depth": 0,
+              "ParentId": "",
+              "CheckId": "P9",
+              "LegacyCheckId": "",
+              "ChildCheckIds": [],
+              "Components": [
+                "포이즌 허브"
+              ],
+              "SourceCell": "물물교환!N9:P9",
+              "Formula": "=M7",
+              "CheckFormula": "",
+              "Note": "",
+              "BatchSize": 0,
+              "BatchDemandPerTrade": 0,
+              "BatchInputPerBatch": 0
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "Id": "K10",
+      "Name": "마그마 스톤",
+      "Station": "페라 화산",
+      "Tier": 2,
+      "Limit": 15,
+      "DefaultQuantity": 15,
+      "SourceCell": "물물교환!J10:K10",
+      "Groups": [
+        {
+          "Id": "L10",
+          "Name": "미스릴판",
+          "PerTrade": 2.0,
+          "OriginalQuantity": 30.0,
+          "SourceCell": "물물교환!L10:M10",
+          "Formula": "=K10*2",
+          "Note": "",
+          "OutputPerBatch": 1,
+          "IsPurchased": false,
+          "Lines": [
+            {
+              "Id": "N10",
+              "Name": "미스릴괴",
+              "SourceName": "미스릴괴",
+              "PerTrade": 2.0,
+              "AlternateName": "",
+              "AlternatePerTrade": 0,
+              "OriginalQuantity": 30.0,
+              "OriginalAlternateQuantity": 0,
+              "Depth": 0,
+              "ParentId": "",
+              "CheckId": "P10",
+              "LegacyCheckId": "",
+              "ChildCheckIds": [],
+              "Components": [
+                "미스릴괴"
+              ],
+              "SourceCell": "물물교환!N10:P10",
+              "Formula": "=M10",
+              "CheckFormula": "",
+              "Note": "",
+              "BatchSize": 0,
+              "BatchDemandPerTrade": 0,
+              "BatchInputPerBatch": 0
+            }
+          ]
+        },
+        {
+          "Id": "L11",
+          "Name": "보릿가루",
+          "PerTrade": 3.0,
+          "OriginalQuantity": 45.0,
+          "SourceCell": "물물교환!L11:M11",
+          "Formula": "=K10*3",
+          "Note": "",
+          "OutputPerBatch": 1,
+          "IsPurchased": false,
+          "Lines": [
+            {
+              "Id": "N11",
+              "Name": "보리",
+              "SourceName": "보리",
+              "PerTrade": 30.0,
+              "AlternateName": "",
+              "AlternatePerTrade": 0,
+              "OriginalQuantity": 450.0,
+              "OriginalAlternateQuantity": 0,
+              "Depth": 0,
+              "ParentId": "",
+              "CheckId": "P11",
+              "LegacyCheckId": "",
+              "ChildCheckIds": [],
+              "Components": [
+                "보리"
+              ],
+              "SourceCell": "물물교환!N11:P11",
+              "Formula": "=M11*10",
+              "CheckFormula": "",
+              "Note": "",
+              "BatchSize": 0,
+              "BatchDemandPerTrade": 0,
+              "BatchInputPerBatch": 0
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "Id": "K12",
+      "Name": "익시온의 뿔",
+      "Station": "페라 화산",
+      "Tier": 3,
+      "Limit": 10,
+      "DefaultQuantity": 10,
+      "SourceCell": "물물교환!J12:K12",
+      "Groups": [
+        {
+          "Id": "L12",
+          "Name": "금판",
+          "PerTrade": 5.0,
+          "OriginalQuantity": 50.0,
+          "SourceCell": "물물교환!L12:M12",
+          "Formula": "=K12*5",
+          "Note": "",
+          "OutputPerBatch": 1,
+          "IsPurchased": false,
+          "Lines": [
+            {
+              "Id": "N12",
+              "Name": "금괴",
+              "SourceName": "금괴",
+              "PerTrade": 5.0,
+              "AlternateName": "",
+              "AlternatePerTrade": 0,
+              "OriginalQuantity": 50.0,
+              "OriginalAlternateQuantity": 0,
+              "Depth": 0,
+              "ParentId": "",
+              "CheckId": "P12",
+              "LegacyCheckId": "",
+              "ChildCheckIds": [],
+              "Components": [
+                "금괴"
+              ],
+              "SourceCell": "물물교환!N12:P12",
+              "Formula": "=M12",
+              "CheckFormula": "",
+              "Note": "",
+              "BatchSize": 0,
+              "BatchDemandPerTrade": 0,
+              "BatchInputPerBatch": 0
+            }
+          ]
+        },
+        {
+          "Id": "L13",
+          "Name": "마리오네트 500 포션",
+          "PerTrade": 3.0,
+          "OriginalQuantity": 30.0,
+          "SourceCell": "물물교환!L13:M13",
+          "Formula": "=K12*3",
+          "Note": "완제품으로 구매하는 포션입니다. 제작 밑재료는 계산하지 않습니다.",
+          "OutputPerBatch": 1,
+          "IsPurchased": true,
+          "Lines": [
+            {
+              "Id": "L13.purchase",
+              "Name": "마리오네트 500 포션",
+              "SourceName": "마리오네트 500 포션",
+              "PerTrade": 3.0,
+              "AlternateName": "",
+              "AlternatePerTrade": 0,
+              "OriginalQuantity": 30.0,
+              "OriginalAlternateQuantity": 0,
+              "Depth": 0,
+              "ParentId": "",
+              "CheckId": "L13.purchase",
+              "LegacyCheckId": "",
+              "ChildCheckIds": [],
+              "Components": [
+                "마리오네트 500 포션"
+              ],
+              "SourceCell": "물물교환!L13:M13",
+              "Formula": "=K12*3",
+              "CheckFormula": "",
+              "Note": "완제품으로 구매하는 포션입니다. 제작 밑재료는 계산하지 않습니다.",
+              "BatchSize": 0,
+              "BatchDemandPerTrade": 0,
+              "BatchInputPerBatch": 0
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "Id": "K15",
+      "Name": "화산 도마뱀의 알",
+      "Station": "페라 화산",
+      "Tier": 4,
+      "Limit": 8,
+      "DefaultQuantity": 8,
+      "SourceCell": "물물교환!J15:K15",
+      "Groups": [
+        {
+          "Id": "L15",
+          "Name": "최고급 옷감",
+          "PerTrade": 5.0,
+          "OriginalQuantity": 40.0,
+          "SourceCell": "물물교환!L15:M15",
+          "Formula": "=K15*5",
+          "Note": "",
+          "OutputPerBatch": 1,
+          "IsPurchased": false,
+          "Lines": [
+            {
+              "Id": "N15",
+              "Name": "굵은 실뭉치",
+              "SourceName": "굵은 실 (양털)",
+              "PerTrade": 30.0,
+              "AlternateName": "양털",
+              "AlternatePerTrade": 150.0,
+              "OriginalQuantity": 240.0,
+              "OriginalAlternateQuantity": 1200.0,
+              "Depth": 0,
+              "ParentId": "",
+              "CheckId": "P15",
+              "LegacyCheckId": "",
+              "ChildCheckIds": [],
+              "Components": [
+                "굵은 실뭉치"
+              ],
+              "SourceCell": "물물교환!N15:P15",
+              "Formula": "=M15*6&\"(\"&M15*6*5&\")\"",
+              "CheckFormula": "",
+              "Note": "",
+              "BatchSize": 0,
+              "BatchDemandPerTrade": 0,
+              "BatchInputPerBatch": 0
+            }
+          ]
+        },
+        {
+          "Id": "L16",
+          "Name": "생명력 500 포션",
+          "PerTrade": 2.0,
+          "OriginalQuantity": 16.0,
+          "SourceCell": "물물교환!L16:M16",
+          "Formula": "=K15*2",
+          "Note": "완제품으로 구매하는 포션입니다. 제작 밑재료는 계산하지 않습니다.",
+          "OutputPerBatch": 1,
+          "IsPurchased": true,
+          "Lines": [
+            {
+              "Id": "L16.purchase",
+              "Name": "생명력 500 포션",
+              "SourceName": "생명력 500 포션",
+              "PerTrade": 2.0,
+              "AlternateName": "",
+              "AlternatePerTrade": 0,
+              "OriginalQuantity": 16.0,
+              "OriginalAlternateQuantity": 0,
+              "Depth": 0,
+              "ParentId": "",
+              "CheckId": "L16.purchase",
+              "LegacyCheckId": "",
+              "ChildCheckIds": [],
+              "Components": [
+                "생명력 500 포션"
+              ],
+              "SourceCell": "물물교환!L16:M16",
+              "Formula": "=K15*2",
+              "CheckFormula": "",
+              "Note": "완제품으로 구매하는 포션입니다. 제작 밑재료는 계산하지 않습니다.",
+              "BatchSize": 0,
+              "BatchDemandPerTrade": 0,
+              "BatchInputPerBatch": 0
+            }
+          ]
+        },
+        {
+          "Id": "L19",
+          "Name": "빤짝이 종이",
+          "PerTrade": 5.0,
+          "OriginalQuantity": 40.0,
+          "SourceCell": "물물교환!L19:M19",
+          "Formula": "=K15*5",
+          "Note": "합성으로 제작하며, 이 앱은 1회 10개 생산을 기준으로 계산합니다.",
+          "OutputPerBatch": 10,
+          "IsPurchased": false,
+          "Lines": [
+            {
+              "Id": "N19",
+              "Name": "종이",
+              "SourceName": "종이",
+              "PerTrade": 5.0,
+              "AlternateName": "",
+              "AlternatePerTrade": 0,
+              "OriginalQuantity": 40.0,
+              "OriginalAlternateQuantity": 0,
+              "Depth": 0,
+              "ParentId": "",
+              "CheckId": "P19",
+              "LegacyCheckId": "",
+              "ChildCheckIds": [],
+              "Components": [
+                "종이"
+              ],
+              "SourceCell": "물물교환!N19:P19",
+              "Formula": "=M19",
+              "CheckFormula": "",
+              "Note": "1회 10개 생산. 필요한 제작 횟수를 올림하여 준비 수량을 계산합니다.",
+              "BatchSize": 10,
+              "BatchDemandPerTrade": 5,
+              "BatchInputPerBatch": 10
+            },
+            {
+              "Id": "N20.1",
+              "Name": "작은 빨간구슬",
+              "SourceName": "작은 빨간&녹색&은색&파란 구슬",
+              "PerTrade": 0.5,
+              "AlternateName": "",
+              "AlternatePerTrade": 0,
+              "OriginalQuantity": 4.0,
+              "OriginalAlternateQuantity": 0,
+              "Depth": 0,
+              "ParentId": "",
+              "CheckId": "P20.1",
+              "LegacyCheckId": "P20",
+              "ChildCheckIds": [],
+              "Components": [
+                "작은 빨간구슬"
+              ],
+              "SourceCell": "물물교환!N20:P20",
+              "Formula": "=M19/10",
+              "CheckFormula": "",
+              "Note": "1회 10개 생산. 필요한 제작 횟수를 올림하여 준비 수량을 계산합니다.",
+              "BatchSize": 10,
+              "BatchDemandPerTrade": 5,
+              "BatchInputPerBatch": 1
+            },
+            {
+              "Id": "N20.2",
+              "Name": "작은 녹색구슬",
+              "SourceName": "작은 빨간&녹색&은색&파란 구슬",
+              "PerTrade": 0.5,
+              "AlternateName": "",
+              "AlternatePerTrade": 0,
+              "OriginalQuantity": 4.0,
+              "OriginalAlternateQuantity": 0,
+              "Depth": 0,
+              "ParentId": "",
+              "CheckId": "P20.2",
+              "LegacyCheckId": "P20",
+              "ChildCheckIds": [],
+              "Components": [
+                "작은 녹색구슬"
+              ],
+              "SourceCell": "물물교환!N20:P20",
+              "Formula": "=M19/10",
+              "CheckFormula": "",
+              "Note": "1회 10개 생산. 필요한 제작 횟수를 올림하여 준비 수량을 계산합니다.",
+              "BatchSize": 10,
+              "BatchDemandPerTrade": 5,
+              "BatchInputPerBatch": 1
+            },
+            {
+              "Id": "N20.3",
+              "Name": "작은 은색구슬",
+              "SourceName": "작은 빨간&녹색&은색&파란 구슬",
+              "PerTrade": 0.5,
+              "AlternateName": "",
+              "AlternatePerTrade": 0,
+              "OriginalQuantity": 4.0,
+              "OriginalAlternateQuantity": 0,
+              "Depth": 0,
+              "ParentId": "",
+              "CheckId": "P20.3",
+              "LegacyCheckId": "P20",
+              "ChildCheckIds": [],
+              "Components": [
+                "작은 은색구슬"
+              ],
+              "SourceCell": "물물교환!N20:P20",
+              "Formula": "=M19/10",
+              "CheckFormula": "",
+              "Note": "1회 10개 생산. 필요한 제작 횟수를 올림하여 준비 수량을 계산합니다.",
+              "BatchSize": 10,
+              "BatchDemandPerTrade": 5,
+              "BatchInputPerBatch": 1
+            },
+            {
+              "Id": "N20.4",
+              "Name": "작은 파란구슬",
+              "SourceName": "작은 빨간&녹색&은색&파란 구슬",
+              "PerTrade": 0.5,
+              "AlternateName": "",
+              "AlternatePerTrade": 0,
+              "OriginalQuantity": 4.0,
+              "OriginalAlternateQuantity": 0,
+              "Depth": 0,
+              "ParentId": "",
+              "CheckId": "P20.4",
+              "LegacyCheckId": "P20",
+              "ChildCheckIds": [],
+              "Components": [
+                "작은 파란구슬"
+              ],
+              "SourceCell": "물물교환!N20:P20",
+              "Formula": "=M19/10",
+              "CheckFormula": "",
+              "Note": "1회 10개 생산. 필요한 제작 횟수를 올림하여 준비 수량을 계산합니다.",
+              "BatchSize": 10,
+              "BatchDemandPerTrade": 5,
+              "BatchInputPerBatch": 1
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "Id": "K21",
+      "Name": "라스파 흑표범의 가죽",
+      "Station": "페라 화산",
+      "Tier": 5,
+      "Limit": 3,
+      "DefaultQuantity": 3,
+      "SourceCell": "물물교환!J21:K21",
+      "Groups": [
+        {
+          "Id": "L21",
+          "Name": "뮤턴트",
+          "PerTrade": 1.0,
+          "OriginalQuantity": 3.0,
+          "SourceCell": "물물교환!L21:M21",
+          "Formula": "=K21",
+          "Note": "",
+          "OutputPerBatch": 1,
+          "IsPurchased": false,
+          "Lines": [
+            {
+              "Id": "N21",
+              "Name": "돌연변이 토끼의 발",
+              "SourceName": "돌연변이 토끼의 발",
+              "PerTrade": 10.0,
+              "AlternateName": "",
+              "AlternatePerTrade": 0,
+              "OriginalQuantity": 30.0,
+              "OriginalAlternateQuantity": 0,
+              "Depth": 0,
+              "ParentId": "",
+              "CheckId": "P21",
+              "LegacyCheckId": "",
+              "ChildCheckIds": [],
+              "Components": [
+                "돌연변이 토끼의 발"
+              ],
+              "SourceCell": "물물교환!N21:P21",
+              "Formula": "=M21*10",
+              "CheckFormula": "",
+              "Note": "",
+              "BatchSize": 0,
+              "BatchDemandPerTrade": 0,
+              "BatchInputPerBatch": 0
+            },
+            {
+              "Id": "N22",
+              "Name": "돌연변이 식물의 점액질",
+              "SourceName": "돌연변이 식물의 점액질",
+              "PerTrade": 5.0,
+              "AlternateName": "",
+              "AlternatePerTrade": 0,
+              "OriginalQuantity": 15.0,
+              "OriginalAlternateQuantity": 0,
+              "Depth": 0,
+              "ParentId": "",
+              "CheckId": "P22",
+              "LegacyCheckId": "",
+              "ChildCheckIds": [],
+              "Components": [
+                "돌연변이 식물의 점액질"
+              ],
+              "SourceCell": "물물교환!N22:P22",
+              "Formula": "=M21*5",
+              "CheckFormula": "",
+              "Note": "",
+              "BatchSize": 0,
+              "BatchDemandPerTrade": 0,
+              "BatchInputPerBatch": 0
+            },
+            {
+              "Id": "N23",
+              "Name": "사스콰치의 심장",
+              "SourceName": "사스콰치의 심장",
+              "PerTrade": 3.0,
+              "AlternateName": "",
+              "AlternatePerTrade": 0,
+              "OriginalQuantity": 9.0,
+              "OriginalAlternateQuantity": 0,
+              "Depth": 0,
+              "ParentId": "",
+              "CheckId": "P23",
+              "LegacyCheckId": "",
+              "ChildCheckIds": [],
+              "Components": [
+                "사스콰치의 심장"
+              ],
+              "SourceCell": "물물교환!N23:P23",
+              "Formula": "=M21*3",
+              "CheckFormula": "",
+              "Note": "",
+              "BatchSize": 0,
+              "BatchDemandPerTrade": 0,
+              "BatchInputPerBatch": 0
+            }
+          ]
+        },
+        {
+          "Id": "L24",
+          "Name": "특급 나무장작",
+          "PerTrade": 3.0,
+          "OriginalQuantity": 9.0,
+          "SourceCell": "물물교환!L24:M24",
+          "Formula": "=K21*3",
+          "Note": "",
+          "OutputPerBatch": 1,
+          "IsPurchased": false,
+          "Lines": [
+            {
+              "Id": "N24",
+              "Name": "최고급 나무장작",
+              "SourceName": "최고급 나무장작",
+              "PerTrade": 3.0,
+              "AlternateName": "",
+              "AlternatePerTrade": 0,
+              "OriginalQuantity": 9.0,
+              "OriginalAlternateQuantity": 0,
+              "Depth": 0,
+              "ParentId": "",
+              "CheckId": "P24",
+              "LegacyCheckId": "",
+              "ChildCheckIds": [],
+              "Components": [
+                "최고급 나무장작"
+              ],
+              "SourceCell": "물물교환!N24:P24",
+              "Formula": "=M24",
+              "CheckFormula": "",
+              "Note": "",
+              "BatchSize": 0,
+              "BatchDemandPerTrade": 0,
+              "BatchInputPerBatch": 0
+            },
+            {
+              "Id": "N25",
+              "Name": "순도 높은 강화제",
+              "SourceName": "순도 높은 강화제",
+              "PerTrade": 3.0,
+              "AlternateName": "",
+              "AlternatePerTrade": 0,
+              "OriginalQuantity": 9.0,
+              "OriginalAlternateQuantity": 0,
+              "Depth": 0,
+              "ParentId": "",
+              "CheckId": "P25",
+              "LegacyCheckId": "",
+              "ChildCheckIds": [],
+              "Components": [
+                "순도 높은 강화제"
+              ],
+              "SourceCell": "물물교환!N25:P25",
+              "Formula": "=M24",
+              "CheckFormula": "",
+              "Note": "분해로 획득하는 재료입니다. 자세한 획득 경로는 아이템 안내에서 확인하세요.",
+              "BatchSize": 0,
+              "BatchDemandPerTrade": 0,
+              "BatchInputPerBatch": 0
+            }
+          ]
+        },
+        {
+          "Id": "L26",
+          "Name": "조화의 코스모스 퍼퓸",
+          "PerTrade": 2.0,
+          "OriginalQuantity": 6.0,
+          "SourceCell": "물물교환!L26:M26",
+          "Formula": "=K21*2",
+          "Note": "",
+          "OutputPerBatch": 1,
+          "IsPurchased": false,
+          "Lines": [
+            {
+              "Id": "N26",
+              "Name": "코스모스 추출액",
+              "SourceName": "코스모스 추출액",
+              "PerTrade": 2.0,
+              "AlternateName": "",
+              "AlternatePerTrade": 0,
+              "OriginalQuantity": 6.0,
+              "OriginalAlternateQuantity": 0,
+              "Depth": 0,
+              "ParentId": "",
+              "CheckId": "P26",
+              "LegacyCheckId": "",
+              "ChildCheckIds": [],
+              "Components": [
+                "코스모스 추출액"
+              ],
+              "SourceCell": "물물교환!N26:P26",
+              "Formula": "=M26",
+              "CheckFormula": "",
+              "Note": "",
+              "BatchSize": 0,
+              "BatchDemandPerTrade": 0,
+              "BatchInputPerBatch": 0
+            },
+            {
+              "Id": "N27",
+              "Name": "빈 병",
+              "SourceName": "빈 병",
+              "PerTrade": 2.0,
+              "AlternateName": "",
+              "AlternatePerTrade": 0,
+              "OriginalQuantity": 6.0,
+              "OriginalAlternateQuantity": 0,
+              "Depth": 0,
+              "ParentId": "",
+              "CheckId": "P27",
+              "LegacyCheckId": "",
+              "ChildCheckIds": [],
+              "Components": [
+                "빈 병"
+              ],
+              "SourceCell": "물물교환!N27:P27",
+              "Formula": "=M26",
+              "CheckFormula": "",
+              "Note": "",
+              "BatchSize": 0,
+              "BatchDemandPerTrade": 0,
+              "BatchInputPerBatch": 0
+            },
+            {
+              "Id": "N28",
+              "Name": "마법가루",
+              "SourceName": "마법가루",
+              "PerTrade": 20.0,
+              "AlternateName": "",
+              "AlternatePerTrade": 0,
+              "OriginalQuantity": 60.0,
+              "OriginalAlternateQuantity": 0,
+              "Depth": 0,
+              "ParentId": "",
+              "CheckId": "P28",
+              "LegacyCheckId": "",
+              "ChildCheckIds": [],
+              "Components": [
+                "마법가루"
+              ],
+              "SourceCell": "물물교환!N28:P28",
+              "Formula": "=M26*10",
+              "CheckFormula": "",
+              "Note": "",
+              "BatchSize": 0,
+              "BatchDemandPerTrade": 0,
+              "BatchInputPerBatch": 0
+            },
+            {
+              "Id": "N29",
+              "Name": "베이스 허브",
+              "SourceName": "베이스 허브",
+              "PerTrade": 20.0,
+              "AlternateName": "",
+              "AlternatePerTrade": 0,
+              "OriginalQuantity": 60.0,
+              "OriginalAlternateQuantity": 0,
+              "Depth": 0,
+              "ParentId": "",
+              "CheckId": "P29",
+              "LegacyCheckId": "",
+              "ChildCheckIds": [],
+              "Components": [
+                "베이스 허브"
+              ],
+              "SourceCell": "물물교환!N29:P29",
+              "Formula": "=M26*10",
+              "CheckFormula": "",
+              "Note": "",
+              "BatchSize": 0,
+              "BatchDemandPerTrade": 0,
+              "BatchInputPerBatch": 0
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "Id": "C31",
+      "Name": "우드 테이블",
+      "Station": "카루 숲",
+      "Tier": 1,
+      "Limit": 25,
+      "DefaultQuantity": 25,
+      "SourceCell": "물물교환!B31:C31",
+      "Groups": [
+        {
+          "Id": "D31",
+          "Name": "실리엔",
+          "PerTrade": 2.0,
+          "OriginalQuantity": 50.0,
+          "SourceCell": "물물교환!D31:E31",
+          "Formula": "=C31*2",
+          "Note": "",
+          "OutputPerBatch": 1,
+          "IsPurchased": false,
+          "Lines": [
+            {
+              "Id": "F31",
+              "Name": "실리엔 결정",
+              "SourceName": "실리엔 결정",
+              "PerTrade": 10.0,
+              "AlternateName": "",
+              "AlternatePerTrade": 0,
+              "OriginalQuantity": 250.0,
+              "OriginalAlternateQuantity": 0,
+              "Depth": 0,
+              "ParentId": "",
+              "CheckId": "H31",
+              "LegacyCheckId": "",
+              "ChildCheckIds": [],
+              "Components": [
+                "실리엔 결정"
+              ],
+              "SourceCell": "물물교환!F31:H31",
+              "Formula": "=E31*5",
+              "CheckFormula": "",
+              "Note": "",
+              "BatchSize": 0,
+              "BatchDemandPerTrade": 0,
+              "BatchInputPerBatch": 0
+            }
+          ]
+        },
+        {
+          "Id": "D32",
+          "Name": "새우 조련 미끼",
+          "PerTrade": 4.0,
+          "OriginalQuantity": 100.0,
+          "SourceCell": "물물교환!D32:E32",
+          "Formula": "=C31*4",
+          "Note": "이 앱은 1회 10개 생산을 기준으로 계산합니다. 실제 제작 수량은 게임 내에서 확인하세요.",
+          "OutputPerBatch": 10,
+          "IsPurchased": false,
+          "Lines": [
+            {
+              "Id": "F32.1",
+              "Name": "새우",
+              "SourceName": "새우&설탕&마늘",
+              "PerTrade": 0.4,
+              "AlternateName": "",
+              "AlternatePerTrade": 0,
+              "OriginalQuantity": 10.0,
+              "OriginalAlternateQuantity": 0,
+              "Depth": 0,
+              "ParentId": "",
+              "CheckId": "H32.1",
+              "LegacyCheckId": "H32",
+              "ChildCheckIds": [],
+              "Components": [
+                "새우"
+              ],
+              "SourceCell": "물물교환!F32:H32",
+              "Formula": "=E32/10",
+              "CheckFormula": "",
+              "Note": "이 앱은 1회 10개 생산을 기준으로 계산합니다. 실제 제작 수량은 게임 내에서 확인하세요.",
+              "BatchSize": 10,
+              "BatchDemandPerTrade": 4,
+              "BatchInputPerBatch": 1
+            },
+            {
+              "Id": "F32.2",
+              "Name": "설탕",
+              "SourceName": "새우&설탕&마늘",
+              "PerTrade": 0.4,
+              "AlternateName": "",
+              "AlternatePerTrade": 0,
+              "OriginalQuantity": 10.0,
+              "OriginalAlternateQuantity": 0,
+              "Depth": 0,
+              "ParentId": "",
+              "CheckId": "H32.2",
+              "LegacyCheckId": "H32",
+              "ChildCheckIds": [],
+              "Components": [
+                "설탕"
+              ],
+              "SourceCell": "물물교환!F32:H32",
+              "Formula": "=E32/10",
+              "CheckFormula": "",
+              "Note": "이 앱은 1회 10개 생산을 기준으로 계산합니다. 실제 제작 수량은 게임 내에서 확인하세요.",
+              "BatchSize": 10,
+              "BatchDemandPerTrade": 4,
+              "BatchInputPerBatch": 1
+            },
+            {
+              "Id": "F32.3",
+              "Name": "마늘",
+              "SourceName": "새우&설탕&마늘",
+              "PerTrade": 0.4,
+              "AlternateName": "",
+              "AlternatePerTrade": 0,
+              "OriginalQuantity": 10.0,
+              "OriginalAlternateQuantity": 0,
+              "Depth": 0,
+              "ParentId": "",
+              "CheckId": "H32.3",
+              "LegacyCheckId": "H32",
+              "ChildCheckIds": [],
+              "Components": [
+                "마늘"
+              ],
+              "SourceCell": "물물교환!F32:H32",
+              "Formula": "=E32/10",
+              "CheckFormula": "",
+              "Note": "이 앱은 1회 10개 생산을 기준으로 계산합니다. 실제 제작 수량은 게임 내에서 확인하세요.",
+              "BatchSize": 10,
+              "BatchDemandPerTrade": 4,
+              "BatchInputPerBatch": 1
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "Id": "C33",
+      "Name": "목공예품",
+      "Station": "카루 숲",
+      "Tier": 2,
+      "Limit": 15,
+      "DefaultQuantity": 15,
+      "SourceCell": "물물교환!B33:C33",
+      "Groups": [
+        {
+          "Id": "D33",
+          "Name": "질긴 끈",
+          "PerTrade": 2.0,
+          "OriginalQuantity": 30.0,
+          "SourceCell": "물물교환!D33:E33",
+          "Formula": "=C33*2",
+          "Note": "",
+          "OutputPerBatch": 1,
+          "IsPurchased": false,
+          "Lines": [
+            {
+              "Id": "F33",
+              "Name": "굵은 실뭉치",
+              "SourceName": "굵은 실 (양털)",
+              "PerTrade": 10.0,
+              "AlternateName": "양털",
+              "AlternatePerTrade": 50.0,
+              "OriginalQuantity": 150.0,
+              "OriginalAlternateQuantity": 750.0,
+              "Depth": 0,
+              "ParentId": "",
+              "CheckId": "H33",
+              "LegacyCheckId": "",
+              "ChildCheckIds": [],
+              "Components": [
+                "굵은 실뭉치"
+              ],
+              "SourceCell": "물물교환!F33:H33",
+              "Formula": "=E33*5&\"(\"&E33*25&\")\"",
+              "CheckFormula": "",
+              "Note": "",
+              "BatchSize": 0,
+              "BatchDemandPerTrade": 0,
+              "BatchInputPerBatch": 0
+            }
+          ]
+        },
+        {
+          "Id": "D34",
+          "Name": "마법의 양피지",
+          "PerTrade": 1.0,
+          "OriginalQuantity": 15.0,
+          "SourceCell": "물물교환!D34:E34",
+          "Formula": "=C33",
+          "Note": "",
+          "OutputPerBatch": 1,
+          "IsPurchased": false,
+          "Lines": [
+            {
+              "Id": "F34",
+              "Name": "부드러운 양피지",
+              "SourceName": "부드러운 양피지",
+              "PerTrade": 1.0,
+              "AlternateName": "",
+              "AlternatePerTrade": 0,
+              "OriginalQuantity": 15.0,
+              "OriginalAlternateQuantity": 0,
+              "Depth": 0,
+              "ParentId": "",
+              "CheckId": "H34",
+              "LegacyCheckId": "",
+              "ChildCheckIds": [],
+              "Components": [
+                "부드러운 양피지"
+              ],
+              "SourceCell": "물물교환!F34:H34",
+              "Formula": "=E34",
+              "CheckFormula": "",
+              "Note": "",
+              "BatchSize": 0,
+              "BatchDemandPerTrade": 0,
+              "BatchInputPerBatch": 0
+            },
+            {
+              "Id": "F35",
+              "Name": "마나 허브",
+              "SourceName": "마나 허브",
+              "PerTrade": 10.0,
+              "AlternateName": "",
+              "AlternatePerTrade": 0,
+              "OriginalQuantity": 150.0,
+              "OriginalAlternateQuantity": 0,
+              "Depth": 0,
+              "ParentId": "",
+              "CheckId": "H35",
+              "LegacyCheckId": "",
+              "ChildCheckIds": [],
+              "Components": [
+                "마나 허브"
+              ],
+              "SourceCell": "물물교환!F35:H35",
+              "Formula": "=E34*10",
+              "CheckFormula": "",
+              "Note": "",
+              "BatchSize": 0,
+              "BatchDemandPerTrade": 0,
+              "BatchInputPerBatch": 0
+            },
+            {
+              "Id": "F36",
+              "Name": "선라이트 허브",
+              "SourceName": "선라이트 허브",
+              "PerTrade": 10.0,
+              "AlternateName": "",
+              "AlternatePerTrade": 0,
+              "OriginalQuantity": 150.0,
+              "OriginalAlternateQuantity": 0,
+              "Depth": 0,
+              "ParentId": "",
+              "CheckId": "H36",
+              "LegacyCheckId": "",
+              "ChildCheckIds": [],
+              "Components": [
+                "선라이트 허브"
+              ],
+              "SourceCell": "물물교환!F36:H36",
+              "Formula": "=E34*10",
+              "CheckFormula": "",
+              "Note": "",
+              "BatchSize": 0,
+              "BatchDemandPerTrade": 0,
+              "BatchInputPerBatch": 0
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "Id": "C37",
+      "Name": "스톤 홀스 조각상",
+      "Station": "카루 숲",
+      "Tier": 3,
+      "Limit": 10,
+      "DefaultQuantity": 10,
+      "SourceCell": "물물교환!B37:C37",
+      "Groups": [
+        {
+          "Id": "D37",
+          "Name": "밀가루",
+          "PerTrade": 5.0,
+          "OriginalQuantity": 50.0,
+          "SourceCell": "물물교환!D37:E37",
+          "Formula": "=C37*5",
+          "Note": "",
+          "OutputPerBatch": 1,
+          "IsPurchased": false,
+          "Lines": [
+            {
+              "Id": "F37",
+              "Name": "밀",
+              "SourceName": "밀",
+              "PerTrade": 50.0,
+              "AlternateName": "",
+              "AlternatePerTrade": 0,
+              "OriginalQuantity": 500.0,
+              "OriginalAlternateQuantity": 0,
+              "Depth": 0,
+              "ParentId": "",
+              "CheckId": "H37",
+              "LegacyCheckId": "",
+              "ChildCheckIds": [],
+              "Components": [
+                "밀"
+              ],
+              "SourceCell": "물물교환!F37:H37",
+              "Formula": "=E37*10",
+              "CheckFormula": "",
+              "Note": "",
+              "BatchSize": 0,
+              "BatchDemandPerTrade": 0,
+              "BatchInputPerBatch": 0
+            }
+          ]
+        },
+        {
+          "Id": "D38",
+          "Name": "힐웬 합금",
+          "PerTrade": 2.0,
+          "OriginalQuantity": 20.0,
+          "SourceCell": "물물교환!D38:E38",
+          "Formula": "=C37*2",
+          "Note": "",
+          "OutputPerBatch": 1,
+          "IsPurchased": false,
+          "Lines": [
+            {
+              "Id": "F38",
+              "Name": "무른 힐웬 광석 조각",
+              "SourceName": "무른 힐웬 광석 조각",
+              "PerTrade": 30.0,
+              "AlternateName": "",
+              "AlternatePerTrade": 0,
+              "OriginalQuantity": 300.0,
+              "OriginalAlternateQuantity": 0,
+              "Depth": 0,
+              "ParentId": "",
+              "CheckId": "H38",
+              "LegacyCheckId": "",
+              "ChildCheckIds": [],
+              "Components": [
+                "무른 힐웬 광석 조각"
+              ],
+              "SourceCell": "물물교환!F38:H38",
+              "Formula": "=E38*15",
+              "CheckFormula": "",
+              "Note": "",
+              "BatchSize": 0,
+              "BatchDemandPerTrade": 0,
+              "BatchInputPerBatch": 0
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "Id": "C39",
+      "Name": "카루 표고 버섯",
+      "Station": "카루 숲",
+      "Tier": 4,
+      "Limit": 8,
+      "DefaultQuantity": 8,
+      "SourceCell": "물물교환!B39:C39",
+      "Groups": [
+        {
+          "Id": "D39",
+          "Name": "중급 나무장작",
+          "PerTrade": 5.0,
+          "OriginalQuantity": 40.0,
+          "SourceCell": "물물교환!D39:E39",
+          "Formula": "=C39*5",
+          "Note": "",
+          "OutputPerBatch": 1,
+          "IsPurchased": false,
+          "Lines": [
+            {
+              "Id": "F39",
+              "Name": "나무장작",
+              "SourceName": "나무장작",
+              "PerTrade": 15.0,
+              "AlternateName": "",
+              "AlternatePerTrade": 0,
+              "OriginalQuantity": 120.0,
+              "OriginalAlternateQuantity": 0,
+              "Depth": 0,
+              "ParentId": "",
+              "CheckId": "H39",
+              "LegacyCheckId": "",
+              "ChildCheckIds": [],
+              "Components": [
+                "나무장작"
+              ],
+              "SourceCell": "물물교환!F39:H39",
+              "Formula": "=E39*3",
+              "CheckFormula": "",
+              "Note": "",
+              "BatchSize": 0,
+              "BatchDemandPerTrade": 0,
+              "BatchInputPerBatch": 0
+            }
+          ]
+        },
+        {
+          "Id": "D40",
+          "Name": "고급 실크",
+          "PerTrade": 4.0,
+          "OriginalQuantity": 32.0,
+          "SourceCell": "물물교환!D40:E40",
+          "Formula": "=C39*4",
+          "Note": "",
+          "OutputPerBatch": 1,
+          "IsPurchased": false,
+          "Lines": [
+            {
+              "Id": "F40",
+              "Name": "가는 실뭉치",
+              "SourceName": "가는 실 (거미줄)",
+              "PerTrade": 20.0,
+              "AlternateName": "거미줄",
+              "AlternatePerTrade": 100.0,
+              "OriginalQuantity": 160.0,
+              "OriginalAlternateQuantity": 800.0,
+              "Depth": 0,
+              "ParentId": "",
+              "CheckId": "H40",
+              "LegacyCheckId": "",
+              "ChildCheckIds": [],
+              "Components": [
+                "가는 실뭉치"
+              ],
+              "SourceCell": "물물교환!F40:H40",
+              "Formula": "=E40*5&\"(\"&E40*25&\")\"",
+              "CheckFormula": "",
+              "Note": "",
+              "BatchSize": 0,
+              "BatchDemandPerTrade": 0,
+              "BatchInputPerBatch": 0
+            }
+          ]
+        },
+        {
+          "Id": "D41",
+          "Name": "스핀 기어",
+          "PerTrade": 1.0,
+          "OriginalQuantity": 8.0,
+          "SourceCell": "물물교환!D41:E41",
+          "Formula": "=C39",
+          "Note": "",
+          "OutputPerBatch": 1,
+          "IsPurchased": false,
+          "Lines": [
+            {
+              "Id": "F41",
+              "Name": "힐웬",
+              "SourceName": "힐웬",
+              "PerTrade": 2.0,
+              "AlternateName": "",
+              "AlternatePerTrade": 0,
+              "OriginalQuantity": 16.0,
+              "OriginalAlternateQuantity": 0,
+              "Depth": 0,
+              "ParentId": "",
+              "CheckId": "H41",
+              "LegacyCheckId": "",
+              "ChildCheckIds": [],
+              "Components": [
+                "힐웬"
+              ],
+              "SourceCell": "물물교환!F41:H41",
+              "Formula": "=E41*2",
+              "CheckFormula": "",
+              "Note": "",
+              "BatchSize": 0,
+              "BatchDemandPerTrade": 0,
+              "BatchInputPerBatch": 0
+            },
+            {
+              "Id": "F42",
+              "Name": "육각 볼트",
+              "SourceName": "육각 볼트",
+              "PerTrade": 5.0,
+              "AlternateName": "",
+              "AlternatePerTrade": 0,
+              "OriginalQuantity": 40.0,
+              "OriginalAlternateQuantity": 0,
+              "Depth": 0,
+              "ParentId": "",
+              "CheckId": "H42",
+              "LegacyCheckId": "",
+              "ChildCheckIds": [],
+              "Components": [
+                "육각 볼트"
+              ],
+              "SourceCell": "물물교환!F42:H42",
+              "Formula": "=E41*5",
+              "CheckFormula": "",
+              "Note": "",
+              "BatchSize": 0,
+              "BatchDemandPerTrade": 0,
+              "BatchInputPerBatch": 0
+            },
+            {
+              "Id": "F43",
+              "Name": "육각 너트",
+              "SourceName": "육각 너트",
+              "PerTrade": 5.0,
+              "AlternateName": "",
+              "AlternatePerTrade": 0,
+              "OriginalQuantity": 40.0,
+              "OriginalAlternateQuantity": 0,
+              "Depth": 0,
+              "ParentId": "",
+              "CheckId": "H43",
+              "LegacyCheckId": "",
+              "ChildCheckIds": [],
+              "Components": [
+                "육각 너트"
+              ],
+              "SourceCell": "물물교환!F43:H43",
+              "Formula": "=E41*5",
+              "CheckFormula": "",
+              "Note": "",
+              "BatchSize": 0,
+              "BatchDemandPerTrade": 0,
+              "BatchInputPerBatch": 0
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "Id": "C44",
+      "Name": "조개 껍질 화석",
+      "Station": "카루 숲",
+      "Tier": 5,
+      "Limit": 3,
+      "DefaultQuantity": 3,
+      "SourceCell": "물물교환!B44:C44",
+      "Groups": [
+        {
+          "Id": "D44",
+          "Name": "마법의 깃털펜",
+          "PerTrade": 5.0,
+          "OriginalQuantity": 15.0,
+          "SourceCell": "물물교환!D44:E44",
+          "Formula": "=C44*5",
+          "Note": "",
+          "OutputPerBatch": 1,
+          "IsPurchased": false,
+          "Lines": [
+            {
+              "Id": "F44",
+              "Name": "생기 있는 깃털",
+              "SourceName": "생기 있는 깃털",
+              "PerTrade": 5.0,
+              "AlternateName": "",
+              "AlternatePerTrade": 0,
+              "OriginalQuantity": 15.0,
+              "OriginalAlternateQuantity": 0,
+              "Depth": 0,
+              "ParentId": "",
+              "CheckId": "H44",
+              "LegacyCheckId": "",
+              "ChildCheckIds": [],
+              "Components": [
+                "생기 있는 깃털"
+              ],
+              "SourceCell": "물물교환!F44:H44",
+              "Formula": "=E44",
+              "CheckFormula": "",
+              "Note": "",
+              "BatchSize": 0,
+              "BatchDemandPerTrade": 0,
+              "BatchInputPerBatch": 0
+            },
+            {
+              "Id": "F45",
+              "Name": "마나 허브",
+              "SourceName": "마나 허브",
+              "PerTrade": 50.0,
+              "AlternateName": "",
+              "AlternatePerTrade": 0,
+              "OriginalQuantity": 150.0,
+              "OriginalAlternateQuantity": 0,
+              "Depth": 0,
+              "ParentId": "",
+              "CheckId": "H45",
+              "LegacyCheckId": "",
+              "ChildCheckIds": [],
+              "Components": [
+                "마나 허브"
+              ],
+              "SourceCell": "물물교환!F45:H45",
+              "Formula": "=E44*10",
+              "CheckFormula": "",
+              "Note": "",
+              "BatchSize": 0,
+              "BatchDemandPerTrade": 0,
+              "BatchInputPerBatch": 0
+            },
+            {
+              "Id": "F46",
+              "Name": "골드 허브",
+              "SourceName": "골드 허브",
+              "PerTrade": 50.0,
+              "AlternateName": "",
+              "AlternatePerTrade": 0,
+              "OriginalQuantity": 150.0,
+              "OriginalAlternateQuantity": 0,
+              "Depth": 0,
+              "ParentId": "",
+              "CheckId": "H46",
+              "LegacyCheckId": "",
+              "ChildCheckIds": [],
+              "Components": [
+                "골드 허브"
+              ],
+              "SourceCell": "물물교환!F46:H46",
+              "Formula": "=E44*10",
+              "CheckFormula": "",
+              "Note": "",
+              "BatchSize": 0,
+              "BatchDemandPerTrade": 0,
+              "BatchInputPerBatch": 0
+            }
+          ]
+        },
+        {
+          "Id": "D47",
+          "Name": "튼튼한 고리",
+          "PerTrade": 1.0,
+          "OriginalQuantity": 3.0,
+          "SourceCell": "물물교환!D47:E47",
+          "Formula": "=C44",
+          "Note": "",
+          "OutputPerBatch": 1,
+          "IsPurchased": false,
+          "Lines": [
+            {
+              "Id": "F47",
+              "Name": "어둠이 깃든 칼날 조각",
+              "SourceName": "어둠이 깃든 칼날 조각",
+              "PerTrade": 1.0,
+              "AlternateName": "",
+              "AlternatePerTrade": 0,
+              "OriginalQuantity": 3.0,
+              "OriginalAlternateQuantity": 0,
+              "Depth": 0,
+              "ParentId": "",
+              "CheckId": "H47",
+              "LegacyCheckId": "",
+              "ChildCheckIds": [],
+              "Components": [
+                "어둠이 깃든 칼날 조각"
+              ],
+              "SourceCell": "물물교환!F47:H47",
+              "Formula": "=E47",
+              "CheckFormula": "",
+              "Note": "",
+              "BatchSize": 0,
+              "BatchDemandPerTrade": 0,
+              "BatchInputPerBatch": 0
+            },
+            {
+              "Id": "F48",
+              "Name": "매듭끈",
+              "SourceName": "매듭끈",
+              "PerTrade": 1.0,
+              "AlternateName": "",
+              "AlternatePerTrade": 0,
+              "OriginalQuantity": 3.0,
+              "OriginalAlternateQuantity": 0,
+              "Depth": 0,
+              "ParentId": "",
+              "CheckId": "H48",
+              "LegacyCheckId": "",
+              "ChildCheckIds": [
+                "H49",
+                "H50"
+              ],
+              "Components": [
+                "매듭끈"
+              ],
+              "SourceCell": "물물교환!F48:H48",
+              "Formula": "=E47",
+              "CheckFormula": "=if(and($H49:H50)=true, true, false)",
+              "Note": "",
+              "BatchSize": 0,
+              "BatchDemandPerTrade": 0,
+              "BatchInputPerBatch": 0
+            },
+            {
+              "Id": "F49",
+              "Name": "가는 실뭉치",
+              "SourceName": "가는 실 (거미줄)",
+              "PerTrade": 1.0,
+              "AlternateName": "거미줄",
+              "AlternatePerTrade": 5.0,
+              "OriginalQuantity": 3.0,
+              "OriginalAlternateQuantity": 15.0,
+              "Depth": 1,
+              "ParentId": "F48",
+              "CheckId": "H49",
+              "LegacyCheckId": "",
+              "ChildCheckIds": [],
+              "Components": [
+                "가는 실뭉치"
+              ],
+              "SourceCell": "물물교환!F49:H49",
+              "Formula": "=G48&\"(\"&G48*5&\")\"",
+              "CheckFormula": "",
+              "Note": "",
+              "BatchSize": 0,
+              "BatchDemandPerTrade": 0,
+              "BatchInputPerBatch": 0
+            },
+            {
+              "Id": "F50",
+              "Name": "굵은 실뭉치",
+              "SourceName": "굵은 실 (양털)",
+              "PerTrade": 1.0,
+              "AlternateName": "양털",
+              "AlternatePerTrade": 5.0,
+              "OriginalQuantity": 3.0,
+              "OriginalAlternateQuantity": 15.0,
+              "Depth": 1,
+              "ParentId": "F48",
+              "CheckId": "H50",
+              "LegacyCheckId": "",
+              "ChildCheckIds": [],
+              "Components": [
+                "굵은 실뭉치"
+              ],
+              "SourceCell": "물물교환!F50:H50",
+              "Formula": "=G48&\"(\"&G48*5&\")\"",
+              "CheckFormula": "",
+              "Note": "",
+              "BatchSize": 0,
+              "BatchDemandPerTrade": 0,
+              "BatchInputPerBatch": 0
+            }
+          ]
+        },
+        {
+          "Id": "D51",
+          "Name": "에너지 증폭 장치",
+          "PerTrade": 2.0,
+          "OriginalQuantity": 6.0,
+          "SourceCell": "물물교환!D51:E51",
+          "Formula": "=C44*2",
+          "Note": "",
+          "OutputPerBatch": 1,
+          "IsPurchased": false,
+          "Lines": [
+            {
+              "Id": "F51",
+              "Name": "에메랄드 코어",
+              "SourceName": "에메랄드 코어",
+              "PerTrade": 6.0,
+              "AlternateName": "",
+              "AlternatePerTrade": 0,
+              "OriginalQuantity": 18.0,
+              "OriginalAlternateQuantity": 0,
+              "Depth": 0,
+              "ParentId": "",
+              "CheckId": "H51",
+              "LegacyCheckId": "",
+              "ChildCheckIds": [],
+              "Components": [
+                "에메랄드 코어"
+              ],
+              "SourceCell": "물물교환!F51:H51",
+              "Formula": "=E51*3",
+              "CheckFormula": "",
+              "Note": "",
+              "BatchSize": 0,
+              "BatchDemandPerTrade": 0,
+              "BatchInputPerBatch": 0
+            },
+            {
+              "Id": "F52",
+              "Name": "에너지 컨버터",
+              "SourceName": "에너지 컨버터",
+              "PerTrade": 6.0,
+              "AlternateName": "",
+              "AlternatePerTrade": 0,
+              "OriginalQuantity": 18.0,
+              "OriginalAlternateQuantity": 0,
+              "Depth": 0,
+              "ParentId": "",
+              "CheckId": "H52",
+              "LegacyCheckId": "",
+              "ChildCheckIds": [
+                "H53",
+                "H54"
+              ],
+              "Components": [
+                "에너지 컨버터"
+              ],
+              "SourceCell": "물물교환!F52:H52",
+              "Formula": "=E51*3",
+              "CheckFormula": "=if(and($H53:H54)=true, true, false)",
+              "Note": "",
+              "BatchSize": 0,
+              "BatchDemandPerTrade": 0,
+              "BatchInputPerBatch": 0
+            },
+            {
+              "Id": "F53",
+              "Name": "힐웬",
+              "SourceName": "힐웬",
+              "PerTrade": 6.0,
+              "AlternateName": "",
+              "AlternatePerTrade": 0,
+              "OriginalQuantity": 18.0,
+              "OriginalAlternateQuantity": 0,
+              "Depth": 1,
+              "ParentId": "F52",
+              "CheckId": "H53",
+              "LegacyCheckId": "",
+              "ChildCheckIds": [],
+              "Components": [
+                "힐웬"
+              ],
+              "SourceCell": "물물교환!F53:H53",
+              "Formula": "=G52",
+              "CheckFormula": "",
+              "Note": "",
+              "BatchSize": 0,
+              "BatchDemandPerTrade": 0,
+              "BatchInputPerBatch": 0
+            },
+            {
+              "Id": "F54",
+              "Name": "실리엔",
+              "SourceName": "실리엔",
+              "PerTrade": 6.0,
+              "AlternateName": "",
+              "AlternatePerTrade": 0,
+              "OriginalQuantity": 18.0,
+              "OriginalAlternateQuantity": 0,
+              "Depth": 1,
+              "ParentId": "F52",
+              "CheckId": "H54",
+              "LegacyCheckId": "",
+              "ChildCheckIds": [],
+              "Components": [
+                "실리엔"
+              ],
+              "SourceCell": "물물교환!F54:H54",
+              "Formula": "=G52",
+              "CheckFormula": "",
+              "Note": "",
+              "BatchSize": 0,
+              "BatchDemandPerTrade": 0,
+              "BatchInputPerBatch": 0
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "Id": "K34",
+      "Name": "맥반석 계란",
+      "Station": "칼리다 호수",
+      "Tier": 1,
+      "Limit": 25,
+      "DefaultQuantity": 25,
+      "SourceCell": "물물교환!J34:K34",
+      "Groups": [
+        {
+          "Id": "L34",
+          "Name": "고급 나무장작",
+          "PerTrade": 2.0,
+          "OriginalQuantity": 50.0,
+          "SourceCell": "물물교환!L34:M34",
+          "Formula": "=K34*2",
+          "Note": "",
+          "OutputPerBatch": 1,
+          "IsPurchased": false,
+          "Lines": [
+            {
+              "Id": "N34",
+              "Name": "중급 나무장작",
+              "SourceName": "중급 나무장작 (나무장작)",
+              "PerTrade": 6.0,
+              "AlternateName": "나무장작",
+              "AlternatePerTrade": 18.0,
+              "OriginalQuantity": 150.0,
+              "OriginalAlternateQuantity": 450.0,
+              "Depth": 0,
+              "ParentId": "",
+              "CheckId": "P34",
+              "LegacyCheckId": "",
+              "ChildCheckIds": [],
+              "Components": [
+                "중급 나무장작"
+              ],
+              "SourceCell": "물물교환!N34:P34",
+              "Formula": "=M34*3&\"(\"&M34*3*3&\")\"",
+              "CheckFormula": "",
+              "Note": "",
+              "BatchSize": 0,
+              "BatchDemandPerTrade": 0,
+              "BatchInputPerBatch": 0
+            }
+          ]
+        },
+        {
+          "Id": "L35",
+          "Name": "마나 500 포션",
+          "PerTrade": 1.0,
+          "OriginalQuantity": 25.0,
+          "SourceCell": "물물교환!L35:M35",
+          "Formula": "=K34",
+          "Note": "완제품으로 구매하는 포션입니다. 제작 밑재료는 계산하지 않습니다.",
+          "OutputPerBatch": 1,
+          "IsPurchased": true,
+          "Lines": [
+            {
+              "Id": "L35.purchase",
+              "Name": "마나 500 포션",
+              "SourceName": "마나 500 포션",
+              "PerTrade": 1.0,
+              "AlternateName": "",
+              "AlternatePerTrade": 0,
+              "OriginalQuantity": 25.0,
+              "OriginalAlternateQuantity": 0,
+              "Depth": 0,
+              "ParentId": "",
+              "CheckId": "L35.purchase",
+              "LegacyCheckId": "",
+              "ChildCheckIds": [],
+              "Components": [
+                "마나 500 포션"
+              ],
+              "SourceCell": "물물교환!L35:M35",
+              "Formula": "=K34",
+              "CheckFormula": "",
+              "Note": "완제품으로 구매하는 포션입니다. 제작 밑재료는 계산하지 않습니다.",
+              "BatchSize": 0,
+              "BatchDemandPerTrade": 0,
+              "BatchInputPerBatch": 0
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "Id": "K38",
+      "Name": "칼리다 연어",
+      "Station": "칼리다 호수",
+      "Tier": 2,
+      "Limit": 15,
+      "DefaultQuantity": 15,
+      "SourceCell": "물물교환!J38:K38",
+      "Groups": [
+        {
+          "Id": "L38",
+          "Name": "정화된 토끼의 발",
+          "PerTrade": 1.0,
+          "OriginalQuantity": 15.0,
+          "SourceCell": "물물교환!L38:M38",
+          "Formula": "=K38",
+          "Note": "",
+          "OutputPerBatch": 1,
+          "IsPurchased": false,
+          "Lines": [
+            {
+              "Id": "N38",
+              "Name": "돌연변이 토끼의 발",
+              "SourceName": "돌연변이 토끼의 발",
+              "PerTrade": 1.0,
+              "AlternateName": "",
+              "AlternatePerTrade": 0,
+              "OriginalQuantity": 15.0,
+              "OriginalAlternateQuantity": 0,
+              "Depth": 0,
+              "ParentId": "",
+              "CheckId": "P38",
+              "LegacyCheckId": "",
+              "ChildCheckIds": [],
+              "Components": [
+                "돌연변이 토끼의 발"
+              ],
+              "SourceCell": "물물교환!N38:P38",
+              "Formula": "=M38",
+              "CheckFormula": "",
+              "Note": "",
+              "BatchSize": 0,
+              "BatchDemandPerTrade": 0,
+              "BatchInputPerBatch": 0
+            },
+            {
+              "Id": "N39",
+              "Name": "실리엔",
+              "SourceName": "실리엔",
+              "PerTrade": 1.0,
+              "AlternateName": "",
+              "AlternatePerTrade": 0,
+              "OriginalQuantity": 15.0,
+              "OriginalAlternateQuantity": 0,
+              "Depth": 0,
+              "ParentId": "",
+              "CheckId": "T41",
+              "LegacyCheckId": "",
+              "ChildCheckIds": [],
+              "Components": [
+                "실리엔"
+              ],
+              "SourceCell": "물물교환!N39:P39",
+              "Formula": "=M38",
+              "CheckFormula": "=if(T41=true, true, false)",
+              "Note": "",
+              "BatchSize": 0,
+              "BatchDemandPerTrade": 0,
+              "BatchInputPerBatch": 0
+            }
+          ]
+        },
+        {
+          "Id": "L40",
+          "Name": "에너지 컨버터",
+          "PerTrade": 1.0,
+          "OriginalQuantity": 15.0,
+          "SourceCell": "물물교환!L40:M40",
+          "Formula": "=K38",
+          "Note": "",
+          "OutputPerBatch": 1,
+          "IsPurchased": false,
+          "Lines": [
+            {
+              "Id": "N40",
+              "Name": "힐웬",
+              "SourceName": "힐웬",
+              "PerTrade": 1.0,
+              "AlternateName": "",
+              "AlternatePerTrade": 0,
+              "OriginalQuantity": 15.0,
+              "OriginalAlternateQuantity": 0,
+              "Depth": 0,
+              "ParentId": "",
+              "CheckId": "P40",
+              "LegacyCheckId": "",
+              "ChildCheckIds": [],
+              "Components": [
+                "힐웬"
+              ],
+              "SourceCell": "물물교환!N40:P40",
+              "Formula": "=M40",
+              "CheckFormula": "",
+              "Note": "",
+              "BatchSize": 0,
+              "BatchDemandPerTrade": 0,
+              "BatchInputPerBatch": 0
+            },
+            {
+              "Id": "N41",
+              "Name": "실리엔",
+              "SourceName": "실리엔",
+              "PerTrade": 1.0,
+              "AlternateName": "",
+              "AlternatePerTrade": 0,
+              "OriginalQuantity": 15.0,
+              "OriginalAlternateQuantity": 0,
+              "Depth": 0,
+              "ParentId": "",
+              "CheckId": "T41",
+              "LegacyCheckId": "",
+              "ChildCheckIds": [],
+              "Components": [
+                "실리엔"
+              ],
+              "SourceCell": "물물교환!N41:P41",
+              "Formula": "=M40",
+              "CheckFormula": "=if(T41=true, true, false)",
+              "Note": "",
+              "BatchSize": 0,
+              "BatchDemandPerTrade": 0,
+              "BatchInputPerBatch": 0
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "Id": "K42",
+      "Name": "온천 입욕제",
+      "Station": "칼리다 호수",
+      "Tier": 3,
+      "Limit": 10,
+      "DefaultQuantity": 10,
+      "SourceCell": "물물교환!J42:K42",
+      "Groups": [
+        {
+          "Id": "L42",
+          "Name": "끈끈이 풀",
+          "PerTrade": 3.0,
+          "OriginalQuantity": 30.0,
+          "SourceCell": "물물교환!L42:M42",
+          "Formula": "=K42*3",
+          "Note": "",
+          "OutputPerBatch": 1,
+          "IsPurchased": false,
+          "Lines": [
+            {
+              "Id": "N42",
+              "Name": "돌연변이 식물의 점액",
+              "SourceName": "돌연변이 식물의 점액",
+              "PerTrade": 3.0,
+              "AlternateName": "",
+              "AlternatePerTrade": 0,
+              "OriginalQuantity": 30.0,
+              "OriginalAlternateQuantity": 0,
+              "Depth": 0,
+              "ParentId": "",
+              "CheckId": "P42",
+              "LegacyCheckId": "",
+              "ChildCheckIds": [],
+              "Components": [
+                "돌연변이 식물의 점액"
+              ],
+              "SourceCell": "물물교환!N42:P42",
+              "Formula": "=M42",
+              "CheckFormula": "",
+              "Note": "",
+              "BatchSize": 0,
+              "BatchDemandPerTrade": 0,
+              "BatchInputPerBatch": 0
+            },
+            {
+              "Id": "N43",
+              "Name": "실리엔",
+              "SourceName": "실리엔",
+              "PerTrade": 3.0,
+              "AlternateName": "",
+              "AlternatePerTrade": 0,
+              "OriginalQuantity": 30.0,
+              "OriginalAlternateQuantity": 0,
+              "Depth": 0,
+              "ParentId": "",
+              "CheckId": "T41",
+              "LegacyCheckId": "",
+              "ChildCheckIds": [],
+              "Components": [
+                "실리엔"
+              ],
+              "SourceCell": "물물교환!N43:P43",
+              "Formula": "=M42",
+              "CheckFormula": "=if(T41=true, true, false)",
+              "Note": "",
+              "BatchSize": 0,
+              "BatchDemandPerTrade": 0,
+              "BatchInputPerBatch": 0
+            }
+          ]
+        },
+        {
+          "Id": "L44",
+          "Name": "최고급 바닐라 향초",
+          "PerTrade": 2.0,
+          "OriginalQuantity": 20.0,
+          "SourceCell": "물물교환!L44:M44",
+          "Formula": "=K42*2",
+          "Note": "",
+          "OutputPerBatch": 1,
+          "IsPurchased": false,
+          "Lines": [
+            {
+              "Id": "N44",
+              "Name": "정제된 촉매제",
+              "SourceName": "정제된 촉매제",
+              "PerTrade": 2.0,
+              "AlternateName": "",
+              "AlternatePerTrade": 0,
+              "OriginalQuantity": 20.0,
+              "OriginalAlternateQuantity": 0,
+              "Depth": 0,
+              "ParentId": "",
+              "CheckId": "P44",
+              "LegacyCheckId": "",
+              "ChildCheckIds": [],
+              "Components": [
+                "정제된 촉매제"
+              ],
+              "SourceCell": "물물교환!N44:P44",
+              "Formula": "=M44",
+              "CheckFormula": "",
+              "Note": "",
+              "BatchSize": 0,
+              "BatchDemandPerTrade": 0,
+              "BatchInputPerBatch": 0
+            },
+            {
+              "Id": "N45",
+              "Name": "고급 바닐라 향초",
+              "SourceName": "고급 바닐라 향초",
+              "PerTrade": 2.0,
+              "AlternateName": "",
+              "AlternatePerTrade": 0,
+              "OriginalQuantity": 20.0,
+              "OriginalAlternateQuantity": 0,
+              "Depth": 0,
+              "ParentId": "",
+              "CheckId": "P45",
+              "LegacyCheckId": "",
+              "ChildCheckIds": [
+                "P46",
+                "P47"
+              ],
+              "Components": [
+                "고급 바닐라 향초"
+              ],
+              "SourceCell": "물물교환!N45:P45",
+              "Formula": "=M44",
+              "CheckFormula": "=if(and($P46:P47)=true, true, false)",
+              "Note": "",
+              "BatchSize": 0,
+              "BatchDemandPerTrade": 0,
+              "BatchInputPerBatch": 0
+            },
+            {
+              "Id": "N46",
+              "Name": "미니 바닐라 향초",
+              "SourceName": "미니 바닐라 향초",
+              "PerTrade": 2.0,
+              "AlternateName": "",
+              "AlternatePerTrade": 0,
+              "OriginalQuantity": 20.0,
+              "OriginalAlternateQuantity": 0,
+              "Depth": 1,
+              "ParentId": "N45",
+              "CheckId": "P46",
+              "LegacyCheckId": "",
+              "ChildCheckIds": [],
+              "Components": [
+                "미니 바닐라 향초"
+              ],
+              "SourceCell": "물물교환!N46:P46",
+              "Formula": "=O45",
+              "CheckFormula": "",
+              "Note": "",
+              "BatchSize": 0,
+              "BatchDemandPerTrade": 0,
+              "BatchInputPerBatch": 0
+            },
+            {
+              "Id": "N47",
+              "Name": "밀랍",
+              "SourceName": "밀랍",
+              "PerTrade": 2.0,
+              "AlternateName": "",
+              "AlternatePerTrade": 0,
+              "OriginalQuantity": 20.0,
+              "OriginalAlternateQuantity": 0,
+              "Depth": 1,
+              "ParentId": "N45",
+              "CheckId": "P47",
+              "LegacyCheckId": "",
+              "ChildCheckIds": [],
+              "Components": [
+                "밀랍"
+              ],
+              "SourceCell": "물물교환!N47:P47",
+              "Formula": "=O45",
+              "CheckFormula": "",
+              "Note": "",
+              "BatchSize": 0,
+              "BatchDemandPerTrade": 0,
+              "BatchInputPerBatch": 0
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "Id": "K48",
+      "Name": "대형 캠핑 텐트",
+      "Station": "칼리다 호수",
+      "Tier": 4,
+      "Limit": 8,
+      "DefaultQuantity": 8,
+      "SourceCell": "물물교환!J48:K48",
+      "Groups": [
+        {
+          "Id": "L48",
+          "Name": "인조 잔디",
+          "PerTrade": 1.0,
+          "OriginalQuantity": 8.0,
+          "SourceCell": "물물교환!L48:M48",
+          "Formula": "=K48",
+          "Note": "",
+          "OutputPerBatch": 1,
+          "IsPurchased": false,
+          "Lines": [
+            {
+              "Id": "N48",
+              "Name": "싱싱한 풀",
+              "SourceName": "싱싱한 풀",
+              "PerTrade": 20.0,
+              "AlternateName": "",
+              "AlternatePerTrade": 0,
+              "OriginalQuantity": 160.0,
+              "OriginalAlternateQuantity": 0,
+              "Depth": 0,
+              "ParentId": "",
+              "CheckId": "P48",
+              "LegacyCheckId": "",
+              "ChildCheckIds": [],
+              "Components": [
+                "싱싱한 풀"
+              ],
+              "SourceCell": "물물교환!N48:P48",
+              "Formula": "=M48*20",
+              "CheckFormula": "",
+              "Note": "",
+              "BatchSize": 0,
+              "BatchDemandPerTrade": 0,
+              "BatchInputPerBatch": 0
+            },
+            {
+              "Id": "N49",
+              "Name": "꽃뭉치",
+              "SourceName": "꽃뭉치",
+              "PerTrade": 5.0,
+              "AlternateName": "",
+              "AlternatePerTrade": 0,
+              "OriginalQuantity": 40.0,
+              "OriginalAlternateQuantity": 0,
+              "Depth": 0,
+              "ParentId": "",
+              "CheckId": "P49",
+              "LegacyCheckId": "",
+              "ChildCheckIds": [],
+              "Components": [
+                "꽃뭉치"
+              ],
+              "SourceCell": "물물교환!N49:P49",
+              "Formula": "=M48*5",
+              "CheckFormula": "",
+              "Note": "",
+              "BatchSize": 0,
+              "BatchDemandPerTrade": 0,
+              "BatchInputPerBatch": 0
+            }
+          ]
+        },
+        {
+          "Id": "L50",
+          "Name": "에메랄드 퓨즈",
+          "PerTrade": 1.0,
+          "OriginalQuantity": 8.0,
+          "SourceCell": "물물교환!L50:M50",
+          "Formula": "=K48",
+          "Note": "",
+          "OutputPerBatch": 1,
+          "IsPurchased": false,
+          "Lines": [
+            {
+              "Id": "N50",
+              "Name": "에메랄드 코어",
+              "SourceName": "에메랄드 코어",
+              "PerTrade": 1.0,
+              "AlternateName": "",
+              "AlternatePerTrade": 0,
+              "OriginalQuantity": 8.0,
+              "OriginalAlternateQuantity": 0,
+              "Depth": 0,
+              "ParentId": "",
+              "CheckId": "P50",
+              "LegacyCheckId": "",
+              "ChildCheckIds": [],
+              "Components": [
+                "에메랄드 코어"
+              ],
+              "SourceCell": "물물교환!N50:P50",
+              "Formula": "=M50",
+              "CheckFormula": "",
+              "Note": "",
+              "BatchSize": 0,
+              "BatchDemandPerTrade": 0,
+              "BatchInputPerBatch": 0
+            }
+          ]
+        },
+        {
+          "Id": "L51",
+          "Name": "고급 가죽끈",
+          "PerTrade": 5.0,
+          "OriginalQuantity": 40.0,
+          "SourceCell": "물물교환!L51:M51",
+          "Formula": "=K48*5",
+          "Note": "",
+          "OutputPerBatch": 1,
+          "IsPurchased": false,
+          "Lines": [
+            {
+              "Id": "N51",
+              "Name": "고급 가죽",
+              "SourceName": "고급 가죽",
+              "PerTrade": 5.0,
+              "AlternateName": "",
+              "AlternatePerTrade": 0,
+              "OriginalQuantity": 40.0,
+              "OriginalAlternateQuantity": 0,
+              "Depth": 0,
+              "ParentId": "",
+              "CheckId": "P51",
+              "LegacyCheckId": "",
+              "ChildCheckIds": [],
+              "Components": [
+                "고급 가죽"
+              ],
+              "SourceCell": "물물교환!N51:P51",
+              "Formula": "=M51",
+              "CheckFormula": "",
+              "Note": "",
+              "BatchSize": 0,
+              "BatchDemandPerTrade": 0,
+              "BatchInputPerBatch": 0
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "Id": "K52",
+      "Name": "핑크 솔트",
+      "Station": "칼리다 호수",
+      "Tier": 5,
+      "Limit": 3,
+      "DefaultQuantity": 3,
+      "SourceCell": "물물교환!J52:K52",
+      "Groups": [
+        {
+          "Id": "L52",
+          "Name": "미스릴 대못",
+          "PerTrade": 3.0,
+          "OriginalQuantity": 9.0,
+          "SourceCell": "물물교환!L52:M52",
+          "Formula": "=K52*3",
+          "Note": "",
+          "OutputPerBatch": 1,
+          "IsPurchased": false,
+          "Lines": [
+            {
+              "Id": "N52",
+              "Name": "미스릴괴",
+              "SourceName": "미스릴괴",
+              "PerTrade": 60.0,
+              "AlternateName": "",
+              "AlternatePerTrade": 0,
+              "OriginalQuantity": 180.0,
+              "OriginalAlternateQuantity": 0,
+              "Depth": 0,
+              "ParentId": "",
+              "CheckId": "P52",
+              "LegacyCheckId": "",
+              "ChildCheckIds": [],
+              "Components": [
+                "미스릴괴"
+              ],
+              "SourceCell": "물물교환!N52:P52",
+              "Formula": "=M52*20",
+              "CheckFormula": "",
+              "Note": "",
+              "BatchSize": 0,
+              "BatchDemandPerTrade": 0,
+              "BatchInputPerBatch": 0
+            }
+          ]
+        },
+        {
+          "Id": "L53",
+          "Name": "발리스타용 독 묻은 와이번 볼트",
+          "PerTrade": 3.0,
+          "OriginalQuantity": 9.0,
+          "SourceCell": "물물교환!L53:M53",
+          "Formula": "=K52*3",
+          "Note": "이 앱은 1회 3개 생산을 기준으로 필요한 제작 재료를 계산합니다.",
+          "OutputPerBatch": 3,
+          "IsPurchased": false,
+          "Lines": [
+            {
+              "Id": "N53",
+              "Name": "나무장작",
+              "SourceName": "나무장작",
+              "PerTrade": 1.0,
+              "AlternateName": "",
+              "AlternatePerTrade": 0,
+              "OriginalQuantity": 3.0,
+              "OriginalAlternateQuantity": 0,
+              "Depth": 0,
+              "ParentId": "",
+              "CheckId": "P53",
+              "LegacyCheckId": "",
+              "ChildCheckIds": [],
+              "Components": [
+                "나무장작"
+              ],
+              "SourceCell": "물물교환!N53:P53",
+              "Formula": "=M53/3",
+              "CheckFormula": "",
+              "Note": "",
+              "BatchSize": 3,
+              "BatchDemandPerTrade": 3,
+              "BatchInputPerBatch": 1
+            },
+            {
+              "Id": "N54",
+              "Name": "와이번의 발톱",
+              "SourceName": "와이번의 발톱",
+              "PerTrade": 1.0,
+              "AlternateName": "",
+              "AlternatePerTrade": 0,
+              "OriginalQuantity": 3.0,
+              "OriginalAlternateQuantity": 0,
+              "Depth": 0,
+              "ParentId": "",
+              "CheckId": "P54",
+              "LegacyCheckId": "",
+              "ChildCheckIds": [],
+              "Components": [
+                "와이번의 발톱"
+              ],
+              "SourceCell": "물물교환!N54:P54",
+              "Formula": "=M53/3",
+              "CheckFormula": "",
+              "Note": "",
+              "BatchSize": 3,
+              "BatchDemandPerTrade": 3,
+              "BatchInputPerBatch": 1
+            },
+            {
+              "Id": "N55",
+              "Name": "포이즌 포션",
+              "SourceName": "포이즌 포션",
+              "PerTrade": 1.0,
+              "AlternateName": "",
+              "AlternatePerTrade": 0,
+              "OriginalQuantity": 3.0,
+              "OriginalAlternateQuantity": 0,
+              "Depth": 0,
+              "ParentId": "",
+              "CheckId": "P55",
+              "LegacyCheckId": "",
+              "ChildCheckIds": [],
+              "Components": [
+                "포이즌 포션"
+              ],
+              "SourceCell": "물물교환!N55:P55",
+              "Formula": "=M53/3",
+              "CheckFormula": "",
+              "Note": "",
+              "BatchSize": 3,
+              "BatchDemandPerTrade": 3,
+              "BatchInputPerBatch": 1
+            }
+          ]
+        },
+        {
+          "Id": "L56",
+          "Name": "최고급 나무장작",
+          "PerTrade": 3.0,
+          "OriginalQuantity": 9.0,
+          "SourceCell": "물물교환!L56:M56",
+          "Formula": "=K52*3",
+          "Note": "",
+          "OutputPerBatch": 1,
+          "IsPurchased": false,
+          "Lines": [
+            {
+              "Id": "N56",
+              "Name": "고급 나무장작",
+              "SourceName": "고급 나무장작 (나무장작)",
+              "PerTrade": 9.0,
+              "AlternateName": "나무장작",
+              "AlternatePerTrade": 81.0,
+              "OriginalQuantity": 27.0,
+              "OriginalAlternateQuantity": 243.0,
+              "Depth": 0,
+              "ParentId": "",
+              "CheckId": "P56",
+              "LegacyCheckId": "",
+              "ChildCheckIds": [],
+              "Components": [
+                "고급 나무장작"
+              ],
+              "SourceCell": "물물교환!N56:P56",
+              "Formula": "=M56*3&\"(\"&M56*3*3*3&\")\"",
+              "CheckFormula": "",
+              "Note": "",
+              "BatchSize": 0,
+              "BatchDemandPerTrade": 0,
+              "BatchInputPerBatch": 0
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

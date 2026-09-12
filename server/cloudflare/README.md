@@ -1,5 +1,7 @@
 # 밀레시안 장부 · Cloudflare 시세 서버
 
+시장 통계의 개발 구성과 운영 적용 절차는 [시장 통계 문서](../../docs/MARKET_STATISTICS.md)에 있습니다. 기본 배포는 기존 교역 구성이고, 시장 수집은 별도 `wrangler.market.jsonc`에서 기본 비활성입니다.
+
 밀레시안 장부의 시세 요청을 처리하는 Cloudflare Worker와 Durable Object 코드입니다. 앱은 공개 주소로 품목 이름과 페이지 커서만 보내며, 넥슨 API 키는 Cloudflare Secret `NEXON_API_KEY`에만 보관합니다. 앱 사용자에게 서버 설치나 API 키 입력은 필요하지 않습니다.
 
 현재 앱에 포함된 공개 주소:
@@ -15,7 +17,7 @@ https://restless-bread-9002milesianledger-api.jang9610.workers.dev
 | 파일 | 역할 |
 | --- | --- |
 | `worker.mjs` | Worker 진입점, `AuctionCoordinator`, 117종 허용 품목 |
-| `worker.test.mjs` | 외부 네트워크 없는 모의 응답 검증 |
+| `worker.test.mjs`, `market.test.mjs` | 외부 네트워크 없는 프록시·SQLite 수집 검증 |
 | `wrangler.jsonc` | Worker 이름·일반 변수·Durable Object binding과 SQLite 저장소 등록 |
 | `package.json` | Wrangler 버전과 npm 명령 |
 | `worker-tools.ps1` | npm·npx 대신 Node.js를 직접 사용하는 실행 도우미 |

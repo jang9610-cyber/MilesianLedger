@@ -1,5 +1,7 @@
+import { marketFetch, marketScheduled, parseInternalMarket, validateMarketPage } from './market-worker.mjs';
+export { MarketCollector } from './market-worker.mjs';
 // Milesian Ledger auction proxy for Cloudflare Workers + one Durable Object.
-// Paste this entire file into a Module Worker. No npm package or import is needed.
+// Deploy the module bundle with Wrangler; market modules are included.
 // Bind AUCTION_COORDINATOR to the exported AuctionCoordinator Durable Object.
 // Keep AUCTION_ENABLED="false" until the real NEXON_API_KEY secret is configured.
 
@@ -221,8 +223,11 @@ function configuration(env) {
 
 // The public Worker accepts no client key, shared client secret, or upstream URL.
 export default {
+  scheduled: marketScheduled,
   async fetch(request, env) {
     try {
+      const market = await marketFetch(request, env);
+      if (market) return market;
       const parsed = validateRequest(request);
       if (parsed.response) return parsed.response;
       if (!configuration(env) || !env.AUCTION_COORDINATOR ||
@@ -301,7 +306,7 @@ function projectPage(value, itemName, apiKey, responseName = itemName) {
 
 // All users and Worker locations call this one named object. FIFO serialization keeps
 // the storage reservation, API request, and successful cache publication in one order.
-// No alarm, scheduled handler, waitUntil, retry, or background API refresh is used.
+// Barter stays button-driven; the private market collector shares this queue and budget.
 export class AuctionCoordinator {
   constructor(state, env) {
     this.state = state;
@@ -314,7 +319,7 @@ export class AuctionCoordinator {
 
   async fetch(request) {
     try {
-      const parsed = validateRequest(request);
+      const parsed = parseInternalMarket(request, this.env) || validateRequest(request);
       if (parsed.response) return parsed.response;
       const config = configuration(this.env);
       if (!config) return error(503, 'PROXY_NOT_CONFIGURED');
@@ -378,8 +383,10 @@ export class AuctionCoordinator {
       const latest = timestamps.length ? timestamps[timestamps.length - 1] : null;
       if (latest !== null && latest > now) return { response: error(503, 'PROXY_QUOTA_UNAVAILABLE') };
       timestamps = timestamps.filter(time => time > now - DAY_MS);
-      if (timestamps.length >= config.budget) {
-        return { response: error(429, 'PROXY_QUOTA_EXCEEDED', (timestamps[0] + DAY_MS - now) / 1000) };
+      // Background scans leave 20% of the configured budget available to barter requests.
+      const effectiveBudget = config.background ? Math.floor(config.budget * 0.8) : config.budget;
+      if (timestamps.length >= effectiveBudget) {
+        return { response: error(429, 'PROXY_QUOTA_EXCEEDED', ((timestamps[0] ?? now) + DAY_MS - now) / 1000) };
       }
       // The previous reservation is durable, so object recreation cannot reset spacing.
       const wait = latest === null ? 0 : latest + config.spacingMs - now;
@@ -401,13 +408,13 @@ export class AuctionCoordinator {
     if (signal.aborted || Date.now() >= deadline) return error(503, 'PROXY_BUSY');
     const key = JSON.stringify([parsed.itemName, parsed.cursor]);
     // Recheck at the head of the queue: simultaneous identical requests reuse success.
-    const cached = this.cacheGet(key);
+    const cached = parsed.market ? null : this.cacheGet(key);
     if (cached) return cached;
-    const reservation = await this.reserve(signal, config, deadline);
+    const reservation = await this.reserve(signal, { ...config, background: Boolean(parsed.market) }, deadline);
     if (reservation.response) return reservation.response;
     if (signal.aborted || Date.now() >= deadline) return error(503, 'PROXY_BUSY');
-    const url = new URL(UPSTREAM_URL);
-    url.searchParams.set('item_name', parsed.canonicalName);
+    const url = new URL(parsed.market ? 'https://open.api.nexon.com/mabinogi/v1/auction/' + parsed.kind : UPSTREAM_URL);
+    if (!parsed.market) url.searchParams.set('item_name', parsed.canonicalName);
     if (parsed.cursor) url.searchParams.set('cursor', parsed.cursor);
     const controller = new AbortController();
     let timedOut = false;
@@ -444,14 +451,17 @@ export class AuctionCoordinator {
       }
       let body;
       try {
-        body = projectPage(await limitedJson(response), parsed.canonicalName, config.apiKey, parsed.itemName);
+        body = parsed.market
+          ? validateMarketPage(await limitedJson(response, 8 * 1024 * 1024), parsed.kind)
+          : projectPage(await limitedJson(response), parsed.canonicalName, config.apiKey, parsed.itemName);
+        if (parsed.market && JSON.stringify(body).includes(config.apiKey)) throw Error('Invalid response');
       } catch {
         if (signal.aborted) return error(503, 'PROXY_BUSY');
         return error(timedOut ? 504 : 502, timedOut ? 'PROXY_TIMEOUT' : 'PROXY_INVALID_RESPONSE');
       }
       if (signal.aborted) return error(503, 'PROXY_BUSY');
       if (timedOut) return error(504, 'PROXY_TIMEOUT');
-      this.cachePut(key, body);
+      if (!parsed.market) this.cachePut(key, body);
       return json(body);
     } catch {
       if (signal.aborted) return error(503, 'PROXY_BUSY');

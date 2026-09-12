@@ -44,7 +44,7 @@ try {
             'check' { & $taskNode $wranglerPath deploy --dry-run --config wrangler.jsonc --outdir .dry-run }
             'login' { & $taskNode $wranglerPath login }
             'deploy' { & $taskNode $wranglerPath deploy --config wrangler.jsonc }
-            'test' { & $taskNode --test worker.test.mjs }
+            'test' { & $taskNode --test worker.test.mjs market.test.mjs }
             'dev' { & $taskNode $wranglerPath dev --config wrangler.jsonc }
         }
         $taskExitCode = $LASTEXITCODE

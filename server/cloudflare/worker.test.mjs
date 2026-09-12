@@ -229,7 +229,7 @@ test('aliases cannot bypass the canonical allowlist or accept loosely matching n
   const withoutCanonicalNames = source.replace(/const ITEM_NAMES = new Set\((\[[\s\S]*?\])\);/, (_match, list) =>
     'const ITEM_NAMES = new Set(' + JSON.stringify(JSON.parse(list).filter(name => !['미스릴광석', '미스릴광석 조각'].includes(name))) + ');');
   assert.notEqual(withoutCanonicalNames, source);
-  const { default: restrictedWorker } = await import('data:text/javascript;base64,' + Buffer.from(withoutCanonicalNames).toString('base64'));
+  const { default: restrictedWorker } = await import('data:text/javascript;base64,' + Buffer.from(withoutCanonicalNames.replaceAll("'./market-worker.mjs'", JSON.stringify(new URL('./market-worker.mjs', import.meta.url).href))).toString('base64'));
   await fixture(async f => {
     for (const name of ['미스릴 광석', '미스릴 광석 조각', '미스릴광석', '미스릴광석 조각']) {
       const result = await restrictedWorker.fetch(new Request('https://ledger.example.test' + path(name)), f.env);

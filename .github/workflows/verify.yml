@@ -45,7 +45,7 @@ jobs:
         run: node --test "server/test/*.test.mjs"
 
       - name: Test Cloudflare Worker with mock bindings and upstream
-        run: node --test server/cloudflare/worker.test.mjs
+        run: node --test server/cloudflare/worker.test.mjs server/cloudflare/market.test.mjs
 
       - name: Check proxy item allowlists
         run: ./scripts/update-proxy-items.ps1 -Check

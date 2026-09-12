@@ -1,0 +1,40 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "restless-bread-9002milesianledger-api",
+  "main": "worker.mjs",
+  "compatibility_date": "2026-09-11",
+  "workers_dev": true,
+  "keep_vars": true,
+  "vars": {
+    "AUCTION_ENABLED": "true",
+    "UPSTREAM_REQUESTS_PER_24H": "10000",
+    "MARKET_ENABLED": "false"
+  },
+  "durable_objects": {
+    "bindings": [
+      {
+        "name": "AUCTION_COORDINATOR",
+        "class_name": "AuctionCoordinator"
+      },
+      {
+        "name": "MARKET_COLLECTOR",
+        "class_name": "MarketCollector"
+      }
+    ]
+  },
+  "exports": {
+    "AuctionCoordinator": {
+      "type": "durable-object",
+      "storage": "sqlite"
+    },
+    "MarketCollector": {
+      "type": "durable-object",
+      "storage": "sqlite"
+    }
+  },
+  "triggers": {
+    "crons": [
+      "*/20 * * * *"
+    ]
+  }
+}

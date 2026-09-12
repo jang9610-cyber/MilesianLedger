@@ -52,3 +52,13 @@ powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\package.ps1
 릴리스 안내는 `docs/releases/버전태그.md`에서 관리합니다. 버전 표기·실행 파일 정보·ZIP 이름·릴리스 안내가 같은 버전을 가리키는지 확인합니다. 실행 ZIP은 `scripts/package.ps1`로 만들며, GitHub가 자동 제공하는 **Source code (zip/tar.gz)**와 구분해 첨부합니다. 자동 소스 압축에는 실행 파일이 없으므로 다운로드 안내는 `MilesianLedger-v1.0.0-beta.1.zip` 같은 실행 ZIP을 직접 가리킵니다.
 
 Worker를 변경한 경우에는 `server/cloudflare/worker-tools.ps1 test`로 서버 검증도 실행합니다. Git 브랜치를 만들거나 병합하는 것만으로 GitHub 업로드나 Cloudflare 배포가 실행되지는 않습니다. 원격 저장소 업로드와 Worker 배포는 각각 별도 작업입니다.
+
+## 전체 품목 실서버 검증
+
+`scripts/test-live-auction.ps1`은 배포 설정의 공개 프록시를 통해 모든 경매장 품목을 실제 조회합니다. 실행할 때 실제 서버 호출 예산을 사용하므로 기본 테스트와 CI에서는 실행하지 않습니다. 별도 `artifacts/live-auction/` 폴더에 앱을 빌드하고 조회 결과와 임시 시세만 저장하여 사용 중인 앱의 진행 상태와 설정을 변경하지 않습니다.
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\test-live-auction.ps1
+```
+
+검색명이 바뀌면 내부 재료 이름을 유지한 채 `AuctionSettings.ResolveName`에서 경매장 이름으로 변환합니다. `scripts/update-proxy-items.ps1`은 변환된 검색명으로 서버 허용 목록을 생성합니다. 기존 배포본을 지원하는 검색명 별칭은 두 프록시 구현에서 함께 관리합니다.

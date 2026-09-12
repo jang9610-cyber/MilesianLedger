@@ -30,8 +30,12 @@ namespace MabinogiBarter
         public string ResolveName(string material)
         {
             string mapped;
-            return NameMappings != null && NameMappings.TryGetValue(material, out mapped) && !String.IsNullOrWhiteSpace(mapped)
+            string name = NameMappings != null && NameMappings.TryGetValue(material, out mapped) && !String.IsNullOrWhiteSpace(mapped)
                 ? mapped.Trim() : (material ?? "").Trim();
+            // Keep saved material/procurement keys stable; only the API search name changes.
+            if (name == "미스릴 광석") return "미스릴광석";
+            if (name == "미스릴 광석 조각") return "미스릴광석 조각";
+            return name;
         }
         public static AuctionSettings Load(string filePath)
         {
@@ -226,14 +230,25 @@ namespace MabinogiBarter
         public int Requests { get; set; }
         public string Material { get; set; }
     }
+    public sealed class AuctionRefreshFailure
+    {
+        public string Material { get; set; }
+        public string Message { get; set; }
+    }
     public sealed class AuctionRefreshResult
     {
         public int RequestedMaterials { get; set; }
         public int UpdatedMaterials { get; set; }
+        // Retain the older combined counter for existing consumers. The UI uses
+        // the separate counts below so skipped items are not described as errors.
         public int FailedMaterials { get; set; }
+        public List<AuctionRefreshFailure> FailedItems { get; private set; }
+        public int ErrorMaterials { get { return FailedItems.Count; } }
+        public int SkippedMaterials { get { return Math.Max(0, RequestedMaterials - UpdatedMaterials - ErrorMaterials); } }
         public int Requests { get; set; }
         public bool Cancelled { get; set; }
         public string StoppedReason { get; set; }
+        public AuctionRefreshResult() { FailedItems = new List<AuctionRefreshFailure>(); }
     }
 
     public sealed class AuctionService : IDisposable
@@ -300,6 +315,12 @@ namespace MabinogiBarter
             quote.AttemptUtc = DateTime.UtcNow;
             Put(quote);
         }
+        private void RecordRefreshFailure(AuctionRefreshResult result, string material, string searchName, string status, string message)
+        {
+            RecordFailure(material, searchName, status, message);
+            result.FailedMaterials++;
+            if (status == "error") result.FailedItems.Add(new AuctionRefreshFailure { Material = material, Message = message });
+        }
         private void SaveCache()
         {
             lock (sync)
@@ -351,16 +372,14 @@ namespace MabinogiBarter
                     string previousFailure;
                     if (failedQueries.TryGetValue(searchName, out previousFailure))
                     {
-                        RecordFailure(material, searchName, "error", previousFailure);
-                        result.FailedMaterials++;
+                        RecordRefreshFailure(result, material, searchName, "error", previousFailure);
                         Report(progress, i + 1, queries.Length, result.Requests, material);
                         continue;
                     }
                     if (!String.IsNullOrEmpty(result.StoppedReason) || result.Requests >= maxRequests)
                     {
                         if (String.IsNullOrEmpty(result.StoppedReason)) result.StoppedReason = "이번 갱신의 요청 한도에 도달했습니다.";
-                        RecordFailure(material, searchName, "skipped", result.StoppedReason);
-                        result.FailedMaterials++;
+                        RecordRefreshFailure(result, material, searchName, "skipped", result.StoppedReason);
                         continue;
                     }
                     var quote = new AuctionQuote { Material = material, SearchName = searchName, Status = "ok", Message = "", AttemptUtc = DateTime.UtcNow };
@@ -412,16 +431,14 @@ namespace MabinogiBarter
                     {
                         if (cancellationToken.IsCancellationRequested)
                         {
-                            RecordFailure(material, searchName, "cancelled", "사용자가 갱신을 중단했습니다. 이전 조회값이 있으면 유지합니다.");
+                            RecordRefreshFailure(result, material, searchName, "cancelled", "사용자가 갱신을 중단했습니다. 이전 조회값이 있으면 유지합니다.");
                             result.Cancelled = true;
                             result.StoppedReason = "사용자가 갱신을 중단했습니다.";
-                            result.FailedMaterials++;
                             break;
                         }
                         string timeoutMessage = "요청 시간이 초과되었습니다. 갱신 버튼으로 다시 시도해 주세요.";
-                        RecordFailure(material, searchName, "error", timeoutMessage);
+                        RecordRefreshFailure(result, material, searchName, "error", timeoutMessage);
                         failedQueries[searchName] = timeoutMessage;
-                        result.FailedMaterials++;
                     }
                     catch (Exception ex)
                     {
@@ -430,9 +447,8 @@ namespace MabinogiBarter
                         string message = ex is AuctionRequestException ? ex.Message : ex is InvalidDataException
                             ? "경매장 응답 형식이 예상과 다릅니다. 이전 조회값이 있으면 유지합니다."
                             : "경매장에 연결하지 못했습니다. 네트워크 상태를 확인한 뒤 다시 시도해 주세요.";
-                        RecordFailure(material, searchName, "error", message);
+                        RecordRefreshFailure(result, material, searchName, "error", message);
                         failedQueries[searchName] = message;
-                        result.FailedMaterials++;
                     }
                     Report(progress, i + 1, queries.Length, result.Requests, material);
                 }
@@ -493,6 +509,8 @@ namespace MabinogiBarter
                 case "PROXY_INVALID_REQUEST":
                 case "PROXY_ITEM_NOT_ALLOWED":
                     return "해당 품목을 경매장 서비스에서 조회할 수 없습니다.";
+                case "PROXY_ITEM_QUERY_REJECTED":
+                    return "경매장에서 이 품목의 검색을 처리하지 못했습니다. 다른 품목은 계속 조회합니다.";
                 case "PROXY_NOT_FOUND":
                 case "PROXY_METHOD_NOT_ALLOWED":
                     stop = true; return "경매장 서비스 연결을 확인해야 합니다. 앱 업데이트를 확인해 주세요.";

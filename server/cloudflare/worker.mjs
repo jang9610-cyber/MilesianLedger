@@ -11,6 +11,7 @@ const CACHE_TTL_MS = 60 * 1000;
 const MAX_CACHE_ENTRIES = 256;
 const MAX_CACHE_BYTES = 8 * 1024 * 1024;
 const MAX_RESPONSE_BYTES = 1024 * 1024;
+const MAX_ERROR_RESPONSE_BYTES = 16 * 1024;
 const MAX_QUEUE_LENGTH = 32;
 const REQUEST_TIMEOUT_MS = 12000;
 const MAX_QUEUE_WAIT_MS = 8000;
@@ -60,9 +61,9 @@ const ITEM_NAMES = new Set([
     "물이 든 병",
     "뮤턴트",
     "미니 바닐라 향초",
-    "미스릴 광석",
-    "미스릴 광석 조각",
     "미스릴 대못",
+    "미스릴광석",
+    "미스릴광석 조각",
     "미스릴괴",
     "미스릴판",
     "밀",
@@ -139,10 +140,17 @@ const ITEM_NAMES = new Set([
     "힐웬 합금"
 ]);
 
+// Retain beta.1 request names while searching the exact names used by Nexon.
+const ITEM_ALIASES = new Map([
+  ['미스릴 광석', '미스릴광석'],
+  ['미스릴 광석 조각', '미스릴광석 조각'],
+]);
+
 const MESSAGES = {
   PROXY_NOT_CONFIGURED: '경매장 연결이 아직 설정되지 않았습니다.',
   PROXY_INVALID_REQUEST: '경매장 요청 형식이 올바르지 않습니다.',
   PROXY_ITEM_NOT_ALLOWED: '조회할 수 없는 품목입니다.',
+  PROXY_ITEM_QUERY_REJECTED: '공식 경매장에서 이 품목의 검색 조건을 확인하지 못했습니다.',
   PROXY_NOT_FOUND: '요청한 경로가 없습니다.',
   PROXY_METHOD_NOT_ALLOWED: 'GET 요청만 사용할 수 있습니다.',
   PROXY_QUOTA_EXCEEDED: '서버의 경매장 조회 예산을 모두 사용했습니다.',
@@ -191,8 +199,9 @@ function validateRequest(request) {
   if (!itemName || itemName.length > 100 || cursor.length > 2048 || INVALID_CURSOR.test(cursor)) {
     return { response: error(400, 'PROXY_INVALID_REQUEST') };
   }
-  if (!ITEM_NAMES.has(itemName)) return { response: error(400, 'PROXY_ITEM_NOT_ALLOWED') };
-  return { itemName, cursor };
+  const canonicalName = ITEM_ALIASES.get(itemName) || itemName;
+  if (!ITEM_NAMES.has(canonicalName)) return { response: error(400, 'PROXY_ITEM_NOT_ALLOWED') };
+  return { itemName, canonicalName, cursor };
 }
 
 function configuration(env) {
@@ -249,9 +258,9 @@ function abortableDelay(milliseconds, signal) {
   });
 }
 
-async function limitedJson(response) {
+async function limitedJson(response, limit = MAX_RESPONSE_BYTES) {
   const length = response.headers.get('content-length');
-  if (length && (!/^\d+$/.test(length) || Number(length) > MAX_RESPONSE_BYTES)) throw new Error('Invalid response');
+  if (length && (!/^\d+$/.test(length) || Number(length) > limit)) throw new Error('Invalid response');
   const reader = response.body?.getReader();
   if (!reader) throw new Error('Missing response');
   const chunks = [];
@@ -261,7 +270,7 @@ async function limitedJson(response) {
       const { done, value } = await reader.read();
       if (done) break;
       bytes += value.byteLength;
-      if (bytes > MAX_RESPONSE_BYTES) throw new Error('Response too large');
+      if (bytes > limit) throw new Error('Response too large');
       chunks.push(value);
     }
   } catch (cause) {
@@ -274,7 +283,7 @@ async function limitedJson(response) {
   return JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(all));
 }
 
-function projectPage(value, itemName, apiKey) {
+function projectPage(value, itemName, apiKey, responseName = itemName) {
   if (!value || !Array.isArray(value.auction_item) || value.auction_item.length > 1000 ||
       (value.next_cursor != null && (typeof value.next_cursor !== 'string' || value.next_cursor.length > 2048 ||
         INVALID_CURSOR.test(value.next_cursor) || value.next_cursor.includes(apiKey)))) throw new Error('Invalid response');
@@ -285,7 +294,7 @@ function projectPage(value, itemName, apiKey) {
     if (typeof item.auction_price_per_unit !== 'number' || !Number.isFinite(item.auction_price_per_unit) ||
         item.auction_price_per_unit < 0 || item.auction_price_per_unit > 1e15 ||
         !Number.isSafeInteger(item.item_count) || item.item_count < 1 || item.item_count > 1e9) throw new Error('Invalid response');
-    items.push({ item_name: itemName, auction_price_per_unit: item.auction_price_per_unit, item_count: item.item_count });
+    items.push({ item_name: responseName, auction_price_per_unit: item.auction_price_per_unit, item_count: item.item_count });
   }
   return { auction_item: items, next_cursor: value.next_cursor || null, fetched_at: new Date(Date.now()).toISOString() };
 }
@@ -398,7 +407,7 @@ export class AuctionCoordinator {
     if (reservation.response) return reservation.response;
     if (signal.aborted || Date.now() >= deadline) return error(503, 'PROXY_BUSY');
     const url = new URL(UPSTREAM_URL);
-    url.searchParams.set('item_name', parsed.itemName);
+    url.searchParams.set('item_name', parsed.canonicalName);
     if (parsed.cursor) url.searchParams.set('cursor', parsed.cursor);
     const controller = new AbortController();
     let timedOut = false;
@@ -418,10 +427,14 @@ export class AuctionCoordinator {
       if (!response.ok) {
         if (response.status === 400) {
           try {
-            const problem = await limitedJson(response);
-            // Some Nexon authentication errors use HTTP 400. Only this known code is
-            // interpreted; the upstream message and any extra fields remain private.
-            if (problem?.error?.name === 'OPENAPI00005') return error(503, 'PROXY_UPSTREAM_AUTH');
+            const problem = await limitedJson(response, MAX_ERROR_RESPONSE_BYTES);
+            // Nexon uses HTTP 400 for both query and service errors. Only known codes
+            // are classified; raw messages and extra fields always remain private.
+            if (signal.aborted) return error(503, 'PROXY_BUSY');
+            if (timedOut) return error(504, 'PROXY_TIMEOUT');
+            const name = problem?.error?.name;
+            if (name === 'OPENAPI00005') return error(503, 'PROXY_UPSTREAM_AUTH');
+            if (name === 'OPENAPI00003' || name === 'OPENAPI00004') return error(400, 'PROXY_ITEM_QUERY_REJECTED');
           } catch {
             if (signal.aborted) return error(503, 'PROXY_BUSY');
             if (timedOut) return error(504, 'PROXY_TIMEOUT');
@@ -431,7 +444,7 @@ export class AuctionCoordinator {
       }
       let body;
       try {
-        body = projectPage(await limitedJson(response), parsed.itemName, config.apiKey);
+        body = projectPage(await limitedJson(response), parsed.canonicalName, config.apiKey, parsed.itemName);
       } catch {
         if (signal.aborted) return error(503, 'PROXY_BUSY');
         return error(timedOut ? 504 : 502, timedOut ? 'PROXY_TIMEOUT' : 'PROXY_INVALID_RESPONSE');

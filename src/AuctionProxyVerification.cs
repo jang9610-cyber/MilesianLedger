@@ -32,6 +32,8 @@ namespace MabinogiBarter
             await VerifyUnconfigured();
             await VerifyTransportAndTimestamps();
             await VerifyCancellation();
+            await VerifyItemFailureAndSeparateCounts();
+            await VerifyMithrilSearchNames();
             await VerifySafeErrors();
         }
         private static void VerifyAddresses()
@@ -155,8 +157,112 @@ namespace MabinogiBarter
                 {
                     var result = await service.RefreshAsync(new[] { "가는 실뭉치", "다른 재료" }, null, CancellationToken.None);
                     Require(result.Requests == 1 && handler.Calls.Count == 1 && !String.IsNullOrEmpty(result.StoppedReason), "Service-wide error " + code + " stops rather than retrying the batch.");
+                    Require(result.ErrorMaterials == 1 && result.SkippedMaterials == 1 && result.FailedItems.Single().Material == "가는 실뭉치", "Stopped batches separate the failed query from the unrequested next item.");
                     Require(!result.StoppedReason.Contains("private-provider-detail") && !File.ReadAllText(Path.Combine(directory, "auction-cache.json")).Contains("private-provider-detail"), "Server free-form messages never enter visible or persisted errors.");
                 }
+            }
+        }
+        private static async Task VerifyItemFailureAndSeparateCounts()
+        {
+            var handler = new RecordingHandler();
+            using (var service = Service(Folder("isolated-item-error"), handler))
+            {
+                handler.Enqueue(200, NamedPage("가는 실뭉치", 120));
+                await service.RefreshAsync(new[] { "가는 실뭉치" }, null, CancellationToken.None);
+                DateTime? previous = service.GetQuote("가는 실뭉치").PriceUtc;
+                handler.Enqueue(200, NamedPage("거미줄", 300));
+                handler.Enqueue(400, "{\"error\":{\"code\":\"PROXY_ITEM_QUERY_REJECTED\",\"message\":\"private-provider-detail\"}}");
+                handler.Enqueue(200, NamedPage("굵은 실뭉치", 450));
+                var result = await service.RefreshAsync(new[] { "거미줄", "가는 실뭉치", "굵은 실뭉치" }, null, CancellationToken.None);
+                Require(result.Requests == 3 && handler.Calls.Count == 4 && result.UpdatedMaterials == 2, "A rejected middle item does not block the valid item after it or trigger a retry.");
+                Require(result.ErrorMaterials == 1 && result.SkippedMaterials == 0 && result.FailedMaterials == 1 && String.IsNullOrEmpty(result.StoppedReason), "A per-item error is one failed item, not a stopped batch.");
+                Require(result.FailedItems.Single().Material == "가는 실뭉치" && result.FailedItems[0].Message.Contains("다른 품목은 계속 조회"), "The result identifies the rejected item with a clear local explanation.");
+                Require(!result.FailedItems[0].Message.Contains("private-provider-detail"), "Per-item diagnostics cannot expose upstream free-form messages.");
+                Require(service.GetQuote("거미줄").UnitPrice == 300 && service.GetQuote("굵은 실뭉치").UnitPrice == 450, "Both neighboring items publish their current quotes.");
+                Require(service.GetQuote("가는 실뭉치").UnitPrice == 120 && service.GetQuote("가는 실뭉치").PriceUtc == previous
+                    && service.GetQuote("가는 실뭉치").Status == "error", "A rejected query preserves its prior quote and original timestamp.");
+                int calls = handler.Calls.Count;
+                service.GetQuote("거미줄"); service.GetQuote("가는 실뭉치"); service.GetQuote("굵은 실뭉치");
+                Require(handler.Calls.Count == calls, "Reading mixed successful and failed results never schedules HTTP.");
+            }
+            foreach (int status in new[] { 401, 429, 503 })
+            {
+                var stoppedHandler = new RecordingHandler();
+                stoppedHandler.Enqueue(200, NamedPage("거미줄", 300));
+                stoppedHandler.Enqueue(status, "{\"error\":{\"code\":\"UNKNOWN\",\"message\":\"private-provider-detail\"}}");
+                using (var service = Service(Folder("keep-stop-" + status), stoppedHandler))
+                {
+                    var result = await service.RefreshAsync(new[] { "거미줄", "가는 실뭉치", "굵은 실뭉치" }, null, CancellationToken.None);
+                    Require(result.Requests == 2 && stoppedHandler.Calls.Count == 2 && result.UpdatedMaterials == 1 && !String.IsNullOrEmpty(result.StoppedReason), "HTTP " + status + " still stops after the first service-wide failure.");
+                    Require(result.ErrorMaterials == 1 && result.SkippedMaterials == 1 && result.FailedMaterials == 2, "A stopped three-item batch reports one failed and one skipped item.");
+                    Require(result.FailedItems.Single().Material == "가는 실뭉치" && service.GetQuote("굵은 실뭉치").Status == "skipped", "Only the attempted failed query enters the error-item list.");
+                }
+            }
+            var batchHandler = new RecordingHandler();
+            string[] names = Enumerable.Range(1, 117).Select(i => "검증 재료 " + i).ToArray();
+            for (int i = 0; i < 40; i++) batchHandler.Enqueue(200, NamedPage(names[i], 10 + i));
+            batchHandler.Enqueue(503, "{\"error\":{\"code\":\"PROXY_BUSY\"}}");
+            using (var service = Service(Folder("117-item-counts"), batchHandler))
+            {
+                var result = await service.RefreshAsync(names, null, CancellationToken.None);
+                Require(result.UpdatedMaterials == 40 && result.Requests == 41 && result.FailedMaterials == 77, "The original screenshot's 40/41/77 scenario remains reproducible.");
+                Require(result.ErrorMaterials == 1 && result.SkippedMaterials == 76 && result.FailedItems.Single().Material == names[40], "The same 117-item batch now distinguishes one real error from 76 skipped items.");
+            }
+            var capHandler = new RecordingHandler();
+            capHandler.Enqueue(200, NamedPage("거미줄", 10));
+            using (var service = new AuctionService(Folder("cap-without-error"), new AuctionSettings { MaxRequestsPerRefresh = 1 },
+                new ProxyAuctionTransport(new AuctionProxyConfig("https://ledger.example.test/base"), capHandler), new NoDelay()))
+            {
+                var result = await service.RefreshAsync(new[] { "거미줄", "가는 실뭉치" }, null, CancellationToken.None);
+                Require(result.ErrorMaterials == 0 && result.SkippedMaterials == 1 && result.FailedItems.Count == 0, "A request budget alone does not invent a failed query.");
+            }
+        }
+        private static string NamedPage(string name, int price)
+        {
+            return new JavaScriptSerializer().Serialize(new { auction_item = new[] { new { item_name = name, auction_price_per_unit = price, item_count = 10 } }, next_cursor = (string)null, fetched_at = DateTime.UtcNow.AddSeconds(-1).ToString("o", CultureInfo.InvariantCulture) });
+        }
+        private static async Task VerifyMithrilSearchNames()
+        {
+            var settings = new AuctionSettings();
+            string[] legacy = { "미스릴 광석", "미스릴 광석 조각" };
+            string[] canonical = { "미스릴광석", "미스릴광석 조각" };
+            for (int i = 0; i < legacy.Length; i++)
+            {
+                Require(settings.ResolveName(legacy[i]) == canonical[i], "Legacy mithril material names resolve to the exact API search spelling.");
+                Require(settings.ResolveName(canonical[i]) == canonical[i], "Already corrected search names remain unchanged.");
+            }
+            var custom = new AuctionSettings();
+            custom.NameMappings[legacy[0]] = "은광석";
+            custom.NameMappings[legacy[1]] = "금광석 조각";
+            Require(custom.ResolveName(legacy[0]) == "은광석" && custom.ResolveName(legacy[1]) == "금광석 조각", "Explicit mappings to other names retain precedence over built-in mithril spelling corrections.");
+            string directory = Folder("mithril-mappings");
+            string settingsPath = Path.Combine(directory, "auction-settings.json");
+            custom.Save(settingsPath);
+            Require(AuctionSettings.Load(settingsPath).ResolveName(legacy[0]) == "은광석", "Custom name overrides survive persistence.");
+            settings.Save(settingsPath);
+            var handler = new RecordingHandler();
+            handler.Enqueue(200, NamedPage(canonical[0], 123));
+            handler.Enqueue(200, NamedPage(canonical[1], 456));
+            using (var service = new AuctionService(directory, settings,
+                new ProxyAuctionTransport(new AuctionProxyConfig("https://ledger.example.test/base"), handler), new NoDelay()))
+            {
+                var result = await service.RefreshAsync(legacy, null, CancellationToken.None);
+                Require(result.UpdatedMaterials == 2 && result.Requests == 2 && result.ErrorMaterials == 0, "Legacy planner materials receive successful quotes from canonical search responses.");
+                for (int i = 0; i < legacy.Length; i++)
+                {
+                    string queryName = Uri.UnescapeDataString(handler.Calls[i].Uri.Query.TrimStart('?').Split('&').Single(p => p.StartsWith("item_name=", StringComparison.Ordinal)).Substring("item_name=".Length));
+                    var quote = service.GetQuote(legacy[i]);
+                    Require(queryName == canonical[i] && quote.Material == legacy[i] && quote.SearchName == canonical[i], "Only the search name changes; planner and stored material keys stay stable.");
+                    Require(quote.UnitPrice == (i == 0 ? 123 : 456), "Canonical item-name matching publishes the expected live-shape price.");
+                }
+            }
+            var restoredHandler = new RecordingHandler();
+            using (var restored = new AuctionService(directory, AuctionSettings.Load(settingsPath),
+                new ProxyAuctionTransport(new AuctionProxyConfig("https://ledger.example.test/base"), restoredHandler), new NoDelay()))
+            {
+                Require(restored.GetQuote(legacy[0]).UnitPrice == 123 && restored.GetQuote(legacy[1]).UnitPrice == 456
+                    && restoredHandler.Calls.Count == 0, "Restart restores corrected mithril quotes for the original material keys without requesting data.");
+                Require(restored.GetQuote(canonical[0]) == null && restored.GetQuote(canonical[1]) == null, "Search spelling correction does not create duplicate planner material records.");
             }
         }
         private static AuctionService Service(string directory, RecordingHandler handler)

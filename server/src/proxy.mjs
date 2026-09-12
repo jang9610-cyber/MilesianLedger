@@ -1,9 +1,14 @@
 const UPSTREAM = 'https://open.api.nexon.com/mabinogi/v1/auction/list';
 const CONTROL = /[\x00-\x20\x7f]/;
+const ITEM_ALIASES = new Map([
+  ['미스릴 광석', '미스릴광석'],
+  ['미스릴 광석 조각', '미스릴광석 조각'],
+]);
 const MESSAGES = {
   PROXY_NOT_CONFIGURED: '경매장 연결이 아직 설정되지 않았습니다.',
   PROXY_INVALID_REQUEST: '경매장 요청 형식이 올바르지 않습니다.',
   PROXY_ITEM_NOT_ALLOWED: '조회할 수 없는 품목입니다.',
+  PROXY_ITEM_QUERY_REJECTED: '공식 경매장에서 이 품목의 검색 조건을 확인하지 못했습니다.',
   PROXY_NOT_FOUND: '요청한 경로가 없습니다.',
   PROXY_METHOD_NOT_ALLOWED: 'GET 요청만 사용할 수 있습니다.',
   PROXY_RATE_LIMIT: '요청이 많습니다. 잠시 후 다시 갱신해 주세요.',
@@ -44,7 +49,7 @@ class WindowLimiter {
   }
 }
 
-function validatePage(value, itemName) {
+function validatePage(value, itemName, responseName = itemName) {
   if (!value || !Array.isArray(value.auction_item) || value.auction_item.length > 1000 ||
       (value.next_cursor != null && (typeof value.next_cursor !== 'string' || value.next_cursor.length > 2048 || CONTROL.test(value.next_cursor)))) {
     throw new Error('Invalid response');
@@ -57,7 +62,7 @@ function validatePage(value, itemName) {
     if (typeof item.auction_price_per_unit !== 'number' ||
         !Number.isFinite(item.auction_price_per_unit) || item.auction_price_per_unit < 0 || item.auction_price_per_unit > 1e15 ||
         !Number.isSafeInteger(item.item_count) || item.item_count < 1 || item.item_count > 1e9) throw new Error('Invalid response');
-    return { item_name: itemName, auction_price_per_unit: item.auction_price_per_unit, item_count: item.item_count };
+    return { item_name: responseName, auction_price_per_unit: item.auction_price_per_unit, item_count: item.item_count };
   });
   return { auction_item: items, next_cursor: value.next_cursor || null };
 }
@@ -111,9 +116,9 @@ export function createProxy({ apiKey = '', allowedNames = [], budget, fetchImpl 
     cacheBytes += bytes;
   }
 
-  async function requestUpstream(itemName, cursor, key) {
+  async function requestUpstream(itemName, canonicalName, cursor, key) {
     const url = new URL(UPSTREAM);
-    url.searchParams.set('item_name', itemName);
+    url.searchParams.set('item_name', canonicalName);
     if (cursor) url.searchParams.set('cursor', cursor);
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), timeoutMs);
@@ -123,10 +128,23 @@ export function createProxy({ apiKey = '', allowedNames = [], budget, fetchImpl 
         signal: controller.signal, redirect: 'error' });
       if (response.status === 401 || response.status === 403) return failure(503, 'PROXY_UPSTREAM_AUTH');
       if (response.status === 429) return failure(429, 'PROXY_UPSTREAM_LIMIT', 60);
+      if (response.status === 400) {
+        let errorName;
+        try {
+          errorName = (await readLimitedJson(response, Math.min(maxResponseBytes, 16384)))?.error?.name;
+        } catch {
+          return failure(controller.signal.aborted ? 504 : 502, controller.signal.aborted ? 'PROXY_TIMEOUT' : 'PROXY_UPSTREAM_ERROR');
+        }
+        // Only documented item/query failures are recoverable; never forward the upstream error body.
+        if (controller.signal.aborted) return failure(504, 'PROXY_TIMEOUT');
+        if (errorName === 'OPENAPI00003' || errorName === 'OPENAPI00004') return failure(400, 'PROXY_ITEM_QUERY_REJECTED');
+        if (errorName === 'OPENAPI00005') return failure(503, 'PROXY_UPSTREAM_AUTH');
+        return failure(502, 'PROXY_UPSTREAM_ERROR');
+      }
       if (!response.ok) return failure(502, 'PROXY_UPSTREAM_ERROR');
       let body;
       try {
-        body = validatePage(await readLimitedJson(response, maxResponseBytes), itemName);
+        body = validatePage(await readLimitedJson(response, maxResponseBytes), canonicalName, itemName);
         if (body.next_cursor && body.next_cursor.includes(apiKey)) throw new Error('Invalid response');
       } catch {
         return failure(controller.signal.aborted ? 504 : 502, controller.signal.aborted ? 'PROXY_TIMEOUT' : 'PROXY_INVALID_RESPONSE');
@@ -159,7 +177,8 @@ export function createProxy({ apiKey = '', allowedNames = [], budget, fetchImpl 
     const cursor = query.get('cursor') || '';
     if (!itemName || itemName.length > 100 || cursor.length > 2048 || CONTROL.test(cursor)) return failure(400, 'PROXY_INVALID_REQUEST');
     if (!configured) return failure(503, 'PROXY_NOT_CONFIGURED');
-    if (!names.has(itemName)) return failure(400, 'PROXY_ITEM_NOT_ALLOWED');
+    const canonicalName = ITEM_ALIASES.get(itemName) || itemName;
+    if (!names.has(canonicalName)) return failure(400, 'PROXY_ITEM_NOT_ALLOWED');
     const key = JSON.stringify([itemName, cursor]);
     const cached = cache.get(key);
     if (cached && now() < cached.expires) return { status: 200, headers: {}, body: cached.body };
@@ -171,7 +190,7 @@ export function createProxy({ apiKey = '', allowedNames = [], budget, fetchImpl 
     let reservation;
     try { reservation = budget.reserve(); } catch { return failure(503, 'PROXY_QUOTA_UNAVAILABLE'); }
     if (!reservation?.allowed) return failure(429, 'PROXY_QUOTA_EXCEEDED', reservation?.retryAfter || 86400);
-    const pending = requestUpstream(itemName, cursor, key);
+    const pending = requestUpstream(itemName, canonicalName, cursor, key);
     running.set(key, pending);
     try { return await pending; } finally { running.delete(key); }
   };

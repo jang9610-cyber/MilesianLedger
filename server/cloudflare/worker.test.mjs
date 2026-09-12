@@ -1,5 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import { readFile } from 'node:fs/promises';
 import worker, { AuctionCoordinator } from './worker.mjs';
 
 // Offline-only harness: every upstream fetch is replaced, and Durable Object storage is in memory.
@@ -85,6 +86,7 @@ test('disabled and missing configuration never spend quota or contact the provid
     { NEXON_API_KEY: '' },
     { NEXON_API_KEY: 'bad\r\nkey' },
     { AUCTION_COORDINATOR: undefined },
+    { UPSTREAM_REQUESTS_PER_24H: '10001' },
   ]) await fixture(async f => {
     assert.equal(f.calls.length, 0);
     const response = await f.get();
@@ -192,6 +194,57 @@ test('opaque cursor, exact matching and numeric response stay compatible with th
   });
 });
 
+test('legacy mithril requests use canonical searches and preserve each request name in its own cache', async () => {
+  for (const [legacy, canonical] of [['미스릴 광석', '미스릴광석'], ['미스릴 광석 조각', '미스릴광석 조각']]) await fixture(async f => {
+    const cursor = 'next&item_name=other';
+    f.upstream(async () => jsonResponse({
+      auction_item: [...page(canonical).auction_item, ...page(legacy).auction_item, ...page(SECOND).auction_item],
+      next_cursor: cursor,
+    }));
+    const old = await f.get(path(legacy));
+    const current = await f.get(path(canonical));
+    for (const [result, expectedName] of [[old, legacy], [current, canonical]]) {
+      assert.equal(result.status, 200);
+      assert.equal(result.body.auction_item.length, 1, 'Filter upstream rows by the canonical exact name.');
+      assert.equal(result.body.auction_item[0].item_name, expectedName);
+      assert.equal(result.body.next_cursor, cursor);
+    }
+    assert.equal(f.calls.length, 2, 'Different requested names must keep separate response caches.');
+    assert.deepEqual((await f.get(path(legacy))).body, old.body);
+    assert.deepEqual((await f.get(path(canonical))).body, current.body);
+    assert.equal(f.calls.length, 2);
+    assert.equal((await f.get(path(legacy, cursor))).body.auction_item[0].item_name, legacy);
+    assert.equal((await f.get(path(canonical, cursor))).body.auction_item[0].item_name, canonical);
+    assert.equal(f.calls.length, 4);
+    assert.ok(f.calls.every(call => call.url.searchParams.get('item_name') === canonical));
+    assert.equal(f.calls[2].url.searchParams.get('cursor'), cursor);
+    assert.equal(f.calls[3].url.searchParams.get('cursor'), cursor);
+    assert.equal(f.reservations.length, 4);
+  });
+});
+
+test('aliases cannot bypass the canonical allowlist or accept loosely matching names', async () => {
+  // Load a fixture with both canonical names removed; production exports need no test-only hooks.
+  const source = await readFile(new URL('./worker.mjs', import.meta.url), 'utf8');
+  const withoutCanonicalNames = source.replace(/const ITEM_NAMES = new Set\((\[[\s\S]*?\])\);/, (_match, list) =>
+    'const ITEM_NAMES = new Set(' + JSON.stringify(JSON.parse(list).filter(name => !['미스릴광석', '미스릴광석 조각'].includes(name))) + ');');
+  assert.notEqual(withoutCanonicalNames, source);
+  const { default: restrictedWorker } = await import('data:text/javascript;base64,' + Buffer.from(withoutCanonicalNames).toString('base64'));
+  await fixture(async f => {
+    for (const name of ['미스릴 광석', '미스릴 광석 조각', '미스릴광석', '미스릴광석 조각']) {
+      const result = await restrictedWorker.fetch(new Request('https://ledger.example.test' + path(name)), f.env);
+      assert.equal(result.status, 400);
+      assert.equal((await result.json()).error.code, 'PROXY_ITEM_NOT_ALLOWED');
+    }
+    for (const name of [' 미스릴 광석', '미스릴 광석 ', '미스릴  광석', '미스릴광석조각']) {
+      assert.equal((await f.get(path(name))).body.error.code, 'PROXY_ITEM_NOT_ALLOWED');
+    }
+    assert.equal(f.calls.length, 0);
+    assert.equal(f.reservations.length, 0);
+    assert.equal(f.bindingCalls.length, 0);
+  });
+});
+
 test('simultaneous identical pages share one fetch and one durable reservation', async () => {
   await fixture(async f => {
     let release, entered;
@@ -230,6 +283,53 @@ test('shared quota survives object reconstruction and opens only as old reservat
   }, { UPSTREAM_REQUESTS_PER_24H: '2' });
 });
 
+test('a 10000-request budget accepts its last reservation, blocks the next, and reopens on expiry', async () => {
+  await fixture(async f => {
+    const timestamps = Array.from({ length: 9999 }, (_, index) => START - (9999 - index) * 200);
+    f.data.set('upstream-budget-v1', { version: 1, timestamps });
+    const last = await f.get();
+    assert.equal(last.status, 200);
+    const full = f.data.get('upstream-budget-v1');
+    assert.equal(full.timestamps.length, 10000);
+    assert.deepEqual(full.timestamps.slice(0, -1), timestamps);
+    assert.equal(full.timestamps.at(-1), START);
+    f.restart();
+    const blocked = await f.get(path(ITEM, 'over-budget'));
+    assert.equal(blocked.status, 429);
+    assert.equal(blocked.body.error.code, 'PROXY_QUOTA_EXCEEDED');
+    assert.ok(Number(blocked.headers.get('retry-after')) > 0);
+    assert.equal(f.calls.length, 1);
+    assert.deepEqual(f.data.get('upstream-budget-v1'), full);
+    f.advance(24 * 60 * 60 * 1000 - 9999 * 200);
+    assert.equal((await f.get(path(ITEM, 'after-expiry'))).status, 200);
+    const reopened = f.data.get('upstream-budget-v1');
+    assert.equal(reopened.timestamps.length, 10000);
+    assert.equal(reopened.timestamps[0], timestamps[1]);
+    assert.equal(reopened.timestamps.at(-1), f.now());
+    assert.equal(f.calls.length, 2);
+    assert.equal(f.reservations.length, 2);
+  }, { UPSTREAM_REQUESTS_PER_24H: '10000' });
+});
+
+test('raising the budget to 10000 across object recreation preserves all prior reservations', async () => {
+  await fixture(async f => {
+    await f.get();
+    await f.get(path(ITEM, 'second'));
+    assert.equal((await f.get(path(ITEM, 'third'))).body.error.code, 'PROXY_QUOTA_EXCEEDED');
+    const previous = structuredClone(f.data.get('upstream-budget-v1'));
+    f.env.UPSTREAM_REQUESTS_PER_24H = '10000';
+    f.restart();
+    assert.equal((await f.get(path(ITEM, 'third'))).status, 200);
+    const updated = f.data.get('upstream-budget-v1');
+    assert.equal(updated.version, previous.version);
+    assert.deepEqual(updated.timestamps.slice(0, -1), previous.timestamps);
+    assert.equal(updated.timestamps.length, 3);
+    assert.ok(updated.timestamps.at(-1) - previous.timestamps.at(-1) >= 200);
+    assert.equal(f.calls.length, 3);
+    assert.equal(f.reservations.length, 3);
+  }, { UPSTREAM_REQUESTS_PER_24H: '2' });
+});
+
 test('storage read/write failure and corrupt quota fail closed before the provider call', async () => {
   for (const failure of ['read', 'write', 'corrupt']) await fixture(async f => {
     if (failure === 'read') f.failRead();
@@ -255,9 +355,37 @@ test('failed requests still reserve shared budget and never populate success cac
   }, { UPSTREAM_REQUESTS_PER_24H: '2' });
 });
 
-test('upstream errors including HTTP400 authentication are mapped without raw text', async () => {
+test('known item query rejections do not block later items or populate success cache', async () => {
+  for (const name of ['OPENAPI00003', 'OPENAPI00004']) await fixture(async f => {
+    f.upstream(async call => call.url.searchParams.get('item_name') === ITEM
+      ? jsonResponse({ error: { name, message: SECRET }, private_field: SECRET }, 400)
+      : jsonResponse(page(SECOND)));
+    const [rejected, next] = await Promise.all([f.get(), f.get(path(SECOND))]);
+    assert.equal(rejected.status, 400, name);
+    assert.deepEqual(rejected.body, { error: {
+      code: 'PROXY_ITEM_QUERY_REJECTED', message: '공식 경매장에서 이 품목의 검색 조건을 확인하지 못했습니다.',
+    } });
+    assert.equal(rejected.text.includes(SECRET), false);
+    assert.equal(rejected.headers.get('retry-after'), null);
+    assert.equal(next.status, 200);
+    assert.equal(next.body.auction_item[0].item_name, SECOND);
+    assert.equal((await f.get()).status, 400, 'A rejected query must not become a successful cached page.');
+    assert.equal((await f.get(path(SECOND))).status, 200);
+    assert.equal(f.calls.length, 3);
+    assert.equal(f.reservations.length, 3, 'Rejected upstream queries still consume the shared budget.');
+  });
+});
+
+test('upstream errors including HTTP400 authentication and maintenance remain terminal without raw text', async () => {
   for (const [status, payload, code] of [
     [400, { error: { name: 'OPENAPI00005', message: SECRET } }, 'PROXY_UPSTREAM_AUTH'],
+    [400, { error: { name: 'OPENAPI00006', message: SECRET } }, 'PROXY_UPSTREAM_ERROR'],
+    [400, { error: { name: 'OPENAPI00009', message: SECRET } }, 'PROXY_UPSTREAM_ERROR'],
+    [400, { error: { name: 'OPENAPI00010', message: SECRET } }, 'PROXY_UPSTREAM_ERROR'],
+    [400, { error: { name: 'UNKNOWN', message: 'OPENAPI00004 ' + SECRET } }, 'PROXY_UPSTREAM_ERROR'],
+    [400, { error: { name: 'OPENAPI00004-extra', message: SECRET } }, 'PROXY_UPSTREAM_ERROR'],
+    [400, { error: { code: 'OPENAPI00004', message: SECRET } }, 'PROXY_UPSTREAM_ERROR'],
+    [400, SECRET, 'PROXY_UPSTREAM_ERROR'],
     [401, SECRET, 'PROXY_UPSTREAM_AUTH'], [403, SECRET, 'PROXY_UPSTREAM_AUTH'],
     [429, SECRET, 'PROXY_UPSTREAM_LIMIT'], [500, SECRET, 'PROXY_UPSTREAM_ERROR'],
     [302, SECRET, 'PROXY_UPSTREAM_ERROR'],
@@ -265,6 +393,7 @@ test('upstream errors including HTTP400 authentication are mapped without raw te
     f.upstream(async () => typeof payload === 'string' ? new Response(payload, { status }) : jsonResponse(payload, status));
     const result = await f.get();
     assert.equal(result.body.error.code, code);
+    assert.equal(result.status, code === 'PROXY_UPSTREAM_AUTH' ? 503 : code === 'PROXY_UPSTREAM_LIMIT' ? 429 : 502);
     assert.equal(result.text.includes(SECRET), false);
     assert.equal(f.calls.length, 1);
     if (result.status === 429) assert.ok(Number(result.headers.get('retry-after')) > 0);
@@ -274,6 +403,32 @@ test('upstream errors including HTTP400 authentication are mapped without raw te
     const result = await f.get();
     assert.equal(result.status, 502);
     assert.equal(result.text.includes(SECRET), false);
+  });
+});
+
+test('oversized error bodies cannot bypass the body limit with a known query code', async () => {
+  await fixture(async f => {
+    f.upstream(async () => jsonResponse({ error: { name: 'OPENAPI00004', message: SECRET }, padding: 'x'.repeat(16 * 1024) }, 400));
+    const result = await f.get();
+    assert.equal(result.status, 502);
+    assert.equal(result.body.error.code, 'PROXY_UPSTREAM_ERROR');
+    assert.equal(result.text.includes(SECRET), false);
+    assert.equal(f.calls.length, 1);
+  });
+});
+
+test('timeout while reading an error body remains a timeout rather than an item rejection', async () => {
+  await fixture(async f => {
+    f.upstream(async call => new Response(new ReadableStream({
+      start(controller) {
+        call.init.signal.addEventListener('abort', () => controller.error(new Error(SECRET)), { once: true });
+      },
+    }), { status: 400 }));
+    const result = await f.get();
+    assert.equal(result.status, 504);
+    assert.equal(result.body.error.code, 'PROXY_TIMEOUT');
+    assert.equal(result.text.includes(SECRET), false);
+    assert.equal(f.calls.length, 1);
   });
 });
 

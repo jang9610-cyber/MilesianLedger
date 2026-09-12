@@ -7,7 +7,8 @@ Add-Type -AssemblyName System.Web.Extensions
 [Reflection.Assembly]::LoadFrom((Join-Path $outputRoot 'MilesianLedger.exe')) | Out-Null
 $catalog = [MabinogiBarter.Catalog]::Load((Join-Path $outputRoot 'data/barter-data.json'))
 $planner = New-Object MabinogiBarter.ProcurementPlanner($catalog)
-$names = @($planner.GetAllQuoteNames())
+$settings = New-Object MabinogiBarter.AuctionSettings
+$names = @($planner.GetAllQuoteNames() | ForEach-Object { $settings.ResolveName($_) } | Sort-Object -Unique)
 $path = Join-Path $repoRoot 'server/item-names.json'
 $workerPath = Join-Path $repoRoot 'server/cloudflare/worker.mjs'
 $workerText = [IO.File]::ReadAllText($workerPath, [Text.Encoding]::UTF8)

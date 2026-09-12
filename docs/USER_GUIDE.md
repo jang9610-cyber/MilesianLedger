@@ -1,12 +1,12 @@
 # 밀레시안 장부 사용 안내
 
-**1.0.0-beta.1 공개 베타** 사용 안내입니다. Windows와 .NET Framework 4.8 런타임에서 실행하며, `MilesianLedger.exe`와 같은 위치에 있는 `data`, `assets` 폴더를 함께 보관하세요.
+**1.0.0-beta.2 공개 베타** 사용 안내입니다. Windows와 .NET Framework 4.8 런타임에서 실행하며, `MilesianLedger.exe`와 같은 위치에 있는 `data`, `assets` 폴더를 함께 보관하세요.
 
 ## 설치와 업데이트
 
-처음 설치할 때는 [공개 베타 실행 ZIP](https://github.com/jang9610-cyber/MilesianLedger/releases/download/v1.0.0-beta.1/MilesianLedger-v1.0.0-beta.1.zip)을 내려받아 원하는 폴더에 모두 압축 해제한 뒤 `MilesianLedger/MilesianLedger.exe`를 실행합니다. 압축 파일 내부에서 바로 실행하지 마세요. 별도 설치 프로그램은 없습니다.
+처음 설치할 때는 [공개 베타 실행 ZIP](https://github.com/jang9610-cyber/MilesianLedger/releases/download/v1.0.0-beta.2/MilesianLedger-v1.0.0-beta.2.zip)을 내려받아 원하는 폴더에 모두 압축 해제한 뒤 `MilesianLedger/MilesianLedger.exe`를 실행합니다. 압축 파일 내부에서 바로 실행하지 마세요. 별도 설치 프로그램은 없습니다.
 
-[릴리스 페이지](https://github.com/jang9610-cyber/MilesianLedger/releases/tag/v1.0.0-beta.1)의 **Source code (zip/tar.gz)**는 개발용 소스입니다. 앱을 바로 사용하려면 파일 이름이 `MilesianLedger-v1.0.0-beta.1.zip`인 첨부 파일을 선택하세요.
+[릴리스 페이지](https://github.com/jang9610-cyber/MilesianLedger/releases/tag/v1.0.0-beta.2)의 **Source code (zip/tar.gz)**는 개발용 소스입니다. 앱을 바로 사용하려면 파일 이름이 `MilesianLedger-v1.0.0-beta.2.zip`인 첨부 파일을 선택하세요.
 
 기존 버전의 계획과 설정을 이어 쓰려면 다음 순서로 업데이트합니다.
 
@@ -95,3 +95,7 @@ PIP 위로 마우스를 옮기면 PIP가 입력 포커스를 받습니다. 첫 �
 다크 모드는 왼쪽 아래에서 바꾸며 메인과 PIP에 함께 적용됩니다. 자료의 근거와 개별 원문은 **출처** 창에서 확인할 수 있습니다.
 
 made by 하프_알베도
+
+## 시세 갱신 결과 확인
+
+갱신 버튼 아래의 조회 실패는 요청했으나 가격을 확인하지 못한 품목 수입니다. 미갱신은 중단 또는 요청 한도 때문에 조회를 마치지 못한 품목 수입니다. 결과 안내에 마우스를 올리면 실패 품목과 사유를 볼 수 있습니다. 특정 품목의 검색 조건 오류는 다음 품목으로 넘어가며, 인증·호출 한도·서비스 장애가 확인되면 갱신을 중단합니다. 기존 시세가 있으면 유지합니다.

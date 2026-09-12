@@ -7,7 +7,7 @@
   "keep_vars": true,
   "vars": {
     "AUCTION_ENABLED": "true",
-    "UPSTREAM_REQUESTS_PER_24H": "500"
+    "UPSTREAM_REQUESTS_PER_24H": "10000"
   },
   "durable_objects": {
     "bindings": [

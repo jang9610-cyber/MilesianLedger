@@ -4,9 +4,9 @@
 
 <img src="assets/app-icon/barter-helper.png" alt="밀레시안 장부 아이콘" width="72" />
 
-현재 버전은 **1.0.0-beta.1 · 공개 베타**입니다. WPF와 C#으로 구현한 Windows 데스크톱 앱이며, .NET Framework 4.8 런타임을 사용합니다.
+현재 버전은 **1.0.0-beta.2 · 공개 베타**입니다. WPF와 C#으로 구현한 Windows 데스크톱 앱이며, .NET Framework 4.8 런타임을 사용합니다.
 
-**[공개 베타 실행 ZIP 다운로드](https://github.com/jang9610-cyber/MilesianLedger/releases/download/v1.0.0-beta.1/MilesianLedger-v1.0.0-beta.1.zip)** · [릴리스 페이지](https://github.com/jang9610-cyber/MilesianLedger/releases/tag/v1.0.0-beta.1) · [베타 릴리스 안내](docs/releases/v1.0.0-beta.1.md)
+**[공개 베타 실행 ZIP 다운로드](https://github.com/jang9610-cyber/MilesianLedger/releases/download/v1.0.0-beta.2/MilesianLedger-v1.0.0-beta.2.zip)** · [릴리스 페이지](https://github.com/jang9610-cyber/MilesianLedger/releases/tag/v1.0.0-beta.2) · [베타 릴리스 안내](docs/releases/v1.0.0-beta.2.md)
 
 다운로드한 ZIP을 모두 압축 해제한 뒤 `MilesianLedger` 폴더의 `MilesianLedger.exe`를 실행하세요. GitHub의 자동 생성 **Source code (zip/tar.gz)**는 개발용 소스이며 실행 파일이 없습니다.
 
@@ -56,7 +56,7 @@
 
 사용자가 **전체 시세 갱신** 또는 **구매품목만 갱신**을 눌렀을 때만 조회합니다. 앱 실행, 검색, 체크, 수량 변경, 프리셋 선택으로 자동 조회하지 않습니다. 앱의 갱신당 상한은 500요청이며 대상 조회가 끝나면 종료합니다. 서버 캐시로 넥슨 호출을 재사용하고, 서버의 호출 예산은 모든 사용자가 공유합니다. 이 예산과 실제 넥슨 계정에 적용되는 한도는 별개입니다.
 
-가격은 확인된 매물의 최저 개당 가격을 저장한 값입니다. 서버 캐시를 받은 경우에도 원래 넥슨에서 확인한 시각을 유지합니다. 필요한 수량 전부를 그 가격에 구매할 수 있다는 뜻은 아니며, 이후 시세 변동과 API 반영 지연에 따라 실제 구매액이 달라질 수 있습니다. 조회 실패·매물 없음·호출 제한은 화면에 표시됩니다.
+가격은 확인된 매물의 최저 개당 가격을 저장한 값입니다. 서버 캐시를 받은 경우에도 원래 넥슨에서 확인한 시각을 유지합니다. 필요한 수량 전부를 그 가격에 구매할 수 있다는 뜻은 아니며, 이후 시세 변동과 API 반영 지연에 따라 실제 구매액이 달라질 수 있습니다. 조회 실패·매물 없음·호출 제한은 화면에 표시됩니다. 갱신 결과에서 실제 조회 실패와 미갱신을 구분하며, 결과 안내에 마우스를 올리면 실패 품목과 사유를 확인할 수 있습니다. 특정 품목의 검색 조건 오류는 다음 품목으로 넘어가고, 인증·호출 한도·서비스 장애 시에는 전체 갱신을 중단합니다.
 
 Data based on NEXON Open API.
 
@@ -103,7 +103,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\package.ps1
 
 같은 버전의 ZIP을 다시 만들 때는 `package.ps1 -Force`를 사용합니다. ZIP 옆에 SHA-256 검증 파일도 생성됩니다.
 
-배포할 때는 생성된 `dist\MilesianLedger-v1.0.0-beta.1.zip`을 사용하세요. 사용 중인 실행 폴더를 그대로 압축하면 개인 진행 상태가 섞일 수 있으므로 배포 스크립트로 묶는 것을 권장합니다.
+배포할 때는 생성된 `dist\MilesianLedger-v1.0.0-beta.2.zip`을 사용하세요. 사용 중인 실행 폴더를 그대로 압축하면 개인 진행 상태가 섞일 수 있으므로 배포 스크립트로 묶는 것을 권장합니다.
 
 ## 저장소 구조
 
@@ -148,7 +148,7 @@ MilesianLedger/
 | `main` | 검증을 마친 배포 기준 소스 |
 | `develop` | 다음 버전을 위한 기능 추가와 수정 통합 |
 
-평소 개발은 `develop`을 기준으로 진행합니다. 여러 파일에 걸치는 기능이나 수정은 작업별 브랜치로 분리하고, 완료 후 `develop`에 병합합니다. 배포 전 검증을 마친 변경만 `main`에 반영합니다. 공개 베타는 `v1.0.0-beta.1`과 같은 태그에 연결한 GitHub Pre-release로 배포합니다. 자세한 기준은 [개발 브랜치 안내](docs/DEVELOPMENT.md)를 참고하세요.
+평소 개발은 `develop`을 기준으로 진행합니다. 여러 파일에 걸치는 기능이나 수정은 작업별 브랜치로 분리하고, 완료 후 `develop`에 병합합니다. 배포 전 검증을 마친 변경만 `main`에 반영합니다. 공개 베타는 `v1.0.0-beta.2`과 같은 태그에 연결한 GitHub Pre-release로 배포합니다. 자세한 기준은 [개발 브랜치 안내](docs/DEVELOPMENT.md)를 참고하세요.
 
 ## 개인 파일과 Git 업로드
 

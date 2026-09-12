@@ -81,6 +81,57 @@ test('each opaque cursor gets its own cache entry and cannot change query or ups
   assert.equal(f.calls.length, 2);
 });
 
+test('legacy mithril aliases search canonical names and keep caller names and cursors in separate caches', async () => {
+  for (const [legacy, canonical] of [['미스릴 광석', '미스릴광석'], ['미스릴 광석 조각', '미스릴광석 조각']]) {
+    const calls = [];
+    const cursor = 'next&item_name=other';
+    const f = fixture({
+      allowedNames: [canonical],
+      fetchImpl: async url => {
+        calls.push(url);
+        return response({ auction_item: [...page(canonical).auction_item, ...page(legacy).auction_item, ...page(SECOND).auction_item], next_cursor: cursor });
+      },
+    });
+    const old = await f.get(query(legacy));
+    const current = await f.get(query(canonical));
+    for (const [result, expectedName] of [[old, legacy], [current, canonical]]) {
+      assert.equal(result.status, 200);
+      assert.equal(result.body.auction_item.length, 1);
+      assert.equal(result.body.auction_item[0].item_name, expectedName);
+      assert.equal(result.body.next_cursor, cursor);
+    }
+    assert.equal(calls.length, 2);
+    assert.deepEqual(await f.get(query(legacy)), old);
+    assert.deepEqual(await f.get(query(canonical)), current);
+    assert.equal(calls.length, 2);
+    assert.equal((await f.get(query(legacy, cursor))).body.auction_item[0].item_name, legacy);
+    assert.equal((await f.get(query(canonical, cursor))).body.auction_item[0].item_name, canonical);
+    assert.equal(calls.length, 4);
+    assert.ok(calls.every(url => url.searchParams.get('item_name') === canonical));
+    assert.equal(calls[2].searchParams.get('cursor'), cursor);
+    assert.equal(calls[3].searchParams.get('cursor'), cursor);
+    assert.equal(f.spent(), 4);
+  }
+});
+
+test('legacy aliases require their canonical allowlist entries and only exact aliases are accepted', async () => {
+  for (const [legacy, canonical] of [['미스릴 광석', '미스릴광석'], ['미스릴 광석 조각', '미스릴광석 조각']]) {
+    for (const allowedNames of [[ITEM], [ITEM, legacy]]) {
+      const f = fixture({ allowedNames });
+      assert.equal((await f.get(query(legacy))).body.error.code, 'PROXY_ITEM_NOT_ALLOWED');
+      assert.equal((await f.get(query(canonical))).body.error.code, 'PROXY_ITEM_NOT_ALLOWED');
+      assert.equal(f.calls.length, 0);
+      assert.equal(f.spent(), 0);
+    }
+  }
+  const f = fixture({ allowedNames: ['미스릴광석', '미스릴광석 조각'] });
+  for (const name of [' 미스릴 광석', '미스릴 광석 ', '미스릴  광석', '미스릴광석조각']) {
+    assert.equal((await f.get(query(name))).body.error.code, 'PROXY_ITEM_NOT_ALLOWED');
+  }
+  assert.equal(f.calls.length, 0);
+  assert.equal(f.spent(), 0);
+});
+
 test('missing key, empty allowlist and missing budget all fail closed without upstream calls', async () => {
   for (const options of [{ apiKey: '' }, { apiKey: 'bad\nkey' }, { allowedNames: [] }, { budget: null }]) {
     const f = fixture(options);
@@ -169,6 +220,91 @@ test('upstream errors and exception text never reach the caller; failures are no
   }
   const f = fixture({ fetchImpl: async () => { throw new Error(SECRET); } });
   assert.equal(JSON.stringify(await f.get()).includes(SECRET), false);
+});
+
+test('documented HTTP 400 item/query failures are sanitized, uncached and allow another item request', async () => {
+  for (const name of ['OPENAPI00003', 'OPENAPI00004']) {
+    let calls = 0;
+    const f = fixture({ fetchImpl: async url => {
+      calls++;
+      return url.searchParams.get('item_name') === ITEM
+        ? new Response(JSON.stringify({ error: { name, message: SECRET }, private: SECRET }), { status: 400 })
+        : response(page(SECOND));
+    } });
+    const rejected = await f.get();
+    assert.deepEqual(rejected, { status: 400, headers: {}, body: { error: {
+      code: 'PROXY_ITEM_QUERY_REJECTED', message: '공식 경매장에서 이 품목의 검색 조건을 확인하지 못했습니다.',
+    } } });
+    assert.equal(JSON.stringify(rejected).includes(SECRET), false);
+    assert.deepEqual(await f.get(), rejected);
+    assert.equal(f.spent(), 2);
+    const other = await f.get(query(SECOND));
+    assert.equal(other.status, 200);
+    assert.equal(other.body.auction_item[0].item_name, SECOND);
+    assert.equal(calls, 3);
+    assert.equal(f.spent(), 3);
+  }
+});
+
+test('HTTP 400 auth, maintenance, route and unknown errors remain terminal and sanitized', async () => {
+  for (const [name, status, code] of [
+    ['OPENAPI00005', 503, 'PROXY_UPSTREAM_AUTH'],
+    ...['OPENAPI00006', 'OPENAPI00009', 'OPENAPI00010', 'OPENAPI99999', 'OPENAPI00003 ', null]
+      .map(name => [name, 502, 'PROXY_UPSTREAM_ERROR']),
+  ]) {
+    const f = fixture({ fetchImpl: async () => new Response(JSON.stringify({
+      error: { name, message: SECRET, code: 'OPENAPI00003' }, private: SECRET,
+    }), { status: 400 }) });
+    const result = await f.get();
+    assert.equal(result.status, status, String(name));
+    assert.equal(result.body.error.code, code, String(name));
+    assert.equal(JSON.stringify(result).includes(SECRET), false);
+    assert.equal((await f.get()).body.error.code, code);
+    assert.equal(f.spent(), 2);
+  }
+});
+
+test('HTTP status keeps auth, rate and server failures terminal even with an item rejection body', async () => {
+  for (const [upstreamStatus, status, code] of [
+    [401, 503, 'PROXY_UPSTREAM_AUTH'], [403, 503, 'PROXY_UPSTREAM_AUTH'],
+    [429, 429, 'PROXY_UPSTREAM_LIMIT'], [500, 502, 'PROXY_UPSTREAM_ERROR'], [503, 502, 'PROXY_UPSTREAM_ERROR'],
+  ]) {
+    const f = fixture({ fetchImpl: async () => new Response(JSON.stringify({
+      error: { name: 'OPENAPI00003', message: SECRET },
+    }), { status: upstreamStatus }) });
+    const result = await f.get();
+    assert.equal(result.status, status);
+    assert.equal(result.body.error.code, code);
+    assert.equal(JSON.stringify(result).includes(SECRET), false);
+  }
+});
+
+test('malformed and oversized HTTP 400 bodies stay generic rather than accepting embedded error codes', async () => {
+  const cases = [
+    () => new Response('OPENAPI00003 ' + SECRET, { status: 400 }),
+    () => new Response(JSON.stringify({ error: { message: 'OPENAPI00003 ' + SECRET } }), { status: 400 }),
+    () => new Response(JSON.stringify({ error: { name: 'OPENAPI00003', message: 'x'.repeat(16384) } }), { status: 400 }),
+    () => new Response(JSON.stringify({ error: { name: 'OPENAPI00004' } }), { status: 400, headers: { 'content-length': '16385' } }),
+  ];
+  for (const make of cases) {
+    const f = fixture({ fetchImpl: async () => make() });
+    const result = await f.get();
+    assert.equal(result.status, 502);
+    assert.equal(result.body.error.code, 'PROXY_UPSTREAM_ERROR');
+    assert.equal(JSON.stringify(result).includes(SECRET), false);
+  }
+});
+
+test('HTTP 400 error-body read timeout remains a sanitized timeout failure', async () => {
+  const f = fixture({ timeoutMs: 10, fetchImpl: async (_url, init) => new Response(new ReadableStream({
+    start(controller) {
+      init.signal.addEventListener('abort', () => controller.error(new Error(SECRET)), { once: true });
+    },
+  }), { status: 400 }) });
+  const result = await f.get();
+  assert.equal(result.status, 504);
+  assert.equal(result.body.error.code, 'PROXY_TIMEOUT');
+  assert.equal(JSON.stringify(result).includes(SECRET), false);
 });
 
 test('invalid or oversized response is rejected, including streamed bodies without a length', async () => {

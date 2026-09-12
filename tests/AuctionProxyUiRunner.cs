@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Web.Script.Serialization;
 using System.Windows;
@@ -162,6 +163,80 @@ static class AuctionProxyUiRunner
         finally { main.Close(); }
         Report("PASS configured proxy UI: existing auction-scope and NPC workflows run with fake transport only; no desktop credential file or key input; normal navigation sends no requests.");
     }
+    static void CheckFailureSummary(Application app, Catalog catalog, string root)
+    {
+        foreach (bool stopBatch in new[] { false, true })
+        {
+            string profile = NewProfile(root, stopBatch ? "stopped-summary" : "item-error-summary");
+            var transport = new SummaryFailureTransport(stopBatch ? 41 : 2, stopBatch ? 503 : 400,
+                stopBatch ? "PROXY_BUSY" : "PROXY_ITEM_QUERY_REJECTED");
+            var settings = new AuctionSettings();
+            var service = new AuctionService(profile, settings, transport, new ImmediateDelay());
+            var main = OpenMain(app, catalog, profile, service);
+            try
+            {
+                string[] materials = Field<ProcurementPlanner>(main, "procurementPlanner").GetAllQuoteNames();
+                int total = materials.Length;
+                Require(total > 41 && transport.Names.Count == 0, "Failure-summary UI checks must begin offline with the full catalog.");
+                Field<Button>(main, "auctionAllRefreshButton").RaiseEvent(new RoutedEventArgs(ButtonBase.ClickEvent));
+                Call(main, "PumpAuctionTestTask"); Pump(main);
+                var label = Field<TextBlock>(main, "auctionStatus");
+                string text = label.Text;
+                var tooltip = label.ToolTip as ToolTip;
+                Require(tooltip != null && tooltip.Content is ScrollViewer, "Detailed failure results must be available in a bounded tooltip.");
+                var scroll = (ScrollViewer)tooltip.Content;
+                var details = scroll.Content as TextBlock;
+                Require(details != null && scroll.MaxHeight <= 320, "A long failure list must not expand the main header or grow beyond its tooltip viewport.");
+                Require(text.Contains("조회 실패 1종") && !text.Contains("실패·미갱신"), "Header must distinguish actual errors from skipped items.");
+                string failedSearchName = transport.Names[stopBatch ? 40 : 1];
+                string failedMaterial = materials.Single(name => settings.ResolveName(name) == failedSearchName);
+                Require(text.Length < 240, "The summary header must stay concise.");
+                Require(details.Text.Contains("• " + failedMaterial + ": "), "The tooltip must identify the failed material using its original planner label, including when the API search spelling differs.");
+                var failedQuote = service.GetQuote(failedMaterial);
+                Require(failedQuote != null && failedQuote.Status == "error" && failedQuote.SearchName == failedSearchName,
+                    "The tooltip's failed material must resolve to the actual failed API search and cached error.");
+                Require(!text.Contains("private-provider-detail") && !details.Text.Contains("private-provider-detail"), "Raw upstream error text must not enter visible results.");
+                Require(AutomationProperties.GetHelpText(label) == details.Text, "Failure details must also be available to accessibility readers.");
+                if (stopBatch)
+                {
+                    Require(transport.Names.Count == 41 && text.Contains("40종 갱신") && text.Contains("미갱신 " + (total - 41) + "종"), "A service failure must show 40 successful, one failed and the unrequested remainder separately.");
+                    Require(text.Contains("중단:") && details.Text.Contains("중단 이유") && details.Text.Contains("혼잡"), "The stop reason must remain visible in the header and tooltip, not only the footer.");
+                    Require(details.Text.Contains("각각 오류가 발생했다는 뜻은 아닙니다"), "The skipped-count explanation must not imply many independent failures.");
+                }
+                else
+                {
+                    Require(transport.Names.Count == total && text.Contains((total - 1) + "종 갱신") && text.Contains("미갱신 0종"), "A rejected item must not stop the other full-catalog requests.");
+                    Require(text.Contains("실패:") && !text.Contains("중단:") && details.Text.Contains("다른 품목은 계속 조회"), "A single rejected query needs an item-level explanation instead of a batch-stop message.");
+                }
+                int before = transport.Names.Count;
+                main.ShowSummary(); Pump(main);
+                Require(transport.Names.Count == before, "Viewing the result cannot automatically retry failed items.");
+                Require(!Field<bool>(main, "auctionRefreshing") && Field<object>(main, "auctionLoading") == null && Field<Grid>(main, "shell").IsEnabled, "Failure-summary checks left a loading overlay or blocked UI.");
+                Capture(main, Path.Combine(root, stopBatch ? "proxy-stopped-summary.png" : "proxy-item-error-summary.png"));
+            }
+            finally { main.Close(); }
+        }
+        Report("PASS proxy failure summary UI: actual-error and skipped counts are separate; a rejected item continues, service failures stop; concise header includes stop reason and bounded tooltip lists error materials; fake HTTP only.");
+    }
+    sealed class SummaryFailureTransport : IAuctionTransport
+    {
+        readonly int failAt, status; readonly string code;
+        public readonly List<string> Names = new List<string>();
+        public SummaryFailureTransport(int failAt, int status, string code) { this.failAt = failAt; this.status = status; this.code = code; }
+        public Task<AuctionHttpResponse> GetAsync(string itemName, string cursor, CancellationToken token)
+        {
+            token.ThrowIfCancellationRequested(); Names.Add(itemName);
+            return Task.FromResult(new AuctionHttpResponse {
+                StatusCode = Names.Count == failAt ? status : 200,
+                Body = Names.Count == failAt ? "{\"error\":{\"code\":\"" + code + "\",\"message\":\"private-provider-detail\"}}"
+                    : Json.Serialize(new { auction_item = new[] { new { item_name = itemName, item_count = 10, auction_price_per_unit = 123 } }, next_cursor = (string)null })
+            });
+        }
+    }
+    sealed class ImmediateDelay : IAuctionDelay
+    {
+        public Task WaitAsync(int milliseconds, CancellationToken token) { token.ThrowIfCancellationRequested(); return Task.FromResult(true); }
+    }
     // Runners are copied beside an isolated application under artifacts/verification/<guid>/app.
     // Reject arbitrary output paths before creating profiles or writing reports.
     static string ValidateOutputRoot(string argument)
@@ -194,7 +269,7 @@ static class AuctionProxyUiRunner
             app = new Application { ShutdownMode = ShutdownMode.OnExplicitShutdown };
             AppTheme.Initialize(Path.Combine(root, "appearance.txt"));
             var catalog = Catalog.Load(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "data", "barter-data.json"));
-            CheckUnconfigured(app, catalog, root); CheckConfiguredFake(app, catalog, root);
+            CheckUnconfigured(app, catalog, root); CheckConfiguredFake(app, catalog, root); CheckFailureSummary(app, catalog, root);
             app.Shutdown();
             File.WriteAllText(Path.Combine(root, "auction-proxy-ui-verification.txt"), String.Join(Environment.NewLine, Reports), new UTF8Encoding(false));
             return 0;

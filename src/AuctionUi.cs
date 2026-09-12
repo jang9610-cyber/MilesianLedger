@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
@@ -69,6 +70,8 @@ namespace MabinogiBarter
             {
                 return; // Two refresh buttons never create overlapping requests.
             }
+            auctionStatus.ToolTip = null;
+            System.Windows.Automation.AutomationProperties.SetHelpText(auctionStatus, "");
             // Freeze the chosen scope at the explicit click, never on preview.
             var names = allMaterials ? procurementPlanner.GetAllQuoteNames() : GetAuctionMaterialSnapshot();
             string scope = allMaterials ? "전체 시세" : "구매품목 시세";
@@ -100,11 +103,10 @@ namespace MabinogiBarter
                 AuctionRefreshResult result = await auction.RefreshAsync(names, progress, auctionCancellation.Token);
                 if (!auctionClosing)
                 {
-                    string status = result.Cancelled ? "갱신 중지" : result.FailedMaterials > 0 ? "갱신 종료" : "갱신 완료";
-                    auctionStatus.Text = scope + " " + status + " · " + result.UpdatedMaterials + "종 갱신 · " + result.Requests + "회 요청" + (result.FailedMaterials > 0 ? "\n실패·미갱신 " + result.FailedMaterials + "종" : "");
+                    ShowAuctionRefreshResult(scope, result);
                     if (!String.IsNullOrEmpty(result.StoppedReason)) footerMessage.Text = result.StoppedReason;
                     else if (!String.IsNullOrEmpty(auction.Notice)) footerMessage.Text = auction.Notice;
-                    else if (result.FailedMaterials > 0) footerMessage.Text = "일부 재료를 갱신하지 못했습니다. 가격의 조회 상태를 확인하세요.";
+                    else if (result.ErrorMaterials > 0) footerMessage.Text = "조회 실패 " + result.ErrorMaterials + "종이 있습니다. 상단 갱신 결과에 마우스를 올리면 품목과 사유를 볼 수 있습니다.";
                     else footerMessage.Text = "경매장 가격을 저장했습니다. 이후 화면 변경에는 저장된 가격을 사용합니다.";
                     if (summaryView) RenderSummary();
                     UpdateStationValues();
@@ -124,6 +126,48 @@ namespace MabinogiBarter
                     if (procurementDialog != null) RenderProcurementDetail();
                 }
             }
+        }
+
+        void ShowAuctionRefreshResult(string scope, AuctionRefreshResult result)
+        {
+            string status = result.Cancelled ? "갱신 중지" : !String.IsNullOrEmpty(result.StoppedReason) ? "갱신 중단"
+                : result.ErrorMaterials > 0 || result.SkippedMaterials > 0 ? "갱신 종료" : "갱신 완료";
+            auctionStatus.Text = scope + " " + status + " · " + result.UpdatedMaterials + "종 갱신 · " + result.Requests + "회 요청";
+            if (result.ErrorMaterials > 0 || result.SkippedMaterials > 0)
+            {
+                auctionStatus.Text += "\n조회 실패 " + result.ErrorMaterials + "종 · 미갱신 " + result.SkippedMaterials + "종";
+                if (!String.IsNullOrEmpty(result.StoppedReason))
+                {
+                    string reason = result.StoppedReason;
+                    auctionStatus.Text += "\n중단: " + (reason.Length > 48 ? reason.Substring(0, 47) + "…" : reason);
+                }
+                else if (result.ErrorMaterials > 0)
+                    auctionStatus.Text += "\n실패: " + String.Join(", ", result.FailedItems.Take(2).Select(f => f.Material))
+                        + (result.ErrorMaterials > 2 ? " 외 " + (result.ErrorMaterials - 2) + "종" : "") + " · 상세 ⓘ";
+            }
+            string details = AuctionRefreshTooltipText(scope, result);
+            auctionStatus.ToolTip = new ToolTip { MaxWidth = 440, Content = new ScrollViewer {
+                MaxHeight = 320, VerticalScrollBarVisibility = ScrollBarVisibility.Auto,
+                Content = T(details, 11, Ink, false), Padding = new Thickness(3)
+            } };
+            ToolTipService.SetInitialShowDelay(auctionStatus, 150);
+            ToolTipService.SetShowDuration(auctionStatus, 60000);
+            System.Windows.Automation.AutomationProperties.SetHelpText(auctionStatus, details);
+        }
+
+        static string AuctionRefreshTooltipText(string scope, AuctionRefreshResult result)
+        {
+            var text = new StringBuilder(scope + " 갱신 결과\n대상 " + result.RequestedMaterials + "종 · 갱신 "
+                + result.UpdatedMaterials + "종 · 요청 " + result.Requests + "회\n조회 실패 " + result.ErrorMaterials + "종 · 미갱신 " + result.SkippedMaterials + "종");
+            if (!String.IsNullOrEmpty(result.StoppedReason)) text.Append("\n\n중단 이유\n" + result.StoppedReason);
+            if (result.FailedItems.Count > 0)
+            {
+                text.Append("\n\n조회 실패 품목");
+                foreach (var failure in result.FailedItems) text.Append("\n• " + failure.Material + ": " + failure.Message);
+            }
+            if (result.SkippedMaterials > 0) text.Append("\n\n미갱신은 중단 또는 요청 한도로 조회를 마치지 않은 품목입니다. 각각 오류가 발생했다는 뜻은 아닙니다.");
+            if (result.ErrorMaterials > 0 || result.SkippedMaterials > 0) text.Append("\n이전에 저장된 가격이 있으면 유지합니다. 자동 재시도는 하지 않습니다.");
+            return text.ToString();
         }
 
         string[] GetAuctionMaterialSnapshot()

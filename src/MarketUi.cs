@@ -19,6 +19,7 @@ namespace MabinogiBarter
     public sealed class MarketStatisticsRow
     {
         public MarketSnapshotItem Item { get; private set; }
+        public string SearchKey { get; private set; }
         public string Name { get { return Item.Name; } }
         public string Category { get { return Item.Category; } }
         public string SoldQuantityText { get { return Count(Item.SoldQuantity); } }
@@ -29,7 +30,7 @@ namespace MabinogiBarter
         public string ListedQuantityText { get { return Count(Item.ListedQuantity); } }
         public string ListingCountText { get { return Count(Item.ListingCount); } }
         public string Detail { get { return Name + " · " + Category + (Item.PriceComparable ? " · 평균은 수량 가중 단가입니다." : " · 옵션별 가격 차이로 단가 비교에서 제외합니다."); } }
-        public MarketStatisticsRow(MarketSnapshotItem item) { Item = item; }
+        public MarketStatisticsRow(MarketSnapshotItem item) { Item = item; SearchKey = KoreanNameSearch.Normalize(item.Name); }
         static string Count(long? value) { return value.HasValue ? value.Value.ToString("N0", CultureInfo.InvariantCulture) : "—"; }
         static string Price(decimal? value) { return value.HasValue ? value.Value.ToString("#,0.##", CultureInfo.InvariantCulture) : "—"; }
     }
@@ -90,7 +91,8 @@ namespace MabinogiBarter
             SearchInput = new TextBox { FontSize = 13, MinHeight = 34, Padding = new Thickness(8, 5, 8, 5), MaxLength = 200,
                 Background = AppTheme.Surface, Foreground = Paint("#202D35"), BorderBrush = Paint("#DCE5DF"), BorderThickness = new Thickness(1),
                 CaretBrush = Paint("#202D35"), VerticalContentAlignment = VerticalAlignment.Center };
-            var hint = Text("아이템 이름 검색", 12, "#728087", false); hint.Margin = new Thickness(9, 0, 0, 0); hint.VerticalAlignment = VerticalAlignment.Center; hint.IsHitTestVisible = false;
+            SearchInput.ToolTip = "아이템 이름이나 초성으로 검색하세요. ㄱㅁㅈ, 거ㅁ줄처럼 입력할 수 있으며 띄어쓰기는 생략해도 됩니다.";
+            var hint = Text("이름·초성 검색", 12, "#728087", false); hint.Margin = new Thickness(9, 0, 0, 0); hint.VerticalAlignment = VerticalAlignment.Center; hint.IsHitTestVisible = false;
             search.Children.Add(SearchInput); search.Children.Add(hint); Grid.SetColumn(search, 2); filters.Children.Add(search);
             RefreshButton = RefreshControl(); RefreshButton.IsEnabled = client != null;
             RefreshButton.ToolTip = "서버의 공통 게시본을 받습니다. 검색과 화면 전환은 경매장 조회를 시작하지 않습니다.";
@@ -168,7 +170,8 @@ namespace MabinogiBarter
             var selected = Table.SelectedItem as MarketStatisticsRow;
             var scroller = FindScroll(Table); double offset = preservePosition && scroller != null ? scroller.VerticalOffset : 0;
             var rows = prepared == null ? new List<MarketStatisticsRow>() : PeriodInput.SelectedIndex == 1 ? prepared.Week : prepared.Day;
-            string query = SearchInput.Text.Trim(); var filtered = rows.Where(row => row.Name.IndexOf(query, StringComparison.OrdinalIgnoreCase) >= 0);
+            string query = KoreanNameSearch.Normalize(SearchInput.Text);
+            var filtered = rows.Where(row => KoreanNameSearch.Contains(row.SearchKey, query));
             IOrderedEnumerable<MarketStatisticsRow> ordered;
             switch (SortInput.SelectedIndex) {
                 case 1: ordered = filtered.OrderByDescending(row => row.Item.TradeCount); break;

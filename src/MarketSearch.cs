@@ -111,6 +111,25 @@ namespace MabinogiBarter
                     if (result.Count == limit) return result;
                 }
             }
+            if (KoreanNameSearch.HasInitials(key)) {
+                // Literal name matches retain their existing priority. Match the
+                // remaining names once, then prefer a whole initial match over
+                // a prefix or an interior match without sorting on each input.
+                int remaining = limit - result.Count;
+                var ranks = new[] { new List<IndexedEntry>(), new List<IndexedEntry>(), new List<IndexedEntry>() };
+                foreach (IndexedEntry indexed in sorted) {
+                    if (indexed.Key.IndexOf(key, StringComparison.OrdinalIgnoreCase) >= 0) continue;
+                    int offset = KoreanNameSearch.IndexOf(indexed.Key, key);
+                    if (offset < 0) continue;
+                    int rank = offset == 0 ? indexed.Key.Length == key.Length ? 0 : 1 : 2;
+                    if (ranks[rank].Count < remaining) ranks[rank].Add(indexed);
+                    if (ranks[0].Count == remaining) break;
+                }
+                foreach (var rank in ranks) foreach (var indexed in rank) {
+                    result.Add(Copy(indexed.Entry));
+                    if (result.Count == limit) return result;
+                }
+            }
             return result;
         }
 
@@ -178,10 +197,7 @@ namespace MabinogiBarter
 
         static string MatchKey(string value)
         {
-            if (String.IsNullOrEmpty(value)) return String.Empty;
-            var result = new StringBuilder(value.Length);
-            foreach (char c in value) if (!Char.IsWhiteSpace(c)) result.Append(c);
-            return result.ToString();
+            return KoreanNameSearch.Normalize(value);
         }
 
         static MarketSearchEntry Copy(MarketSearchEntry entry)
@@ -192,6 +208,56 @@ namespace MabinogiBarter
                 QuantityKnown = entry.QuantityKnown, HasListing = entry.HasListing,
                 PriceComparable = entry.PriceComparable, IsEnchantScroll = entry.IsEnchantScroll,
                 EnchantNameKnown = entry.EnchantNameKnown, FetchedUtc = entry.FetchedUtc };
+        }
+    }
+
+    // Shared local matching for the index and the statistics table. Store each
+    // item's normalized key once; normalize the query once per search.
+    public static class KoreanNameSearch
+    {
+        const string Initials = "ㄱㄲㄴㄷㄸㄹㅁㅂㅃㅅㅆㅇㅈㅉㅊㅋㅌㅍㅎ";
+
+        public static string Normalize(string value)
+        {
+            if (String.IsNullOrEmpty(value)) return String.Empty;
+            // NFC joins decomposed syllables without turning ordinary complete
+            // syllables into initials. Modern isolated choseong share one key.
+            try { value = value.Normalize(NormalizationForm.FormC); }
+            catch (ArgumentException) { /* Preserve malformed pasted text as literal input. */ }
+            var result = new StringBuilder(value.Length);
+            foreach (char c in value) if (!Char.IsWhiteSpace(c))
+                result.Append(c >= '\u1100' && c <= '\u1112' ? Initials[c - '\u1100'] : c);
+            return result.ToString();
+        }
+
+        public static bool HasInitials(string normalizedQuery)
+        {
+            if (normalizedQuery == null) return false;
+            foreach (char c in normalizedQuery) if (Initials.IndexOf(c) >= 0) return true;
+            return false;
+        }
+
+        public static bool Contains(string normalizedName, string normalizedQuery)
+        {
+            return IndexOf(normalizedName, normalizedQuery) >= 0;
+        }
+
+        public static int IndexOf(string normalizedName, string normalizedQuery)
+        {
+            if (String.IsNullOrEmpty(normalizedQuery)) return 0;
+            if (String.IsNullOrEmpty(normalizedName) || normalizedName.Length < normalizedQuery.Length) return -1;
+            if (!HasInitials(normalizedQuery)) return normalizedName.IndexOf(normalizedQuery, StringComparison.OrdinalIgnoreCase);
+            for (int start = 0; start <= normalizedName.Length - normalizedQuery.Length; start++) {
+                bool matches = true;
+                for (int i = 0; i < normalizedQuery.Length; i++) {
+                    char expected = normalizedQuery[i], actual = normalizedName[start + i];
+                    if (Char.ToUpperInvariant(actual) == Char.ToUpperInvariant(expected)) continue;
+                    if (actual >= '\uAC00' && actual <= '\uD7A3' && Initials[(actual - '\uAC00') / 588] == expected) continue;
+                    matches = false; break;
+                }
+                if (matches) return start;
+            }
+            return -1;
         }
     }
 }

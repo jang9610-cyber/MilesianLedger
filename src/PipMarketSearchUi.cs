@@ -59,9 +59,9 @@ namespace MabinogiBarter
             SearchInput = new TextBox { FontSize = 14, Height = 38, Padding = new Thickness(10, 7, 30, 7), MaxLength = 120,
                 VerticalContentAlignment = VerticalAlignment.Center, Foreground = Ink, Background = AppTheme.Surface,
                 BorderThickness = new Thickness(0), CaretBrush = Ink, SelectionBrush = Green };
-            SearchInput.ToolTip = "아이템 이름의 일부만 입력해도 찾을 수 있습니다. 띄어쓰기는 생략해도 됩니다.";
             AutomationProperties.SetName(SearchInput, "PIP 아이템 이름 검색");
-            var placeholder = Label("아이템 이름 검색", 14, Muted, false);
+            SearchInput.ToolTip = "초성·이름을 섞어 검색할 수 있습니다. 예: ㄱㅁㅈ, 가는 ㅅㅁㅊ";
+            var placeholder = Label("이름·초성 검색 (ㄱㅁㅈ)", 14, Muted, false);
             placeholder.Margin = new Thickness(10, 0, 30, 0); placeholder.IsHitTestVisible = false;
             var clear = SmallButton("×", delegate { SearchInput.Clear(); SearchInput.Focus(); });
             clear.Width = 26; clear.Height = 28; clear.FontSize = 18; clear.Padding = new Thickness(0);

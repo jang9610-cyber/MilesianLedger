@@ -37,6 +37,7 @@ public static class PipSearchUiVerificationRunner
             AppTheme.SetDark(false); AppMotion.ReducedMotion = true;
             VerifyCachedSearchAndChecklist();
             VerifyEnchantScrolls();
+            VerifyInitialSearch();
             VerifyRefresh();
             VerifyUnknownListings();
             VerifyMissingConfiguration();
@@ -247,6 +248,51 @@ public static class PipSearchUiVerificationRunner
         passed.Add("explicit refresh pending/success/failure with cache retention and no automatic retry");
     }
 
+    static void VerifyInitialSearch()
+    {
+        var stamp = DateTime.UtcNow.AddMinutes(-10);
+        var snapshot = new MarketSnapshotData { Version = "initial-search", GeneratedUtc = stamp, ListingsFetchedUtc = stamp,
+            Items24h = new List<MarketSnapshotItem>(), Items7d = new List<MarketSnapshotItem>(),
+            Quotes = new Dictionary<string, MarketSnapshotQuote>(StringComparer.Ordinal), Status = new Dictionary<string, object>() };
+        string[] names = { "거미줄", "거미줄 조각", "가는 거미줄", "실리엔", "가는 실뭉치" };
+        decimal[] prices = { 187.25m, 991m, 992m, 321.75m, 456.5m };
+        for (int i = 0; i < names.Length; i++) {
+            snapshot.Items24h.Add(Item(names[i], true)); snapshot.Items7d.Add(Item(names[i], true));
+            snapshot.Quotes[names[i]] = new MarketSnapshotQuote { Name = names[i], UnitPrice = prices[i],
+                Quantity = 600, ListingCount = 6, FetchedUtc = stamp };
+        }
+        int beforeRefresh = refreshCalls, reads = 0, requests = 0;
+        var window = NewWindow(null);
+        window.ConfigureMarketSearch(delegate { Interlocked.Increment(ref reads); return snapshot; }, delegate {
+            Interlocked.Increment(ref requests); Interlocked.Increment(ref refreshCalls);
+            return Task.FromResult(new MarketSnapshotResult { Data = snapshot });
+        }, "");
+        window.SelectedTab = 3;
+        Query(window, "거미줄", "거미줄");
+        Assert(Blocks(Cards(window).First()).Any(t => t.Text == "거미줄") && Text(Cards(window).First()).Contains("187.25 G"),
+            "Literal spider-web search lost its exact-first result or authoritative fractional quote");
+        Query(window, "ㄱㅁㅈ", "거미줄");
+        var initialCards = Cards(window);
+        Assert(initialCards.Count == 3 && Blocks(initialCards[0]).Any(t => t.Text == "거미줄")
+            && Blocks(initialCards[1]).Any(t => t.Text == "거미줄 조각") && Blocks(initialCards[2]).Any(t => t.Text == "가는 거미줄"),
+            "Initial-only search did not render full, prefix and contained matches in order");
+        Assert(Text(initialCards[0]).Contains("187.25 G") && Text(initialCards[0]).Contains("600개")
+            && !Text(initialCards[0]).Contains("190 G"), "Initial-only search changed the spider-web quote or used the metadata minimum");
+        Query(window, "ㅅㄹㅇ", "실리엔");
+        Assert(Cards(window).Count == 1 && Text(Cards(window).First()).Contains("321.75 G"), "Silien initials did not retain the single item and its price");
+        Query(window, "가는 ㅅㅁㅊ", "가는 실뭉치");
+        Assert(Cards(window).Count == 1 && Text(Cards(window).First()).Contains("456.5 G"), "Mixed syllable/initial search did not find the fine thread item");
+        Query(window, "ㄱㅁㅈ", "거미줄");
+        window.Width = 320; window.Height = 540; PumpFor(100); VerifyWidth(window);
+        Capture(window, "search-initials-minimum-light.png");
+        Assert(Text(Cards(window).First()).Contains("187.25 G") && snapshot.Quotes["거미줄"].UnitPrice == 187.25m
+            && snapshot.Items24h.First(item => item.Name == "거미줄").LowestListingPrice == 190m,
+            "Changing between literal, initial-only and mixed queries mutated the spider-web market data");
+        Assert(reads == 1 && requests == 0 && refreshCalls == beforeRefresh, "Initial-only or mixed typing fetched data or reloaded its cache");
+        window.Close(); Pump(); current = null;
+        passed.Add("PIP initial-only ㄱㅁㅈ/ㅅㄹㅇ and mixed 가는 ㅅㅁㅊ searches; full/prefix/contains ordering, unchanged authoritative spider-web fractional price and quantity, one cached load and zero implicit refreshes");
+    }
+
     static void VerifyEnchantScrolls()
     {
         var snapshot = Fixture("enchant-scrolls");
@@ -272,6 +318,10 @@ public static class PipSearchUiVerificationRunner
         Assert(Cards(window).Count == 2 && Text(window.SearchResultsPanel).Contains(dedicated), "Enchant name did not find both distinct scroll forms");
         Assert(Text(window.SearchResultsPanel).Contains("123,456 G") && Text(window.SearchResultsPanel).Contains("654,321 G"), "Scroll forms did not retain their own prices");
         Assert(Text(window.SearchResultsPanel).Contains("같은 인챈트 이름 · 스크롤 종류 기준") && !Text(window.SearchResultsPanel).Contains("옵션별 가격 차이"), "Named scroll has the wrong comparison cue");
+        Query(window, "ㅌㅍ", normal);
+        Assert(Cards(window).Count == 2 && Text(Cards(window).Single(c => Blocks(c).Any(t => t.Text == normal))).Contains("123,456 G")
+            && Text(Cards(window).Single(c => Blocks(c).Any(t => t.Text == dedicated))).Contains("654,321 G"),
+            "Tempo initials merged normal/dedicated scroll identities or replaced their individual prices");
         window.Width = 320; window.Height = 540; PumpFor(100); VerifyWidth(window);
         Capture(window, "search-enchant-light.png");
         AppTheme.SetDark(true); Pump(); Pump(); VerifyWidth(window);
@@ -280,7 +330,7 @@ public static class PipSearchUiVerificationRunner
         Capture(window, "search-enchant-unidentified-dark.png");
         Assert(refreshCalls == 0, "Enchant searches or theme switching requested server data");
         AppTheme.SetDark(false); Pump();
-        passed.Add("named enchant scrolls and base types with light/dark captures; cached mixed minima hidden; metadata-only scrolls identified without false empty listings; zero implicit fetches");
+        passed.Add("named enchant scrolls and base types with light/dark captures; ㅌㅍ initials preserve normal/dedicated scroll identities and prices; cached mixed minima hidden; metadata-only scrolls identified without false empty listings; zero implicit fetches");
     }
 
     static void VerifyMissingConfiguration()

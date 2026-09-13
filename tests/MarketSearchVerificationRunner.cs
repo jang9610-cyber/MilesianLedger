@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
+using System.Linq;
 using System.Text;
 using MabinogiBarter;
 
@@ -59,6 +60,7 @@ public static class MarketSearchVerificationRunner
         Pass("quote authority, history-only names, categories, and equipment caveat metadata");
 
         VerifyEnchantScrolls();
+        VerifyInitialSearch();
 
         data.ListingsFetchedUtc = null;
         var unknown = One(new MarketSearchIndex(data), "거래이력만");
@@ -171,6 +173,11 @@ public static class MarketSearchVerificationRunner
         }
         var named = index.Search("템포", 100);
         Check(named.Count == 2, "enchant name finds its two scroll identities only");
+        var initials = index.Search("ㅌㅍ", 100);
+        Check(initials.Count == 2 && initials.All(entry => entry.EnchantNameKnown)
+            && initials.Single(entry => entry.Name == normal).UnitPrice == 123456m
+            && initials.Single(entry => entry.Name == dedicated).UnitPrice == 654321m,
+            "initial enchant search must retain its two verified scroll identities and separate prices");
         Check(One(index, normal).UnitPrice == 123456m && One(index, dedicated).UnitPrice == 654321m, "base scroll forms retain separate minima");
         Check(One(index, "템포(접미/랭크6)·인챈트스크롤").Name == normal, "enchant identity supports whitespace-insensitive matching");
         foreach (var entry in named) Check(entry.IsEnchantScroll && entry.EnchantNameKnown && entry.PriceComparable && entry.HasListing, "named scroll retains verified price");
@@ -190,6 +197,89 @@ public static class MarketSearchVerificationRunner
         data.Items7d.Add(Item(normal, "인챈트 스크롤", false));
         Check(!One(new MarketSearchIndex(data), normal).EnchantNameKnown, "conflicting scroll identity metadata stays conservative");
         Pass("named enchant scroll search and base identities; legacy mixed-price suppression with counts; equipment, bundles, random-rank scrolls, and potions unchanged");
+    }
+
+    static void ExpectNames(MarketSearchIndex index, string query, params string[] expected)
+    {
+        var actual = index.Search(query, 100).Select(entry => entry.Name).ToArray();
+        Check(actual.SequenceEqual(expected), "search order for " + query + ": expected [" + String.Join(" / ", expected)
+            + "] but got [" + String.Join(" / ", actual) + "]");
+        Check(actual.Distinct(StringComparer.Ordinal).Count() == actual.Length, "duplicate initial result for " + query);
+    }
+
+    static void VerifyInitialSearch()
+    {
+        // Keep synthetic rank collisions separate from market-price fixtures.
+        var data = Data();
+        string[] order = { "ㄱㅁㅈ", "ㄱ ㅁㅈ", "ㄱㅁㅈ 주머니", "문자 ㄱㅁㅈ", "거미줄", "고무줄", "거미줄 꾸러미", "얇은 거미줄" };
+        for (int i = order.Length - 1; i >= 0; i--) {
+            Quote(data, order[i], 701m + i, 1, i + 1);
+            data.Items24h.Add(Item(order[i], "초성 순위 검증", true));
+            data.Items7d.Add(Item(order[i], "초성 순위 검증", true));
+        }
+        var index = new MarketSearchIndex(data);
+        ExpectNames(index, "ㄱㅁㅈ", order);
+        for (int limit = 1; limit <= order.Length; limit++)
+            Check(index.Search("ㄱㅁㅈ", limit).Select(entry => entry.Name).SequenceEqual(order.Take(limit)),
+                "limited search changed literal/exact/normalized/prefix/contains then initial full/prefix/contains priority: " + limit);
+        var spider = index.Search("ㄱㅁㅈ", 100).Single(entry => entry.Name == "거미줄");
+        Check(spider.UnitPrice == 705m && spider.Quantity == 5 && spider.ListingCount == 1 && spider.PriceComparable,
+            "initial matching altered quote identity, quantity, price or comparability");
+        ExpectNames(index, "고ㅁㅈ", "고무줄");
+        ExpectNames(index, "거미ㅈ", "거미줄", "거미줄 꾸러미", "얇은 거미줄");
+        Check(index.Search("ㅓ", 100).Count == 0 && index.Search("ㄳ", 100).Count == 0,
+            "vowels or compound final consonants were treated as initial wildcards");
+        Pass("ordinary exact/normalized/prefix/contains ranks precede initial full/prefix/contains, with distinct identities, prices and limit-safe order");
+
+        data = Data();
+        foreach (string name in new[] { "거미줄", "실리엔", "가는 실뭉치", "굵은 실뭉치", "포션 A2", "포션 A20", "고급 포션 A2", "포션 B2" })
+            data.Items24h.Add(Item(name, "혼합 초성 검증", true));
+        index = new MarketSearchIndex(data);
+        ExpectNames(index, "ㄱㅁㅈ", "거미줄");
+        ExpectNames(index, "ㅅㄹㅇ", "실리엔");
+        ExpectNames(index, "가는 ㅅㅁㅊ", "가는 실뭉치");
+        ExpectNames(index, " \t가는\u3000ㅅ ㅁ\nㅊ ", "가는 실뭉치");
+        ExpectNames(index, "ㄱ는실ㅁ치", "가는 실뭉치");
+        ExpectNames(index, "ㅍㅅa2", "포션 A2", "포션 A20", "고급 포션 A2");
+        ExpectNames(index, "포ㅅ A2", "포션 A2", "포션 A20", "고급 포션 A2");
+        ExpectNames(index, "ㅍㅅb2", "포션 B2");
+        Check(index.Search("가는 ㅅㅁ츠", 100).Count == 0 && index.Search("ㅍㅅa3", 100).Count == 0,
+            "mixed initial matching ignored a complete syllable or Latin/digit literal");
+        ExpectNames(index, "\u1100\u1106\u110c", "거미줄");
+        ExpectNames(index, "거미줄".Normalize(NormalizationForm.FormD), "거미줄");
+        ExpectNames(index, "가는".Normalize(NormalizationForm.FormD) + " \u1109\u1106\u110e", "가는 실뭉치");
+        Pass("material initials, mixed complete syllables/initials/Latin/digits, ignored whitespace and decomposed Hangul query normalization");
+
+        data = Data();
+        const string consonants = "ㄱㄲㄴㄷㄸㄹㅁㅂㅃㅅㅆㅇㅈㅉㅊㅋㅌㅍㅎ";
+        const string syllables = "가까나다따라마바빠사싸아자짜차카타파하";
+        foreach (char syllable in syllables) data.Items24h.Add(Item(syllable.ToString(), "19개 현대 초성", true));
+        index = new MarketSearchIndex(data);
+        for (int i = 0; i < consonants.Length; i++) {
+            ExpectNames(index, consonants[i].ToString(), syllables[i].ToString());
+            ExpectNames(index, ((char)(0x1100 + i)).ToString(), syllables[i].ToString());
+        }
+        Pass("all 19 compatibility and U+1100 modern initials match exactly; ㄲ/ㄸ/ㅃ/ㅆ/ㅉ never collapse into single initials");
+
+        data = Data();
+        const string composed = "거미줄";
+        string decomposed = composed.Normalize(NormalizationForm.FormD);
+        Quote(data, composed, 120m, 1, 2); Quote(data, decomposed, 340m, 3, 4);
+        index = new MarketSearchIndex(data);
+        Check(index.Count == 2, "NFC matching merged differently published names");
+        ExpectNames(index, composed, composed, decomposed);
+        ExpectNames(index, decomposed, decomposed, composed);
+        Check(index.Search("ㄱㅁㅈ", 100).Count == 2
+            && index.Search(composed, 1)[0].UnitPrice == 120m && index.Search(decomposed, 1)[0].UnitPrice == 340m,
+            "NFC matching lost raw-name exact priority or assigned another published spelling's price");
+        data = Data();
+        for (int i = 0; i < 150; i++) data.Items24h.Add(Item("거미줄 " + i.ToString("D3", CultureInfo.InvariantCulture), "초성 개수 제한", true));
+        index = new MarketSearchIndex(data);
+        var capped = index.Search("ㄱㅁㅈ", Int32.MaxValue);
+        Check(capped.Count == 100 && capped.Select(entry => entry.Name).Distinct().Count() == 100
+            && capped[0].Name == "거미줄 000" && capped[99].Name == "거미줄 099", "initial search omitted the 100-result cap or ordinal order");
+        Check(index.Search("ㄱㅁㅈ", 0).Count == 0 && index.Search("ㄱㅁㅈ", -1).Count == 0, "initial search ignored nonpositive limits");
+        Pass("NFC equivalent source names keep raw exact identity and prices; initial searches preserve the hard result cap and nonpositive limits");
     }
 
     public static int Main(string[] args) {

@@ -88,6 +88,10 @@ public static class MarketUiVerificationRunner
                 AppTheme.SetDark(dark); window.Width = 830; window.Height = 650; Pump(); CheckLayout(view);
                 Capture(window, Path.Combine(output, dark ? "market-minimum-dark.png" : "market-minimum-light.png"));
             }
+            VerifyInitialSearch(view);
+            Capture(window, Path.Combine(output, "market-initial-search-dark.png"));
+            Search(view, "", 252);
+            view.PeriodInput.SelectedIndex = 0; view.SortInput.SelectedIndex = 0; Pump();
             view.SearchInput.Text = "검 ("; Wait(() => view.Table.Items.Count == 1);
             view.SearchInput.Text = ""; Wait(() => view.Table.Items.Count == 252);
             view.PeriodInput.SelectedIndex = 1; view.SortInput.SelectedIndex = 2; Pump();
@@ -113,11 +117,33 @@ public static class MarketUiVerificationRunner
             window.Close(); window = null; view = null;
             var empty = new MarketStatisticsView(null, "오프라인 연결 미설정"); window = new Window { Content = empty, Width = 830, Height = 650, Left = -18000, Top = -18000, ShowActivated = false, ShowInTaskbar = false };
             window.Show(); Pump(); Check(!empty.RefreshButton.IsEnabled && empty.Table.Items.Count == 0, "unconfigured view must remain a local empty state"); empty.Dispose();
-            Console.WriteLine("PASS embedded table, 252 rows, precise/unknown/equipment values, 1130x820 and 830x650 light/dark layout, cache-only entry, explicit refresh, hidden publication, filter/selection/scroll retention, failure fallback and disposal; 8 loopback fixture requests."); return 0;
+            Console.WriteLine("PASS embedded table, 252 rows, initial/mixed/space-insensitive Korean search preserving metric sorting and period, precise/unknown/equipment values, 1130x820 and 830x650 light/dark layout, cache-only entry, explicit refresh, hidden publication, filter/selection/scroll retention, failure fallback and disposal; 8 loopback fixture requests."); return 0;
         } catch (Exception e) { Console.Error.WriteLine(e); Console.Error.WriteLine("Requests: " + requests); if (window != null) Capture(window, Path.Combine(output, "failure.png")); return 1; }
         finally { if (view != null) view.Dispose(); if (window != null) window.Close(); stopped = true; listener.Stop(); }
     }
     static void Check(bool value, string message) { if (!value) throw new Exception(message); }
+    static void Search(MarketStatisticsView view, string query, int count)
+    {
+        var previous = view.Table.ItemsSource;
+        view.SearchInput.Text = query;
+        Wait(() => !Object.ReferenceEquals(previous, view.Table.ItemsSource));
+        Check(view.Table.Items.Count == count, "unexpected market search matches: " + query);
+    }
+    static void VerifyInitialSearch(MarketStatisticsView view)
+    {
+        int before = requests;
+        foreach (string query in new[] { "ㄱㅁㅈ", "거ㅁ줄", "거미줄(테스트데이터)", " ㄱ\tㅁ　ㅈ ", "\u1100\u1106\u110C" }) {
+            Search(view, query, 1);
+            Check(((MarketStatisticsRow)view.Table.Items[0]).Name == "거미줄 (테스트 데이터)", "initial search changed the published name");
+        }
+        view.PeriodInput.SelectedIndex = 1; view.SortInput.SelectedIndex = 2; Pump();
+        Search(view, "ㄱ", 251);
+        Check(((MarketStatisticsRow)view.Table.Items[0]).Name == "검 (테스트 데이터)", "initial matching replaced metric-based ranking");
+        Search(view, "ㄱㅈ재ㄹ", 249);
+        Check(view.PeriodInput.SelectedIndex == 1 && view.SortInput.SelectedIndex == 2, "initial search reset period or sorting");
+        Search(view, "ㄱㅁㅈ", 1);
+        Check(requests == before, "initial/mixed/space searches or local period/sort changes made HTTP requests");
+    }
     static void Click(Button button) { Check(button.IsEnabled, "refresh button disabled"); button.RaiseEvent(new RoutedEventArgs(Button.ClickEvent)); Pump(); }
     static T Find<T>(DependencyObject obj) where T : DependencyObject { var value = obj as T; if (value != null) return value; for (int i = 0; i < VisualTreeHelper.GetChildrenCount(obj); i++) { var found = Find<T>(VisualTreeHelper.GetChild(obj, i)); if (found != null) return found; } return null; }
     static void Pump() { Dispatcher.CurrentDispatcher.Invoke(DispatcherPriority.ApplicationIdle, new Action(delegate { })); }

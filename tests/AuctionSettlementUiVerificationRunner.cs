@@ -149,6 +149,51 @@ public static class AuctionSettlementUiVerificationRunner
         Check(window.CurrentReport.BestScenario.DiscountPercent == 10, "Coupon cost comparison lost the optimal 10% coupon");
         SameSale(window, "Premium toggle");
     }
+    static void VerifyInitialNameSearch()
+    {
+        var window = NewWindow(); SetSale(window, ManualGross);
+        var data = Fixture("initial-name-search", false);
+        Add(data, "거미줄", "생활 재료", true, 187.25m, 222.5m, 333.75m);
+        Add(data, "실리엔", "생활 재료", true, 456.5m, 501m, 502m);
+        Add(data, "가는 실뭉치", "생활 재료", true, 987.75m, 1001m, 1002m);
+        int reads = 0, beforeRefresh = refreshCalls;
+        window.MarketPanel.Configure(delegate { Interlocked.Increment(ref reads); return data; },
+            delegate { refreshCalls++; throw new Exception("Initial name entry unexpectedly refreshed market data."); }, null);
+        Wait(delegate { return !window.MarketPanel.IsBusy && Object.ReferenceEquals(window.MarketPanel.Snapshot, data); }, "initial name fixture cache");
+        window.CouponPriceInput(20).Text = "765432"; window.CouponPriceInput(10).Text = "0";
+        Click(window.CouponSelectButton(20));
+        decimal? selectedNet = Row(window, 20).NetAmount;
+        string[] queries = { "ㄱㅁㅈ", "ㅅㄹㅇ", "가는 ㅅㅁㅊ", "\u1100\u1106\u110c", "거미줄".Normalize(NormalizationForm.FormD) };
+        string[] names = { "거미줄", "실리엔", "가는 실뭉치", "거미줄", "거미줄" };
+        string[] prices = { "187.25 G", "456.5 G", "987.75 G", "187.25 G", "187.25 G" };
+        for (int i = 0; i < queries.Length; i++) {
+            Query(window, queries[i], names[i]);
+            var choices = window.MarketPanel.ResultsPanel.Children.OfType<Button>().ToArray();
+            // ㄱㅁㅈ also prefixes 경매장 coupon names in this fixture; the full
+            // material-name match must remain first without duplicate rows.
+            Check(choices.Length >= 1 && Text(choices[0]) == names[i] && choices.Select(Text).Distinct().Count() == choices.Length,
+                "Initial or decomposed name suggestion lost its first full-name match or duplicated an identity: " + queries[i]);
+            Click(choices[0]);
+            Check(window.MarketPanel.SelectedItemName == names[i] && Text(window.MarketPanel.ReferencePanel).Contains(prices[i]),
+                "Initial name selection did not retain its original quote price: " + queries[i]);
+            SameSale(window, "Initial name selection");
+        }
+        Query(window, "ㅌㅍ", Enchant);
+        var enchants = window.MarketPanel.ResultsPanel.Children.OfType<Button>().ToArray();
+        Check(enchants.Length == 2 && enchants.Any(button => Text(button) == Enchant) && enchants.Any(button => Text(button) == DedicatedEnchant),
+            "Initial enchant query merged normal and dedicated scroll names");
+        Click(enchants.Single(button => Text(button) == DedicatedEnchant));
+        Check(Text(window.MarketPanel.ReferencePanel).Contains("2,800,000 G") && !Text(window.MarketPanel.ReferencePanel).Contains("2,400,000 G"),
+            "Selecting a dedicated scroll through initials used the normal scroll price");
+        SameSale(window, "Initial enchant selection");
+        Check(window.SelectedDiscount == 20 && window.CouponPriceInput(20).Text == "765432" && window.CouponPriceInput(10).Text == "0"
+            && Row(window, 20).NetAmount == selectedNet && reads == 1 && refreshCalls == beforeRefresh,
+            "Initial searches changed settlement selection/manual coupon costs/calculation or performed implicit market I/O");
+        Check(data.Quotes["거미줄"].UnitPrice == 187.25m && data.Quotes[DedicatedEnchant].UnitPrice == 2800000m,
+            "Initial search mutated the cached source prices");
+        CloseWindow(window);
+        Pass("initial/mixed/decomposed material names and initial enchant suggestions retain exact quote references, manual sale/coupon inputs and chosen distribution without implicit refresh");
+    }
     static void VerifyImagesAndLayout(AuctionSettlementView window)
     {
         Check(window.SelectedDiscount == 0 && window.CurrentReport.BestScenario.DiscountPercent == 10, "Recommendation automatically selected a coupon");
@@ -392,7 +437,7 @@ public static class AuctionSettlementUiVerificationRunner
         VerifyCouponMarket(window, snapshot);
         VerifyExpected(window, false); VerifySearch(window); VerifyImagesAndLayout(window);
         VerifyRefreshAndManualPrices(window, delegate(TaskCompletionSource<MarketSnapshotResult> value) { pending = value; });
-        VerifyInvalidAndRemainder(window); VerifyNoProviderAndCloseCancellation(); VerifyCouponSourcesAndRecommendation();
+        VerifyInvalidAndRemainder(window); VerifyNoProviderAndCloseCancellation(); VerifyCouponSourcesAndRecommendation(); VerifyInitialNameSearch();
     }
     static void Click(Button button) { Check(button.IsEnabled, "Attempt to click a disabled fixture button"); button.RaiseEvent(new RoutedEventArgs(Button.ClickEvent)); Pump(); }
     static IEnumerable<T> Elements<T>(DependencyObject root) where T : DependencyObject

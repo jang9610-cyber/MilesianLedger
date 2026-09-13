@@ -75,7 +75,7 @@ namespace MabinogiBarter
             Background = AppTheme.Surface;
             RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
             var body = new StackPanel(); Children.Add(body);
-            body.Children.Add(Label("아이템 이름", 13, "#202D35", true));
+            body.Children.Add(Label("아이템 이름 · 초성 검색", 13, "#202D35", true));
             var inputRow = new Grid { Margin = new Thickness(0, 6, 0, 0) };
             inputRow.ColumnDefinitions.Add(new ColumnDefinition());
             inputRow.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
@@ -84,7 +84,7 @@ namespace MabinogiBarter
                 BorderBrush = AppTheme.Brush("#DCE5DF"), BorderThickness = new Thickness(1),
                 CaretBrush = AppTheme.Brush("#202D35"), SelectionBrush = AppTheme.Brush("#226C54"),
                 VerticalContentAlignment = VerticalAlignment.Center };
-            ItemNameInput.ToolTip = "이름을 자유롭게 입력하거나 검색 결과에서 선택하세요. 띄어쓰기를 생략해도 검색됩니다.";
+            ItemNameInput.ToolTip = "초성·이름을 섞어 검색할 수 있습니다. 예: ㄱㅁㅈ, 가는 ㅅㅁㅊ. 판매품 이름은 직접 입력해도 됩니다.";
             AutomationProperties.SetName(ItemNameInput, "정산 아이템 이름");
             inputRow.Children.Add(ItemNameInput);
             RefreshButton = Button("시세 갱신"); RefreshButton.MinWidth = 94;

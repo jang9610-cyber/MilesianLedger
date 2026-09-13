@@ -36,6 +36,7 @@ public static class PipSearchUiVerificationRunner
             AppTheme.Initialize(Path.Combine(output, "appearance.txt"));
             AppTheme.SetDark(false); AppMotion.ReducedMotion = true;
             VerifyCachedSearchAndChecklist();
+            VerifyEnchantScrolls();
             VerifyRefresh();
             VerifyUnknownListings();
             VerifyMissingConfiguration();
@@ -208,6 +209,42 @@ public static class PipSearchUiVerificationRunner
         Capture(window, "search-refresh-failure.png");
         Assert(refreshCalls == 2, "Refresh failure automatically retried");
         passed.Add("explicit refresh pending/success/failure with cache retention and no automatic retry");
+    }
+
+    static void VerifyEnchantScrolls()
+    {
+        var snapshot = Fixture("enchant-scrolls");
+        string normal = "템포 (접미 / 랭크 6) · 인챈트 스크롤", dedicated = "템포 (접미 / 랭크 6) · 전용 인챈트 스크롤";
+        var stamp = snapshot.ListingsFetchedUtc.Value;
+        snapshot.Items24h.Add(new MarketSnapshotItem { Name = "인챈트 스크롤", Category = "인챈트 스크롤", PriceComparable = false, ListingCount = 3, ListedQuantity = 5 });
+        snapshot.Quotes["인챈트 스크롤"] = new MarketSnapshotQuote { Name = "인챈트 스크롤", UnitPrice = 100m, ListingCount = 3, Quantity = 5, FetchedUtc = stamp };
+        snapshot.Items24h.Add(new MarketSnapshotItem { Name = "개방된 전용 인챈트 스크롤", Category = "인챈트 스크롤", PriceComparable = false, ListingCount = 2, ListedQuantity = 2 });
+        foreach (string name in new[] { normal, dedicated })
+            snapshot.Items24h.Add(new MarketSnapshotItem { Name = name, Category = "인챈트 스크롤", PriceComparable = true });
+        snapshot.Quotes[normal] = new MarketSnapshotQuote { Name = normal, UnitPrice = 123456m, ListingCount = 2, Quantity = 3, FetchedUtc = stamp };
+        snapshot.Quotes[dedicated] = new MarketSnapshotQuote { Name = dedicated, UnitPrice = 654321m, ListingCount = 1, Quantity = 1, FetchedUtc = stamp };
+        var window = NewWindow(null);
+        window.ConfigureMarketSearch(delegate { return snapshot; }, delegate { Interlocked.Increment(ref refreshCalls); return Task.FromResult(new MarketSnapshotResult { Data = snapshot }); }, "");
+        window.SelectedTab = 3;
+        Query(window, "인챈트 스크롤", "인챈트 이름 미확인");
+        var generic = Cards(window).First(c => Blocks(c).Any(t => t.Text == "인챈트 스크롤"));
+        Assert(Text(generic).Contains("인챈트 이름 미확인") && Text(generic).Contains("시세 갱신 후 이름으로 검색하세요."), "Unidentified enchant state or refresh guidance missing");
+        Assert(!Text(generic).Contains("100 G") && !Text(generic).Contains("매물 없음"), "Old generic scroll exposed a mixed price or false empty listing");
+        Query(window, "개방된전용인챈트스크롤", "개방된 전용 인챈트 스크롤");
+        Assert(Text(window.SearchResultsPanel).Contains("인챈트 이름 미확인") && !Text(window.SearchResultsPanel).Contains("매물 없음"), "Metadata-only generic scroll became an empty market");
+        Query(window, "템포", normal);
+        Assert(Cards(window).Count == 2 && Text(window.SearchResultsPanel).Contains(dedicated), "Enchant name did not find both distinct scroll forms");
+        Assert(Text(window.SearchResultsPanel).Contains("123,456 G") && Text(window.SearchResultsPanel).Contains("654,321 G"), "Scroll forms did not retain their own prices");
+        Assert(Text(window.SearchResultsPanel).Contains("같은 인챈트 이름 · 스크롤 종류 기준") && !Text(window.SearchResultsPanel).Contains("옵션별 가격 차이"), "Named scroll has the wrong comparison cue");
+        window.Width = 320; window.Height = 540; PumpFor(100); VerifyWidth(window);
+        Capture(window, "search-enchant-light.png");
+        AppTheme.SetDark(true); Pump(); Pump(); VerifyWidth(window);
+        Capture(window, "search-enchant-dark.png");
+        Query(window, "인챈트 스크롤", "인챈트 이름 미확인");
+        Capture(window, "search-enchant-unidentified-dark.png");
+        Assert(refreshCalls == 0, "Enchant searches or theme switching requested server data");
+        AppTheme.SetDark(false); Pump();
+        passed.Add("named enchant scrolls and base types with light/dark captures; cached mixed minima hidden; metadata-only scrolls identified without false empty listings; zero implicit fetches");
     }
 
     static void VerifyMissingConfiguration()

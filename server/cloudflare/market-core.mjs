@@ -1,4 +1,5 @@
 // Official auction schema: https://openapi.nexon.com/static/api/mabinogi/36_ko_script20250410023004.yaml
+import { namedEnchantScroll } from './market-enchant.mjs';
 export const HISTORY_INTERVAL = 20 * 60_000;
 export const LIST_INTERVAL = 60 * 60_000;
 export const RETENTION = 8 * 24 * 60 * 60_000;
@@ -22,9 +23,10 @@ export function validateMarketPage(value, kind, now = Date.now()) {
         !Number.isSafeInteger(item.auction_price_per_unit) || item.auction_price_per_unit < 0 ||
         !Number.isSafeInteger(item.item_count * item.auction_price_per_unit)) throw Error('MARKET_INVALID_ITEM');
     if (!Array.isArray(item.item_option ?? [])) throw Error('MARKET_INVALID_OPTIONS');
-    // Any options make name-level price comparison unsafe, including consumable variants.
-    const comparable = COMPARABLE.has(item.auction_item_category) && !(item.item_option?.length);
-    const row = { name: item.item_name, category: item.auction_item_category,
+    // Only identified scrolls get an option-derived name; equipment remains name-level.
+    const scrollName = namedEnchantScroll(item);
+    const comparable = !!scrollName || COMPARABLE.has(item.auction_item_category) && !(item.item_option?.length);
+    const row = { name: scrollName || item.item_name, category: item.auction_item_category,
       quantity: item.item_count, price: item.auction_price_per_unit, comparable: comparable ? 1 : 0 };
     if (kind === 'history') {
       const time = Date.parse(item.date_auction_buy);

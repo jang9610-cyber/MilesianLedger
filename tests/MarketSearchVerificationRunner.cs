@@ -58,6 +58,8 @@ public static class MarketSearchVerificationRunner
         Check(One(index, "칠일이력").Category == "기타", "7d-only history included");
         Pass("quote authority, history-only names, categories, and equipment caveat metadata");
 
+        VerifyEnchantScrolls();
+
         data.ListingsFetchedUtc = null;
         var unknown = One(new MarketSearchIndex(data), "거래이력만");
         Check(!unknown.HasListing && !unknown.UnitPrice.HasValue && !unknown.QuantityKnown && !unknown.FetchedUtc.HasValue, "expired/unknown listing coverage");
@@ -139,6 +141,55 @@ public static class MarketSearchVerificationRunner
         for (int i = 0; i < 30; i++) Check(index.Search("199", 30).Count == 30, "repeated large contains query");
         timer.Stop();
         Pass("20,000 names, repeated lookups, and hard 100-result limit (" + timer.ElapsedMilliseconds + " ms)");
+    }
+
+    static void VerifyEnchantScrolls() {
+        var data = Data();
+        string[] baseNames = { "인챈트 스크롤", "전용 인챈트 스크롤", "개방된 전용 인챈트 스크롤",
+            "인챈트 스크롤(판매 불가)", "8주년 전용 인챈트 스크롤", "시양양 한정 인챈트 스크롤" };
+        foreach (string name in baseNames) {
+            Quote(data, name, 100m, 4, 7);
+            data.Items24h.Add(Item(name, "인챈트 스크롤", false));
+        }
+        string normal = "템포 (접미 / 랭크 6) · 인챈트 스크롤";
+        string dedicated = "템포 (접미 / 랭크 6) · 전용 인챈트 스크롤";
+        Quote(data, normal, 123456m, 2, 3); data.Items24h.Add(Item(normal, "인챈트 스크롤", true));
+        Quote(data, dedicated, 654321m, 1, 1); data.Items7d.Add(Item(dedicated, "인챈트 스크롤", true));
+        Quote(data, "각성한 · 인챈트 스크롤", 456m, 2, 2);
+        data.Items24h.Add(Item("각성한 · 인챈트 스크롤", "인챈트 스크롤", true));
+        // Equipment retains its published item name; the search never invents
+        // an index entry from an enchant effect applied to that equipment.
+        Quote(data, "효과가 적용된 검", 987654m, 1, 1); data.Items24h.Add(Item("효과가 적용된 검", "검", false));
+        Quote(data, "인챈트 스크롤 묶음", 700m, 1, 1);
+        Quote(data, "인챈트 스크롤(5등급)", 800m, 1, 1);
+        Quote(data, "축복의 포션", 500m, 2, 6); data.Items24h.Add(Item("축복의 포션", "포션", true));
+        var index = new MarketSearchIndex(data);
+        foreach (string name in baseNames) {
+            var entry = One(index, name);
+            Check(entry.IsEnchantScroll && !entry.EnchantNameKnown && !entry.UnitPrice.HasValue && !entry.HasListing, "old mixed scroll minimum suppressed: " + name);
+            Check(entry.ListingCount == 4 && entry.Quantity == 7 && entry.QuantityKnown, "old scroll stock counts preserved: " + name);
+        }
+        var named = index.Search("템포", 100);
+        Check(named.Count == 2, "enchant name finds its two scroll identities only");
+        Check(One(index, normal).UnitPrice == 123456m && One(index, dedicated).UnitPrice == 654321m, "base scroll forms retain separate minima");
+        Check(One(index, "템포(접미/랭크6)·인챈트스크롤").Name == normal, "enchant identity supports whitespace-insensitive matching");
+        foreach (var entry in named) Check(entry.IsEnchantScroll && entry.EnchantNameKnown && entry.PriceComparable && entry.HasListing, "named scroll retains verified price");
+        Check(!One(index, "효과가 적용된 검").IsEnchantScroll && One(index, "효과가 적용된 검").UnitPrice == 987654m, "equipment search remains by item name");
+        foreach (string name in new[] { "인챈트 스크롤 묶음", "인챈트 스크롤(5등급)", "축복의 포션" })
+            Check(!One(index, name).IsEnchantScroll && One(index, name).UnitPrice.HasValue, "other consumable identities unaffected: " + name);
+
+        data = Data(); Quote(data, "인챈트 스크롤", 100m, 4, 7);
+        Check(!One(new MarketSearchIndex(data), "인챈트 스크롤").UnitPrice.HasValue, "quote-only legacy scroll minimum suppressed");
+        data.Quotes.Clear(); data.Items24h.Add(Item("인챈트 스크롤", "인챈트 스크롤", false));
+        var metadataOnly = One(new MarketSearchIndex(data), "인챈트 스크롤");
+        Check(metadataOnly.IsEnchantScroll && !metadataOnly.EnchantNameKnown && !metadataOnly.UnitPrice.HasValue, "legacy metadata-only scroll remains unidentified");
+        Check(metadataOnly.ListingCount == 999 && metadataOnly.Quantity == 999, "metadata-only generic scroll retains observed stock");
+        data = Data(); Quote(data, normal, 100m, 1, 1);
+        Check(!One(new MarketSearchIndex(data), normal).UnitPrice.HasValue, "named-looking quote without verified scroll metadata stays unpriced");
+        data.Items24h.Add(Item(normal, "인챈트 스크롤", true));
+        data.Items7d.Add(Item(normal, "인챈트 스크롤", false));
+        Check(!One(new MarketSearchIndex(data), normal).EnchantNameKnown, "conflicting scroll identity metadata stays conservative");
+        Pass("named enchant scroll search and base identities; legacy mixed-price suppression with counts; equipment, bundles, random-rank scrolls, and potions unchanged");
     }
 
     public static int Main(string[] args) {

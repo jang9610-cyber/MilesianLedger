@@ -224,13 +224,21 @@ namespace MabinogiBarter
             name.ToolTip = String.IsNullOrEmpty(entry.Category) ? entry.Name : entry.Name + "\n" + entry.Category;
             Grid.SetColumn(name, 1); title.Children.Add(name); body.Children.Add(title);
             bool priced = entry.HasListing && entry.UnitPrice.HasValue;
-            var price = Label(priced ? entry.UnitPrice.Value.ToString("#,0.##", CultureInfo.CurrentCulture) + " G" : entry.ListingCount > 0 ? "가격 미확인" : entry.FetchedUtc.HasValue ? "수집 당시 매물 없음" : "매물 미확인", 17, priced ? Green : Muted, true);
+            bool unidentifiedEnchant = entry.IsEnchantScroll && !entry.EnchantNameKnown;
+            var price = Label(unidentifiedEnchant ? "인챈트 이름 미확인" : priced ? entry.UnitPrice.Value.ToString("#,0.##", CultureInfo.CurrentCulture) + " G" : entry.ListingCount > 0 ? "가격 미확인" : entry.FetchedUtc.HasValue ? "수집 당시 매물 없음" : "매물 미확인", 17, priced ? Green : Muted, true);
             price.Margin = new Thickness(0, 9, 0, 2); price.TextWrapping = TextWrapping.Wrap; body.Children.Add(price);
-            if (priced) {
+            if (unidentifiedEnchant) {
+                var unidentified = Label("시세 갱신 후 이름으로 검색하세요.", 11, Muted, false);
+                unidentified.TextWrapping = TextWrapping.Wrap; body.Children.Add(unidentified);
+            } else if (priced) {
                 string availability = "개당 최저가 · " + entry.ListingCount.ToString("N0") + "건";
                 if (entry.QuantityKnown) availability += " / " + entry.Quantity.ToString("N0") + "개";
                 var amount = Label(availability, 11, Muted, false); amount.TextWrapping = TextWrapping.Wrap; body.Children.Add(amount);
-                if (!entry.PriceComparable) {
+                if (entry.IsEnchantScroll) {
+                    var scroll = Label("같은 인챈트 이름 · 스크롤 종류 기준", 11, Muted, false);
+                    scroll.Margin = new Thickness(0, 4, 0, 0); scroll.TextWrapping = TextWrapping.Wrap;
+                    body.Children.Add(scroll);
+                } else if (!entry.PriceComparable) {
                     var options = Label("옵션별 가격 차이 · 참고 최저가", 11, Paint("#916020"), false);
                     options.Margin = new Thickness(0, 4, 0, 0); options.TextWrapping = TextWrapping.Wrap;
                     options.ToolTip = "같은 이름의 모든 옵션을 합친 최저 매물입니다. 드랍된 장비의 강화·인챈트·세공 옵션별 가치를 뜻하지 않습니다.";

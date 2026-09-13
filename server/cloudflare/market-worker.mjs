@@ -17,6 +17,15 @@ export async function marketFetch(request, env, context) {
   if (!url.pathname.startsWith('/v1/market/')) return null;
   if (url.pathname.startsWith('/v1/market/admin/')) {
     if (!await adminAuthorized(request, env)) return marketError(401, 'MARKET_ADMIN_UNAUTHORIZED');
+    if (url.pathname === '/v1/market/admin/enchant-sample') {
+      if (request.method !== 'GET') return marketError(405, 'MARKET_INVALID_ADMIN_REQUEST');
+      if (request.url.length > 4096 || request.url.includes('?') || request.url.includes('#') ||
+          request.body || request.headers.has('transfer-encoding') ||
+          (request.headers.has('content-length') && request.headers.get('content-length') !== '0')) return marketError(400, 'MARKET_INVALID_QUERY');
+      if (env.MARKET_ENABLED !== 'true' || !env.AUCTION_COORDINATOR) return marketError(503, 'MARKET_NOT_ENABLED');
+      return env.AUCTION_COORDINATOR.get(env.AUCTION_COORDINATOR.idFromName('global-v1'))
+        .fetch(new Request('https://coordinator.internal/internal/market?kind=list&sample=enchant-scroll', { signal: request.signal }));
+    }
     if (env.MARKET_ENABLED !== 'true' || !env.MARKET_COLLECTOR) return marketError(503, 'MARKET_NOT_ENABLED');
     const stub = env.MARKET_COLLECTOR.get(env.MARKET_COLLECTOR.idFromName('market-v1'));
     if (url.pathname === '/v1/market/admin/metrics' && request.method === 'GET' && !url.search) return stub.fetch(new Request('https://market.internal/metrics'));
@@ -217,9 +226,13 @@ export function parseInternalMarket(request, env) {
   const url = new URL(request.url);
   if (url.pathname !== '/internal/market') return null;
   if (env.MARKET_ENABLED !== 'true' || request.method !== 'GET' || url.toString().length > 4096) return { response: marketError(503, 'MARKET_NOT_ENABLED') };
-  const kind = url.searchParams.get('kind'), cursor = url.searchParams.get('cursor') || '';
+  const kind = url.searchParams.get('kind'), cursor = url.searchParams.get('cursor') || '', sample = url.searchParams.get('sample');
   if (!['list', 'history'].includes(kind) || cursor.length > 2048 || /\s|[\x00-\x1f\x7f]/.test(cursor) ||
-      [...url.searchParams.keys()].some(k => !['kind', 'cursor'].includes(k) || url.searchParams.getAll(k).length > 1)) return { response: marketError(400, 'MARKET_INVALID_QUERY') };
-  return { market: true, kind, cursor };
+      [...url.searchParams.keys()].some(k => !['kind', 'cursor', 'sample'].includes(k) || url.searchParams.getAll(k).length > 1) ||
+      (sample !== null && (sample !== 'enchant-scroll' || kind !== 'list' || url.searchParams.has('cursor') ||
+        request.url.includes('#') || /%(?![a-f\d]{2})/i.test(request.url) || request.body || request.headers.has('transfer-encoding') ||
+        (request.headers.has('content-length') && request.headers.get('content-length') !== '0')))) return { response: marketError(400, 'MARKET_INVALID_QUERY') };
+  return { market: true, kind, cursor, ...(sample === null ? {} : { sample }) };
 }
 export { validateMarketPage };
+export { projectEnchantSample } from './market-enchant-sample.mjs';

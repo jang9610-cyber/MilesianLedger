@@ -1,5 +1,6 @@
 import { SCHEMA } from './market-schema.mjs';
 import { RETENTION } from './market-core.mjs';
+import { isUnnamedEnchantScroll } from './market-enchant.mjs';
 import { encodeChunks, decodeChunk, itemKey, addSafe, MAX_CHUNK_BYTES } from './market-chunks.mjs';
 
 const DAY = 86400_000;
@@ -91,7 +92,10 @@ export class MarketStore {
       return true;
     });
   }
-  publicationSignature() { return `${this.meta('history_published') || ''}|${this.meta('list_published') || ''}`; }
+  publicationSignature() {
+    const runs = `${this.meta('history_published') || ''}|${this.meta('list_published') || ''}`;
+    return runs === '|' ? runs : 'enchant-names-v1:' + runs;
+  }
   published(kind) {
     return this.one("SELECT * FROM market_v2_runs WHERE id=? AND state='complete'", this.meta(`${kind}_published`) || '');
   }
@@ -239,7 +243,7 @@ export class MarketStore {
       if (keys.size > MAX_SNAPSHOT_NAMES) throw Error('MARKET_SNAPSHOT_TOO_MANY_ITEMS');
       return [...keys].sort().map(key => {
         const trade = map.get(key), listing = stock.get(key), source = trade || listing;
-        const comparable = Math.min(trade?.comparable ?? 1, listing?.comparable ?? 1) === 1;
+        const comparable = !isUnnamedEnchantScroll(source.name) && Math.min(trade?.comparable ?? 1, listing?.comparable ?? 1) === 1;
         return { name: source.name, category: source.category, image_url: null,
           sold_quantity: trade ? trade.sold_quantity : 0, trade_count: trade ? trade.trade_count : 0,
           traded_gold: trade ? trade.traded_gold : 0,
@@ -250,14 +254,15 @@ export class MarketStore {
           price_comparable: comparable };
       });
     };
-    // Quotes deliberately retain the minimum of option-bearing lots, matching the
-    // existing barter quote semantics. Generic market rankings suppress that price.
+    // Unidentified scroll lots retain availability but cannot represent one enchant's
+    // price. This also guards already-stored chunks from before named ingestion.
     const quotesByName = new Map();
     for (const listing of stock.values()) {
-      if (!quotesByName.has(listing.name)) quotesByName.set(listing.name, { name: listing.name, unit_price: listing.min_price,
+      const price = isUnnamedEnchantScroll(listing.name) ? null : listing.min_price;
+      if (!quotesByName.has(listing.name)) quotesByName.set(listing.name, { name: listing.name, unit_price: price,
         listing_count: 0, quantity: 0, fetched_at: new Date(list.finished).toISOString() });
       const quote = quotesByName.get(listing.name);
-      quote.unit_price = Math.min(quote.unit_price, listing.min_price);
+      quote.unit_price = price === null || quote.unit_price === null ? null : Math.min(quote.unit_price, price);
       quote.listing_count = addSafe(quote.listing_count, listing.listing_count); quote.quantity = addSafe(quote.quantity, listing.listed_quantity);
     }
     return { schema_version: 1, generated_at: new Date(now).toISOString(),

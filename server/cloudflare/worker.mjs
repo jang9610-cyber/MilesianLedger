@@ -1,4 +1,4 @@
-import { marketFetch, marketScheduled, parseInternalMarket, validateMarketPage } from './market-worker.mjs';
+import { marketFetch, marketScheduled, parseInternalMarket, validateMarketPage, projectEnchantSample } from './market-worker.mjs';
 export { MarketCollector } from './market-worker.mjs';
 // Milesian Ledger auction proxy for Cloudflare Workers + one Durable Object.
 // Deploy the module bundle with Wrangler; market modules are included.
@@ -428,6 +428,7 @@ export class AuctionCoordinator {
     if (signal.aborted || Date.now() >= deadline) return error(503, 'PROXY_BUSY');
     const url = new URL(parsed.market ? 'https://open.api.nexon.com/mabinogi/v1/auction/' + parsed.kind : UPSTREAM_URL);
     if (!parsed.market) url.searchParams.set('item_name', parsed.canonicalName);
+    if (parsed.sample === 'enchant-scroll') url.searchParams.set('auction_item_category', '인챈트 스크롤');
     if (parsed.cursor) url.searchParams.set('cursor', parsed.cursor);
     const controller = new AbortController();
     let timedOut = false;
@@ -465,7 +466,9 @@ export class AuctionCoordinator {
       let body;
       try {
         body = parsed.market
-          ? validateMarketPage(await limitedJson(response, 8 * 1024 * 1024), parsed.kind)
+          ? parsed.sample === 'enchant-scroll'
+            ? projectEnchantSample(await limitedJson(response, 8 * 1024 * 1024))
+            : validateMarketPage(await limitedJson(response, 8 * 1024 * 1024), parsed.kind)
           : projectPage(await limitedJson(response), parsed.canonicalName, config.apiKey, parsed.itemName);
         if (parsed.market && JSON.stringify(body).includes(config.apiKey)) throw Error('Invalid response');
       } catch {

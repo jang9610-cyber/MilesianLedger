@@ -10,7 +10,7 @@ namespace MabinogiBarter
         public decimal? UnitPrice;
         public long Quantity;
         public int ListingCount;
-        public bool QuantityKnown, HasListing, PriceComparable;
+        public bool QuantityKnown, HasListing, PriceComparable, IsEnchantScroll, EnchantNameKnown;
         public DateTime? FetchedUtc;
     }
 
@@ -23,7 +23,15 @@ namespace MabinogiBarter
             public string Key;
             public MarketSearchEntry Entry;
             public bool HasQuote, HasMetadata;
+            public MarketSnapshotItem ListingMetadata;
         }
+
+        // Exact official base identities only. Bundles and random-rank products
+        // containing these words are different items, not unnamed scrolls.
+        static readonly HashSet<string> enchantScrollNames = new HashSet<string>(StringComparer.Ordinal) {
+            "인챈트 스크롤", "전용 인챈트 스크롤", "개방된 전용 인챈트 스크롤",
+            "인챈트 스크롤(판매 불가)", "8주년 전용 인챈트 스크롤", "시양양 한정 인챈트 스크롤"
+        };
 
         readonly Dictionary<string, IndexedEntry> byName = new Dictionary<string, IndexedEntry>(StringComparer.Ordinal);
         readonly Dictionary<string, List<IndexedEntry>> byMatch = new Dictionary<string, List<IndexedEntry>>(StringComparer.OrdinalIgnoreCase);
@@ -57,6 +65,7 @@ namespace MabinogiBarter
             }
             AddMetadata(data.Items24h, listingTime);
             AddMetadata(data.Items7d, listingTime);
+            foreach (IndexedEntry indexed in byName.Values) ResolveEnchantScroll(indexed);
             sorted.AddRange(byName.Values);
             sorted.Sort(delegate(IndexedEntry left, IndexedEntry right) {
                 return StringComparer.Ordinal.Compare(left.Entry.Name, right.Entry.Name);
@@ -133,7 +142,32 @@ namespace MabinogiBarter
                 // to compare. Its observed name minimum is still useful to show.
                 indexed.Entry.PriceComparable = indexed.HasMetadata
                     ? indexed.Entry.PriceComparable && item.PriceComparable : item.PriceComparable;
+                if (!indexed.HasMetadata) indexed.ListingMetadata = item;
                 indexed.HasMetadata = true;
+            }
+        }
+
+        static void ResolveEnchantScroll(IndexedEntry indexed)
+        {
+            MarketSearchEntry entry = indexed.Entry;
+            int separator = entry.Name.LastIndexOf(" · ", StringComparison.Ordinal);
+            bool named = separator > 0 && !String.IsNullOrWhiteSpace(entry.Name.Substring(0, separator))
+                && enchantScrollNames.Contains(entry.Name.Substring(separator + 3));
+            entry.IsEnchantScroll = enchantScrollNames.Contains(entry.Name) || named;
+            entry.EnchantNameKnown = named && entry.Category == "인챈트 스크롤" && entry.PriceComparable;
+            if (!entry.IsEnchantScroll || entry.EnchantNameKnown) return;
+
+            // Older snapshots merged every enchant under its base scroll name.
+            // Keep observed stock counts, but never present that mixed minimum.
+            entry.UnitPrice = null;
+            entry.HasListing = false;
+            entry.PriceComparable = false;
+            MarketSnapshotItem metadata = indexed.ListingMetadata;
+            if (!indexed.HasQuote && metadata != null) {
+                entry.ListingCount = metadata.ListingCount.HasValue
+                    ? (int)Math.Min(Int32.MaxValue, Math.Max(0L, metadata.ListingCount.Value)) : 0;
+                entry.Quantity = Math.Max(0L, metadata.ListedQuantity ?? 0);
+                entry.QuantityKnown = entry.FetchedUtc.HasValue && metadata.ListedQuantity.HasValue;
             }
         }
 
@@ -156,7 +190,8 @@ namespace MabinogiBarter
             return new MarketSearchEntry { Name = entry.Name, Category = entry.Category,
                 UnitPrice = entry.UnitPrice, Quantity = entry.Quantity, ListingCount = entry.ListingCount,
                 QuantityKnown = entry.QuantityKnown, HasListing = entry.HasListing,
-                PriceComparable = entry.PriceComparable, FetchedUtc = entry.FetchedUtc };
+                PriceComparable = entry.PriceComparable, IsEnchantScroll = entry.IsEnchantScroll,
+                EnchantNameKnown = entry.EnchantNameKnown, FetchedUtc = entry.FetchedUtc };
         }
     }
 }

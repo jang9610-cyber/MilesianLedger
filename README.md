@@ -65,7 +65,7 @@
 
 교역 시세는 **전체 시세 갱신** 또는 **구매품목만 갱신**을 눌렀을 때 공통 버전 manifest를 확인합니다. 같은 버전이면 재다운로드하지 않고, 새 버전이면 gzip 파일 하나의 크기·SHA-256·내용을 검증한 뒤 대상 재료에 반영합니다. 품목 수만큼 넥슨을 호출하지 않습니다. 앱 실행·체크·수량 변경·프리셋 선택으로 교역 시세를 자동 갱신하지 않습니다.
 
-시장 통계는 창을 열거나 **통계 갱신**을 눌렀을 때 같은 다운로드 기능을 사용합니다. PIP 경매장 검색은 **시세 받기·갱신** 버튼으로만 다운로드를 시작합니다. 검색·기간·정렬·페이지 변경은 로컬에서 처리합니다. 공통 데이터는 앱 폴더의 `data/market-snapshots/`에 서버별로 저장하고, 손상되거나 다운로드에 실패한 새 파일이 이전 검증본을 덮어쓰지 않게 합니다. 버전이 바뀐 경우에는 전체 압축 집계본을 받으며 바이트 단위 차분 파일을 적용하는 방식은 아닙니다.
+시장 통계와 수수료·분배는 메인 앱 안에서 전환하는 화면입니다. 페이지를 열 때는 저장된 시세를 읽고, **통계 갱신** 또는 **시세 갱신** 버튼을 눌렀을 때 공통 데이터를 내려받습니다. PIP 경매장 검색은 **시세 받기·갱신** 버튼으로만 다운로드를 시작합니다. 검색·기간·정렬·페이지 변경은 로컬에서 처리합니다. 공통 데이터는 앱 폴더의 `data/market-snapshots/`에 서버별로 저장하고, 손상되거나 다운로드에 실패한 새 파일이 이전 검증본을 덮어쓰지 않게 합니다. 버전이 바뀐 경우에는 전체 압축 집계본을 받으며 바이트 단위 차분 파일을 적용하는 방식은 아닙니다.
 
 기존 공개 베타는 품목별 조회 경로를 사용합니다. Worker에서 `SHARED_MARKET_QUOTES_ENABLED=true`로 전환하면 이 경로도 완료한 공통 게시본을 읽고 추가 넥슨 요청을 하지 않습니다. 전환 전의 기존 프록시 동작과 새 앱의 공통 다운로드 동작은 구분합니다. [서버 운영 변수](server/cloudflare/README.md#운영-변수)를 참고하세요.
 
@@ -110,6 +110,10 @@ node --test "server/cloudflare/*.test.mjs"
 # 공통 다운로드·로컬 재사용과 시장 화면 검증
 powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\test-market-snapshot.ps1
 powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\test-market-ui.ps1
+
+# 앱 내 페이지 전환·정산 입력 유지·기본 및 최소 창 크기 검증
+powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\test-workspace-ui.ps1
+powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\test-auction-settlement-ui.ps1
 
 # Node.js 참고 구현의 오프라인 검증
 powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\test-server.ps1

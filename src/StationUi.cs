@@ -31,7 +31,7 @@ namespace MabinogiBarter
 
         public void ShowStationHub()
         {
-            AppMotion.Transition(content, delegate { delayedRefresh.Stop(); summaryView = false; stationOverview = true; RenderAll(); });
+            AppMotion.Transition(content, delegate { delayedRefresh.Stop(); workspacePage = WorkspacePage.Trade; summaryView = false; stationOverview = true; RenderAll(); });
         }
 
         void UpdateStationValues()

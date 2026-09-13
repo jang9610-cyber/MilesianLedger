@@ -14,7 +14,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Threading;
 using MabinogiBarter;
 
-// Standalone, offscreen WPF windows with memory-only market fixtures and a
+// Embedded views in standalone, offscreen WPF hosts with memory-only fixtures and a
 // substituted image sink. No MainWindow, provider, player files, or clipboard.
 public static class AuctionSettlementUiVerificationRunner
 {
@@ -25,9 +25,9 @@ public static class AuctionSettlementUiVerificationRunner
     const string DedicatedEnchant = "템포 (접미 / 랭크 6) · 전용 인챈트 스크롤";
     const string ManualGross = "100,000,000.00";
     static readonly int[] Coupons = { 10, 20, 30, 50, 100 };
-    static readonly List<AuctionSettlementWindow> windows = new List<AuctionSettlementWindow>();
+    static readonly Dictionary<AuctionSettlementView, Window> windows = new Dictionary<AuctionSettlementView, Window>();
     static readonly List<string> reports = new List<string>();
-    static AuctionSettlementWindow current;
+    static AuctionSettlementView current;
     static BitmapSource copiedImage;
     static string output;
     static int assertions, cacheReads, refreshCalls, copyCalls;
@@ -65,35 +65,46 @@ public static class AuctionSettlementUiVerificationRunner
         Add(data, "인챈트 스크롤", "인챈트 스크롤", false, 99m, 100m, 101m);
         return data;
     }
-    static AuctionSettlementWindow NewWindow()
+    static AuctionSettlementView NewWindow()
     {
-        var window = new AuctionSettlementWindow { WindowStartupLocation = WindowStartupLocation.Manual,
+        var view = new AuctionSettlementView();
+        var host = new Window { Content = view, Width = 1140, Height = 830, WindowStyle = WindowStyle.None,
+            ResizeMode = ResizeMode.NoResize, WindowStartupLocation = WindowStartupLocation.Manual,
             Left = -18000, Top = -18000, ShowActivated = false, ShowInTaskbar = false };
-        window.ImageCopier = delegate(BitmapSource image) { copyCalls++; copiedImage = image; };
-        windows.Add(window); current = window; window.Show(); Pump();
-        Check(window.Left < -10000 && !window.IsActive, "Verification window became visible or active");
-        return window;
+        host.Closed += delegate { view.Dispose(); };
+        view.ImageCopier = delegate(BitmapSource image) { copyCalls++; copiedImage = image; };
+        windows.Add(view, host); current = view; host.Show(); Pump();
+        Check(host.Left < -10000 && !host.IsActive, "Verification host became visible or active");
+        Resize(view, 1140, 830);
+        return view;
     }
-    static AuctionSettlementScenario Row(AuctionSettlementWindow window, int discount)
+    static void CloseWindow(AuctionSettlementView view) { windows[view].Close(); Pump(); }
+    static void Resize(AuctionSettlementView view, double width, double height)
+    {
+        var host = windows[view]; host.Width = width; host.Height = height; PumpFor(60); view.UpdateLayout();
+        Check(Math.Abs(view.ActualWidth - width) <= 1 && Math.Abs(view.ActualHeight - height) <= 1,
+            "Host did not give the embedded view the requested content size: " + view.ActualWidth + " x " + view.ActualHeight);
+    }
+    static AuctionSettlementScenario Row(AuctionSettlementView window, int discount)
     {
         Check(window.CurrentReport != null, "No current calculation report");
         return window.CurrentReport.Scenarios.Single(s => s.DiscountPercent == discount);
     }
-    static void SetSale(AuctionSettlementWindow window, string gross)
+    static void SetSale(AuctionSettlementView window, string gross)
     {
         window.GrossInput.Text = gross; window.PeopleInput.Text = "4"; window.ExtraCostInput.Text = "0"; Pump();
     }
-    static void SameSale(AuctionSettlementWindow window, string operation)
+    static void SameSale(AuctionSettlementView window, string operation)
     {
         Check(window.GrossInput.Text == ManualGross && window.PeopleInput.Text == "4" && window.ExtraCostInput.Text == "0", operation + " changed a manual sale input");
     }
-    static void Query(AuctionSettlementWindow window, string query, string expected)
+    static void Query(AuctionSettlementView window, string query, string expected)
     {
         window.MarketPanel.ItemNameInput.Text = query; PumpFor(180);
         Wait(delegate { return !window.MarketPanel.IsBusy && (Text(window.MarketPanel.ResultsPanel) + Text(window.MarketPanel.ReferencePanel)).Contains(expected); }, "search " + query);
         SameSale(window, "Name search");
     }
-    static void VerifySearch(AuctionSettlementWindow window)
+    static void VerifySearch(AuctionSettlementView window)
     {
         Query(window, Material, Material);
         string reference = Text(window.MarketPanel.ReferencePanel);
@@ -125,7 +136,7 @@ public static class AuctionSettlementUiVerificationRunner
         Query(window, Enchant, Enchant);
         Pass("exact/free-form names, separate enchant forms and immediate stale-reference clearing; authoritative minima/24h/7d averages; ambiguous and equipment averages withheld; no implicit refresh or sale edits");
     }
-    static void VerifyExpected(AuctionSettlementWindow window, bool premium)
+    static void VerifyExpected(AuctionSettlementView window, bool premium)
     {
         window.PremiumControl.IsChecked = premium; Pump();
         decimal[] fees = premium ? new[] { 4000000m, 3600000m, 3200000m, 2800000m, 2000000m, 0m } : new[] { 5000000m, 4500000m, 4000000m, 3500000m, 2500000m, 0m };
@@ -138,20 +149,25 @@ public static class AuctionSettlementUiVerificationRunner
         Check(window.CurrentReport.BestScenario.DiscountPercent == 10, "Coupon cost comparison lost the optimal 10% coupon");
         SameSale(window, "Premium toggle");
     }
-    static void VerifyImagesAndLayout(AuctionSettlementWindow window)
+    static void VerifyImagesAndLayout(AuctionSettlementView window)
     {
         Check(window.SelectedDiscount == 0 && window.CurrentReport.BestScenario.DiscountPercent == 10, "Recommendation automatically selected a coupon");
-        window.Width = 1080; PumpFor(60); VerifyWidth(window);
-        CaptureWindow(window, "settlement-default-light-top.png");
-        window.BodyScroll.ScrollToEnd(); Pump(); CaptureWindow(window, "settlement-default-light-comparison.png");
-        window.Width = 780;
         foreach (bool dark in new[] { false, true }) {
             AppTheme.SetDark(dark); Pump();
+            VerifyExpected(window, false); Click(window.CouponSelectButton(0));
+            foreach (double width in new[] { 1140d, 1100d }) {
+                Resize(window, width, 830);
+                window.InputScroll.ScrollToTop(); window.BodyScroll.ScrollToTop(); Pump();
+                VerifyDefaultLayout(window);
+                CaptureWindow(window, "settlement-default-" + (width == 1100 ? "1100-" : "") + (dark ? "dark" : "light") + ".png");
+            }
+            Resize(window, 830, 650);
             foreach (bool premium in new[] { false, true }) {
                 VerifyExpected(window, premium); Click(window.CouponSelectButton(0));
                 string label = "settlement-minimum-" + (premium ? "premium" : "standard") + "-" + (dark ? "dark" : "light");
-                window.BodyScroll.ScrollToTop(); PumpFor(60); VerifyWidth(window); CaptureWindow(window, label + "-top.png");
-                window.BodyScroll.ScrollToEnd(); Pump(); VerifyWidth(window); CaptureWindow(window, label + "-comparison.png");
+                window.InputScroll.ScrollToTop(); window.BodyScroll.ScrollToTop(); PumpFor(60); VerifyWidth(window); CaptureWindow(window, label + "-top.png");
+                window.InputScroll.ScrollToEnd(); window.BodyScroll.ScrollToEnd(); Pump(); VerifyWidth(window); CaptureWindow(window, label + "-comparison.png");
+                VerifyMinimumReachability(window);
                 CopyImage(window, label + "-report.png");
                 Check(window.SelectedDiscount == 0, "Rendering or copying selected the recommendation automatically");
             }
@@ -164,9 +180,9 @@ public static class AuctionSettlementUiVerificationRunner
         CopyImage(window, "settlement-selected-10-premium.png");
         window.PremiumControl.IsChecked = false; Click(window.CouponSelectButton(0));
         Check(refreshCalls == 0, "Layout, premium, coupon selection, or image operations refreshed the market");
-        Pass("100m standard/premium six-row calculations, explicit coupon selection, 780px light/dark layout and 960-DIP report images at 144 DPI; copying uses the injected image sink only");
+        Pass("100m standard/premium six-row calculations and explicit coupon selection; 1140x830 and 1100x830 light/dark embedded views show all inputs, selected summary and six compact coupon rows without scrolling; 830x650 views remain horizontally unclipped with reachable internal scrolling; 960-DIP report images at 144 DPI use the injected image sink only");
     }
-    static void VerifyRefreshAndManualPrices(AuctionSettlementWindow window, Action<TaskCompletionSource<MarketSnapshotResult>> setPending)
+    static void VerifyRefreshAndManualPrices(AuctionSettlementView window, Action<TaskCompletionSource<MarketSnapshotResult>> setPending)
     {
         window.CouponPriceInput(10).Text = "0"; window.CouponPriceInput(20).Text = "123456"; window.CouponPriceInput(100).Clear();
         Click(window.CouponSelectButton(10));
@@ -190,7 +206,7 @@ public static class AuctionSettlementUiVerificationRunner
         SameSale(window, "Failed refresh");
         Pass("explicit refresh pending/success/failure retains sale inputs, selected coupon, manual/free/unknown prices and the last successful market snapshot");
     }
-    static void VerifyCouponMarket(AuctionSettlementWindow window, MarketSnapshotData snapshot)
+    static void VerifyCouponMarket(AuctionSettlementView window, MarketSnapshotData snapshot)
     {
         foreach (int discount in Coupons) {
             var quote = snapshot.Quotes["경매장 수수료 " + discount + "% 할인 쿠폰"];
@@ -210,7 +226,7 @@ public static class AuctionSettlementUiVerificationRunner
     {
         return Math.Abs(left.R - right.R) + Math.Abs(left.G - right.G) + Math.Abs(left.B - right.B);
     }
-    static void VerifyRecommendation(AuctionSettlementWindow window, int discount)
+    static void VerifyRecommendation(AuctionSettlementView window, int discount)
     {
         Pump(); Check(window.CurrentReport != null && window.CurrentReport.BestScenario.DiscountPercent == discount, "Recommendation did not change to coupon " + discount);
         Check(window.SelectedDiscount == 0, "Recommending a different coupon changed the actual no-coupon selection");
@@ -250,8 +266,9 @@ public static class AuctionSettlementUiVerificationRunner
         Check(Row(window, 10).CouponPrice == 210123m && Row(window, 20).CouponPrice == 800456m && Row(window, 100).CouponPrice == 22333444m, "Coupon defaults are screenshot constants rather than snapshot values");
         VerifyRecommendation(window, 10);
         foreach (bool dark in new[] { false, true }) {
-            AppTheme.SetDark(dark); Pump(); window.Width = 780;
-            window.CouponCard(10).BringIntoView(); Pump(); VerifyRecommendation(window, 10); VerifyWidth(window);
+            AppTheme.SetDark(dark); Pump(); Resize(window, 1140, 830);
+            window.InputScroll.ScrollToTop(); window.BodyScroll.ScrollToTop(); Pump();
+            VerifyRecommendation(window, 10); VerifyDefaultLayout(window);
             CaptureWindow(window, "settlement-coupon-recommendation-" + (dark ? "dark" : "light") + ".png");
         }
         AppTheme.SetDark(false); Pump();
@@ -295,10 +312,10 @@ public static class AuctionSettlementUiVerificationRunner
             && window.CouponMarketText(10).Text.Contains("미확인") && !window.CouponMarketText(10).Text.Contains("123,987 G"), "Missing automatic coupon retained an old price or recommendation eligibility");
         VerifyRecommendation(window, 20); SameSale(window, "Missing automatic coupon quote");
         Check(explicitCalls == 3 && refreshCalls == before + 3, "Coupon editing, recommendation, or following an already cached price fetched extra data");
-        window.Close(); Pump(); current = null;
+        CloseWindow(window); current = null;
         Pass("different market fixture values and collection times stay visible behind manual/free costs; follow-market mode survives refresh; green recommendation moves with coupon/premium/sale inputs without changing selection or including unknown costs");
     }
-    static void VerifyInvalidAndRemainder(AuctionSettlementWindow window)
+    static void VerifyInvalidAndRemainder(AuctionSettlementView window)
     {
         Click(window.CouponSelectButton(0)); SetSale(window, "101");
         var row = Row(window, 0);
@@ -324,7 +341,7 @@ public static class AuctionSettlementUiVerificationRunner
         CopyImage(window, "settlement-long-freeform-name.png");
         Pass("invalid amounts/people clear the report and disable guarded copying; unknown selected coupon stays unresolved; fractional remainder, loss and long free-form-name report images");
     }
-    static void InvalidReport(AuctionSettlementWindow window, string reason)
+    static void InvalidReport(AuctionSettlementView window, string reason)
     {
         Pump(); Check(window.CurrentReport == null && !window.CopyImageButton.IsEnabled, "Invalid input retained a report or enabled copying: " + reason);
         Check(!window.RecommendationText.IsVisible, "Invalid input retained a visible recommendation: " + reason);
@@ -341,7 +358,7 @@ public static class AuctionSettlementUiVerificationRunner
         SetSale(unavailable, "100"); unavailable.MarketPanel.ItemNameInput.Text = "자유 입력 이름"; PumpFor(180);
         Check(!unavailable.MarketPanel.RefreshButton.IsEnabled && !unavailable.MarketPanel.IsBusy && Text(unavailable.MarketPanel).Contains("검증용 시세 연결 없음"), "Missing provider still permits market fetching");
         Check(unavailable.CurrentReport != null && unavailable.CopyImageButton.IsEnabled && Row(unavailable, 10).Fee == 4.5m && !Row(unavailable, 10).IsKnown, "No-provider state prevents manual no-coupon settlement or treats unknown coupons as free");
-        CopyImage(unavailable, "settlement-no-provider.png"); unavailable.Close(); Pump();
+        CopyImage(unavailable, "settlement-no-provider.png"); CloseWindow(unavailable);
         var closing = NewWindow(); var completion = new TaskCompletionSource<MarketSnapshotResult>(); CancellationToken token = CancellationToken.None;
         closing.MarketPanel.Configure(delegate { return Fixture("close", false); }, delegate(CancellationToken pending) {
             refreshCalls++; token = pending; pending.Register(delegate { completion.TrySetCanceled(); }); return completion.Task;
@@ -349,11 +366,11 @@ public static class AuctionSettlementUiVerificationRunner
         Wait(delegate { return !closing.MarketPanel.IsBusy && closing.MarketPanel.Snapshot != null; }, "close fixture cache");
         SetSale(closing, "100"); Click(closing.MarketPanel.RefreshButton);
         Check(closing.MarketPanel.IsBusy && token.CanBeCanceled, "Pending refresh has no cancellation token");
-        closing.Close(); Pump();
-        Check(token.IsCancellationRequested, "Closing the settlement window did not cancel refresh");
+        CloseWindow(closing);
+        Check(token.IsCancellationRequested, "Disposing the embedded settlement view on host close did not cancel refresh");
         Wait(delegate { return completion.Task.IsCanceled; }, "closed refresh cancellation");
         current = null;
-        Pass("missing provider leaves manual calculations available; closing cancels the injected pending refresh without later UI mutation");
+        Pass("missing provider leaves manual calculations available; host close disposes the embedded view and cancels the injected pending refresh without later UI mutation");
     }
     static void Run()
     {
@@ -390,19 +407,87 @@ public static class AuctionSettlementUiVerificationRunner
     {
         var clock = Stopwatch.StartNew(); while (!condition()) { if (clock.ElapsedMilliseconds > 6000) throw new Exception("Timed out: " + reason); Pump(); Thread.Sleep(5); } Pump();
     }
-    static void VerifyWidth(AuctionSettlementWindow window)
+    static void VerifyWidth(AuctionSettlementView window)
     {
-        window.UpdateLayout(); var root = (FrameworkElement)window.Content;
-        var controls = new List<FrameworkElement> { window.MarketPanel.ItemNameInput, window.MarketPanel.RefreshButton,
-            window.GrossInput, window.PeopleInput, window.ExtraCostInput, window.CopyImageButton };
-        foreach (int discount in Coupons) { controls.Add(window.CouponPriceInput(discount)); controls.Add(window.CouponSelectButton(discount)); }
-        foreach (var control in controls) {
-            var bounds = control.TransformToAncestor(root).TransformBounds(new Rect(0, 0, control.ActualWidth, control.ActualHeight));
-            Check(control.ActualWidth > 10 && control.ActualHeight > 0 && bounds.Left >= -1 && bounds.Right <= root.ActualWidth + 1, "Input or action clips at 780px: " + control.GetType().Name + " " + bounds);
+        window.UpdateLayout();
+        foreach (var control in LayoutControls(window)) {
+            var bounds = Bounds(control, window);
+            Check(control.ActualWidth > 10 && control.ActualHeight > 0 && bounds.Left >= -1 && bounds.Right <= window.ActualWidth + 1,
+                "Embedded input, action or coupon clips horizontally at " + window.ActualWidth + "px: " + control.GetType().Name + " " + bounds);
+            foreach (var viewport in AncestorViewports(control, window)) {
+                var clipped = Bounds(control, viewport);
+                Check(clipped.Left >= -1 && clipped.Right <= viewport.ActualWidth + 1,
+                    "An inner viewport clips a control horizontally: " + control.GetType().Name + " " + clipped);
+            }
         }
-        Check(window.BodyScroll.ViewportHeight > 100 && window.BodyScroll.ScrollableHeight > 0, "Comparison cards have no usable vertical scrolling area");
+        foreach (var scroll in new[] { window.InputScroll, window.BodyScroll })
+            Check(scroll.ViewportHeight > 100 && scroll.ViewportWidth > 100 && scroll.ScrollableWidth <= 1,
+                "Embedded columns need usable vertical viewports without horizontal scrolling");
     }
-    static void CopyImage(AuctionSettlementWindow window, string filename)
+    static List<FrameworkElement> LayoutControls(AuctionSettlementView window)
+    {
+        var controls = new List<FrameworkElement> { window.MarketPanel.ItemNameInput, window.MarketPanel.RefreshButton,
+            window.GrossInput, window.PeopleInput, window.ExtraCostInput, window.PremiumControl,
+            window.CopyImageButton, window.RecommendationText, SelectedSummary(window) };
+        foreach (int discount in new[] { 0, 10, 20, 30, 50, 100 }) {
+            controls.Add(window.CouponCard(discount)); controls.Add(window.CouponSelectButton(discount));
+            if (discount == 0) continue;
+            controls.Add(window.CouponPriceInput(discount)); controls.Add(window.CouponMarketButton(discount));
+            controls.Add(window.CouponMarketText(discount)); controls.Add(window.CouponSourceText(discount));
+        }
+        return controls;
+    }
+    static TextBlock SelectedSummary(AuctionSettlementView window)
+    {
+        var summaries = Elements<TextBlock>(window).Where(t => t.Text.Contains("명 분배") && t.Text.Contains("1인당")).ToList();
+        Check(summaries.Count == 1, "Selected settlement summary is missing or duplicated");
+        return summaries[0];
+    }
+    static Rect Bounds(FrameworkElement control, FrameworkElement ancestor)
+    {
+        return control.TransformToAncestor(ancestor).TransformBounds(new Rect(0, 0, control.ActualWidth, control.ActualHeight));
+    }
+    static IEnumerable<FrameworkElement> AncestorViewports(FrameworkElement control, AuctionSettlementView window)
+    {
+        for (DependencyObject parent = VisualTreeHelper.GetParent(control); parent != null && parent != window; parent = VisualTreeHelper.GetParent(parent)) {
+            var viewport = parent as ScrollContentPresenter; if (viewport != null) yield return viewport;
+        }
+    }
+    static void VerifyFullyVisible(AuctionSettlementView window, FrameworkElement control, string context)
+    {
+        var bounds = Bounds(control, window);
+        Check(control.IsVisible && control.ActualWidth > 10 && control.ActualHeight > 0
+            && bounds.Left >= -1 && bounds.Top >= -1 && bounds.Right <= window.ActualWidth + 1 && bounds.Bottom <= window.ActualHeight + 1,
+            context + " leaves a control outside the embedded view: " + control.GetType().Name + " " + bounds);
+        foreach (var viewport in AncestorViewports(control, window)) {
+            var clipped = Bounds(control, viewport);
+            Check(clipped.Left >= -1 && clipped.Top >= -1 && clipped.Right <= viewport.ActualWidth + 1 && clipped.Bottom <= viewport.ActualHeight + 1,
+                context + " leaves a control clipped inside its scroll viewport: " + control.GetType().Name + " " + clipped);
+        }
+    }
+    static void VerifyDefaultLayout(AuctionSettlementView window)
+    {
+        string size = window.ActualWidth + "x" + window.ActualHeight;
+        VerifyWidth(window);
+        Check(window.InputScroll.ScrollableHeight <= 1 && window.BodyScroll.ScrollableHeight <= 1,
+            "Default " + size + " embedded layout requires scrolling: inputs=" + window.InputScroll.ScrollableHeight + ", coupons=" + window.BodyScroll.ScrollableHeight);
+        foreach (var control in LayoutControls(window)) VerifyFullyVisible(window, control, "Default " + size + " layout");
+        var cards = new[] { 0, 10, 20, 30, 50, 100 }.Select(d => Bounds(window.CouponCard(d), window)).ToArray();
+        for (int i = 1; i < cards.Length; i++)
+            Check(cards[i].Top >= cards[i - 1].Bottom - 1 && Math.Abs(cards[i].Left - cards[0].Left) <= 2 && Math.Abs(cards[i].Right - cards[0].Right) <= 2,
+                "Coupon comparison is not six ordered compact rows in a single column: row " + i);
+        Check(Bounds(window.GrossInput, window).Right <= cards[0].Left,
+            "Manual inputs and coupon comparison do not occupy separate left/right columns");
+    }
+    static void VerifyMinimumReachability(AuctionSettlementView window)
+    {
+        foreach (var control in LayoutControls(window)) {
+            control.BringIntoView(); Pump(); window.UpdateLayout();
+            VerifyFullyVisible(window, control, "Minimum 830x650 scroll fallback");
+        }
+        VerifyWidth(window);
+    }
+    static void CopyImage(AuctionSettlementView window, string filename)
     {
         int before = copyCalls; copiedImage = null; Click(window.CopyImageButton);
         Check(copyCalls == before + 1 && copiedImage != null, "Image copy did not use the injected sink exactly once");
@@ -411,9 +496,9 @@ public static class AuctionSettlementUiVerificationRunner
         var direct = window.CreateReportImage();
         Check(direct != null && direct.PixelWidth == copiedImage.PixelWidth && direct.PixelHeight == copiedImage.PixelHeight, "Copy and direct report image sizes differ");
     }
-    static void CaptureWindow(AuctionSettlementWindow window, string filename)
+    static void CaptureWindow(AuctionSettlementView window, string filename)
     {
-        window.UpdateLayout(); var root = (FrameworkElement)window.Content;
+        window.UpdateLayout(); var root = (FrameworkElement)window;
         var bitmap = new RenderTargetBitmap((int)Math.Ceiling(root.ActualWidth), (int)Math.Ceiling(root.ActualHeight), 96, 96, PixelFormats.Pbgra32);
         var visual = new DrawingVisual();
         using (var drawing = visual.RenderOpen()) {
@@ -447,6 +532,6 @@ public static class AuctionSettlementUiVerificationRunner
             Console.Error.WriteLine(ex);
             if (current != null && current.IsLoaded) { Console.Error.WriteLine(Text(current)); try { CaptureWindow(current, "failure.png"); } catch { } }
             return 1;
-        } finally { foreach (var window in windows) if (window.IsLoaded) window.Close(); }
+        } finally { foreach (var host in windows.Values) if (host.IsLoaded) host.Close(); }
     }
 }

@@ -44,6 +44,7 @@ namespace MabinogiBarter
 
         void RenderSummary()
         {
+            if (workspacePage != WorkspacePage.Trade) return;
             procurementPresetButtons.Clear(); procurementPresetStatus = null;
             double offset = procurementSummaryScroll != null && procurementRenderedTab == summaryTab ? procurementSummaryScroll.VerticalOffset : 0;
             // State-changing actions refresh the plan before rendering. Tab and

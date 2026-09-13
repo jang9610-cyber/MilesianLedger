@@ -1,140 +1,282 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Globalization;
-using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Automation;
 using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
+using System.Windows.Data;
+using System.Windows.Input;
+using System.Windows.Markup;
+using System.Windows.Media;
 using System.Windows.Threading;
 
 namespace MabinogiBarter
 {
-    public sealed partial class MainWindow
+    public sealed class MarketStatisticsRow
     {
-        Window marketWindow;
-        void ShowMarketStatistics()
+        public MarketSnapshotItem Item { get; private set; }
+        public string Name { get { return Item.Name; } }
+        public string Category { get { return Item.Category; } }
+        public string SoldQuantityText { get { return Count(Item.SoldQuantity); } }
+        public string TradeCountText { get { return Count(Item.TradeCount); } }
+        public string TradedGoldText { get { return Price(Item.TradedGold); } }
+        public string AveragePriceText { get { return Item.PriceComparable ? Price(Item.AverageSalePrice) : "옵션 제외"; } }
+        public string LowestPriceText { get { return Item.PriceComparable ? Price(Item.LowestListingPrice) : "옵션 제외"; } }
+        public string ListedQuantityText { get { return Count(Item.ListedQuantity); } }
+        public string ListingCountText { get { return Count(Item.ListingCount); } }
+        public string Detail { get { return Name + " · " + Category + (Item.PriceComparable ? " · 평균은 수량 가중 단가입니다." : " · 옵션별 가격 차이로 단가 비교에서 제외합니다."); } }
+        public MarketStatisticsRow(MarketSnapshotItem item) { Item = item; }
+        static string Count(long? value) { return value.HasValue ? value.Value.ToString("N0", CultureInfo.InvariantCulture) : "—"; }
+        static string Price(decimal? value) { return value.HasValue ? value.Value.ToString("#,0.##", CultureInfo.InvariantCulture) : "—"; }
+    }
+
+    // Detaching a workspace page preserves its filters, selection and scroll.
+    // Only Dispose ends observation of the shared client's local publications.
+    public sealed class MarketStatisticsView : UserControl, IDisposable
+    {
+        sealed class PreparedSnapshot
         {
-            if (marketWindow != null) { marketWindow.Activate(); return; }
-            var window = new Window { Title = "밀레시안 장부 · 시장 통계", Owner = this,
-                Width = 1000, Height = 720, MinWidth = 760, MinHeight = 520,
-                WindowStartupLocation = WindowStartupLocation.CenterOwner, Background = AppTheme.Brush("#F4F6F5") };
-            marketWindow = window;
-            var cancel = new CancellationTokenSource();
-            var root = new Grid { Margin = new Thickness(24), Background = AppTheme.Brush("#F4F6F5") };
+            public MarketSnapshotData Data;
+            public List<MarketStatisticsRow> Day, Week;
+            public PreparedSnapshot(MarketSnapshotData data) { Data = data; Day = Rows(data.Items24h); Week = Rows(data.Items7d); }
+            static List<MarketStatisticsRow> Rows(List<MarketSnapshotItem> items) { return items == null ? new List<MarketStatisticsRow>() : items.Where(item => item != null && !String.IsNullOrEmpty(item.Name)).Select(item => new MarketStatisticsRow(item)).ToList(); }
+        }
+        readonly MarketSnapshotClient client;
+        readonly string unavailable;
+        readonly CancellationTokenSource lifetime = new CancellationTokenSource();
+        readonly DispatcherTimer searchDelay;
+        readonly TextBlock emptyText, selectionText;
+        PreparedSnapshot prepared;
+        Task<PreparedSnapshot> building;
+        MarketSnapshotData buildingData;
+        volatile bool disposed;
+        bool loadedOnce, busy;
+        int snapshotGeneration, renderGeneration;
+        string refreshMessage = "";
+        public TextBox SearchInput { get; private set; }
+        public ComboBox PeriodInput { get; private set; }
+        public ComboBox SortInput { get; private set; }
+        public Button RefreshButton { get; private set; }
+        public DataGrid Table { get; private set; }
+        public TextBlock StatusText { get; private set; }
+        public MarketSnapshotData Snapshot { get { return prepared == null ? null : prepared.Data; } }
+        public bool IsBusy { get { return busy; } }
+
+        public MarketStatisticsView(MarketSnapshotClient client, string unavailableMessage = null)
+        {
+            this.client = client;
+            unavailable = String.IsNullOrWhiteSpace(unavailableMessage) ? "시세 서버 연결이 설정되지 않았습니다." : unavailableMessage;
+            Background = Paint("#F4F6F5");
+            var root = new Grid { Background = Background };
             root.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
             root.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
             root.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
             root.RowDefinitions.Add(new RowDefinition());
-            root.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
-            window.Content = root;
-            var heading = new StackPanel();
-            heading.Children.Add(T("시장 통계", 26, Ink, true));
-            heading.Children.Add(T("서버가 모아둔 판매량과 매물 현황을 함께 확인하세요.", 13, Muted, false));
-            heading.Margin = new Thickness(0, 0, 0, 18); root.Children.Add(heading);
-            var controls = new WrapPanel { Margin = new Thickness(0, 0, 0, 12) };
-            Grid.SetRow(controls, 1); root.Children.Add(controls);
-            var period = new ComboBox { ItemsSource = new[] { "최근 24시간", "최근 7일" }, SelectedIndex = 0, MinWidth = 110, Margin = new Thickness(0, 0, 8, 0) };
-            var sort = new ComboBox { ItemsSource = new[] { "판매 수량순", "거래 건수순", "거래 금액순", "매물 수량순" }, SelectedIndex = 0, MinWidth = 120, Margin = new Thickness(0, 0, 8, 0) };
-            StyleStationCombo(period, "기간"); StyleStationCombo(sort, "정렬");
-            controls.Children.Add(period); controls.Children.Add(sort);
-            var search = new TextBox { Width = 180, FontSize = 14, Padding = new Thickness(8), Margin = new Thickness(0, 0, 8, 0), ToolTip = "아이템 이름으로 검색" };
-            controls.Children.Add(T("품목 이름  ", 13, Muted, false)); controls.Children.Add(search);
-            var status = T("공통 시장 데이터를 확인하는 중…", 12, Muted, false);
-            status.TextWrapping = TextWrapping.Wrap; status.Margin = new Thickness(0, 0, 0, 12); Grid.SetRow(status, 2); root.Children.Add(status);
-            var rows = new StackPanel();
-            var scroller = new ScrollViewer { Content = rows, VerticalScrollBarVisibility = ScrollBarVisibility.Auto, HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled };
-            Grid.SetRow(scroller, 3); root.Children.Add(scroller);
-            var bottom = new StackPanel(); Grid.SetRow(bottom, 4); root.Children.Add(bottom);
-            var paging = new StackPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(0, 10, 0, 10) }; bottom.Children.Add(paging);
-            bottom.Children.Add(T("검색·정렬·페이지 이동은 내려받은 데이터로 바로 적용합니다. 갱신 시 새 버전만 내려받습니다.\n수집 이전·장애 구간의 거래는 누락될 수 있습니다. 장비 등 옵션이 있는 품목은 단가 비교에서 제외합니다.", 11, Muted, false));
-            foreach (var child in bottom.Children) { var line = child as TextBlock; if (line != null) line.TextWrapping = TextWrapping.Wrap; }
-            int offset = 0; bool busy = false;
-            MarketSnapshotData snapshot = null;
-            string refreshMessage = "";
-            Button refresh = null, previous = null, next = null;
-            Action render = delegate {
-                if (cancel.IsCancellationRequested) return;
-                rows.Children.Clear();
-                if (snapshot == null) {
-                    status.Text = busy ? "공통 시장 데이터를 확인하는 중…" : refreshMessage;
-                    rows.Children.Add(T("아직 내려받은 공통 시장 데이터가 없습니다. 서버 수집이 완료되면 갱신해 주세요.", 15, Muted, false));
-                    previous.IsEnabled = next.IsEnabled = false; return;
-                }
-                var source = period.SelectedIndex == 1 ? snapshot.Items7d : snapshot.Items24h;
-                string query = search.Text.Trim();
-                var filtered = source.Where(item => item.Name.IndexOf(query, StringComparison.OrdinalIgnoreCase) >= 0);
-                IOrderedEnumerable<MarketSnapshotItem> ordered;
-                switch (sort.SelectedIndex) {
-                    case 1: ordered = filtered.OrderByDescending(item => item.TradeCount); break;
-                    case 2: ordered = filtered.OrderByDescending(item => item.TradedGold); break;
-                    case 3: ordered = filtered.OrderByDescending(item => item.ListedQuantity); break;
-                    default: ordered = filtered.OrderByDescending(item => item.SoldQuantity); break;
-                }
-                var matching = ordered.ThenBy(item => item.Name, StringComparer.CurrentCulture).ToList();
-                offset = Math.Min(offset, matching.Count == 0 ? 0 : (matching.Count - 1) / 50 * 50);
-                foreach (var item in matching.Skip(offset).Take(50)) {
-                    var panel = new StackPanel();
-                    panel.Children.Add(T("◇  " + item.Name + "   ·   " + item.Category, 16, Ink, true));
-                    panel.Children.Add(T("판매 " + MarketQuantity(item.SoldQuantity) + "개  ·  거래 " + MarketQuantity(item.TradeCount)
-                        + "건  ·  거래 금액 " + MarketPrice(item.TradedGold) + " G", 13, Green, true));
-                    string price = item.PriceComparable
-                        ? "평균 거래 단가 " + MarketPrice(item.AverageSalePrice) + " G  ·  최저 매물 단가 " + MarketPrice(item.LowestListingPrice) + " G"
-                        : "옵션별 가격 차이 · 단가 비교 제외";
-                    panel.Children.Add(T("현재 매물 " + MarketQuantity(item.ListedQuantity) + "개 (" + MarketQuantity(item.ListingCount) + "건)  ·  " + price, 12, Muted, false));
-                    foreach (var child in panel.Children) { var line = child as TextBlock; if (line != null) line.TextWrapping = TextWrapping.Wrap; }
-                    var card = Box(panel, AppTheme.Surface, 10, new Thickness(16)); card.Margin = new Thickness(0, 0, 8, 10); rows.Children.Add(card);
-                }
-                if (matching.Count == 0) rows.Children.Add(T("검색에 해당하는 품목이 없습니다.", 15, Muted, false));
-                var history = MarketValue(snapshot.Status, "history") as IDictionary<string, object>;
-                var listings = MarketValue(snapshot.Status, "listings") as IDictionary<string, object>;
-                status.Text = "공통 데이터 " + snapshot.GeneratedUtc.ToLocalTime().ToString("MM/dd HH:mm")
-                    + "  ·  거래 수집 " + MarketPublishedTime(history) + "  ·  매물 수집 " + MarketPublishedTime(listings)
-                    + "  ·  " + matching.Count.ToString("N0") + "종 · " + (offset / 50 + 1) + "페이지";
-                if (!String.IsNullOrEmpty(refreshMessage)) status.Text += "\n" + refreshMessage;
-                if (snapshot.GeneratedUtc < DateTime.UtcNow.AddHours(-2) || Equals(MarketValue(history, "stale"), true) || Equals(MarketValue(listings, "stale"), true))
-                    status.Text += "\n일부 수집 기록이 오래되었거나 아직 없습니다. 위 수집 시각을 확인하세요.";
-                if (MarketCount(snapshot.Status, "failed_runs_7d") > 0) status.Text += "\n최근 수집 실패 구간이 있어 통계에 누락이 있을 수 있습니다.";
-                if (MarketCount(snapshot.Status, "limited_runs_7d") > 0) status.Text += "\n페이지를 제한한 시범 수집 기록이 포함되어 있습니다. 전체 시장 통계가 아닙니다.";
-                previous.IsEnabled = offset > 0; next.IsEnabled = offset + 50 < matching.Count;
-            };
-            Func<Task> load = async delegate {
-                if (busy) return;
-                busy = true; refresh.IsEnabled = false; refreshMessage = "새 공통 데이터가 있는지 확인하는 중…"; render();
-                try {
-                    var config = AuctionProxyConfig.Load(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "data", "auction-proxy.json"));
-                    if (!config.IsConfigured) { refreshMessage = config.StatusMessage; return; }
-                    var result = await MarketSnapshotClient.ForBaseUri(config.BaseUri).RefreshAsync(cancel.Token);
-                    if (cancel.IsCancellationRequested) return;
-                    if (result.Data != null) snapshot = result.Data;
-                    refreshMessage = !String.IsNullOrEmpty(result.ErrorMessage)
-                        ? result.ErrorMessage + (snapshot == null ? "" : " 이전 공통 데이터를 유지합니다.")
-                        : result.Downloaded ? "새 공통 데이터를 내려받았습니다." : "최신 버전입니다. 추가 데이터 다운로드가 없습니다.";
-                } catch (OperationCanceledException) { }
-                catch { refreshMessage = "시장 데이터를 확인하지 못했습니다. 이전 결과가 있다면 그대로 유지합니다."; }
-                finally { busy = false; if (!cancel.IsCancellationRequested) { refresh.IsEnabled = true; render(); } }
-            };
-            refresh = Btn("통계 갱신", async delegate { await load(); }, true); controls.Children.Add(refresh);
-            previous = Btn("← 이전", delegate { offset = Math.Max(0, offset - 50); render(); scroller.ScrollToTop(); }, false);
-            next = Btn("다음 →", delegate { offset += 50; render(); scroller.ScrollToTop(); }, false); paging.Children.Add(previous); paging.Children.Add(next);
-            var searchDelay = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(150) };
-            Action filtersChanged = delegate { offset = 0; render(); scroller.ScrollToTop(); };
-            searchDelay.Tick += delegate { searchDelay.Stop(); filtersChanged(); };
-            period.SelectionChanged += delegate { filtersChanged(); };
-            sort.SelectionChanged += delegate { filtersChanged(); };
-            search.TextChanged += delegate { searchDelay.Stop(); searchDelay.Start(); };
-            window.Closed += delegate { searchDelay.Stop(); cancel.Cancel(); marketWindow = null; };
-            window.Loaded += async delegate { await load(); };
-            window.Show();
+            root.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto }); Content = root;
+            var heading = new StackPanel { Margin = new Thickness(0, 0, 0, 12) };
+            heading.Children.Add(Text("시장 통계", 25, "#202D35", true));
+            heading.Children.Add(Text("판매량과 매물 현황 · 단가와 거래 금액은 G 기준", 12, "#728087", false)); root.Children.Add(heading);
+            var filters = new Grid { Margin = new Thickness(0, 0, 0, 8) };
+            filters.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto }); filters.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+            filters.ColumnDefinitions.Add(new ColumnDefinition()); filters.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+            PeriodInput = Combo(new[] { "최근 24시간", "최근 7일" }, 108); PeriodInput.Margin = new Thickness(0, 0, 7, 0);
+            SortInput = Combo(new[] { "판매 수량순", "거래 건수순", "거래 금액순", "매물 수량순" }, 120); SortInput.Margin = new Thickness(0, 0, 7, 0);
+            Grid.SetColumn(SortInput, 1); filters.Children.Add(PeriodInput); filters.Children.Add(SortInput);
+            var search = new Grid { Margin = new Thickness(0, 0, 7, 0), MinWidth = 90 };
+            SearchInput = new TextBox { FontSize = 13, MinHeight = 34, Padding = new Thickness(8, 5, 8, 5), MaxLength = 200,
+                Background = AppTheme.Surface, Foreground = Paint("#202D35"), BorderBrush = Paint("#DCE5DF"), BorderThickness = new Thickness(1),
+                CaretBrush = Paint("#202D35"), VerticalContentAlignment = VerticalAlignment.Center };
+            var hint = Text("아이템 이름 검색", 12, "#728087", false); hint.Margin = new Thickness(9, 0, 0, 0); hint.VerticalAlignment = VerticalAlignment.Center; hint.IsHitTestVisible = false;
+            search.Children.Add(SearchInput); search.Children.Add(hint); Grid.SetColumn(search, 2); filters.Children.Add(search);
+            RefreshButton = RefreshControl(); RefreshButton.IsEnabled = client != null;
+            RefreshButton.ToolTip = "서버의 공통 게시본을 받습니다. 검색과 화면 전환은 경매장 조회를 시작하지 않습니다.";
+            Grid.SetColumn(RefreshButton, 3); filters.Children.Add(RefreshButton); Grid.SetRow(filters, 1); root.Children.Add(filters);
+            AutomationProperties.SetName(SearchInput, "시장 통계 품목 검색"); AutomationProperties.SetName(PeriodInput, "시장 통계 기간");
+            AutomationProperties.SetName(SortInput, "시장 통계 정렬"); AutomationProperties.SetName(RefreshButton, "시장 통계 갱신");
+            StatusText = Text("", 11, "#728087", false); StatusText.Margin = new Thickness(0, 0, 0, 8); Grid.SetRow(StatusText, 2); root.Children.Add(StatusText);
+            var tableHost = new Grid(); Table = CreateTable(); tableHost.Children.Add(Table);
+            emptyText = Text("", 14, "#728087", false); emptyText.Margin = new Thickness(20, 40, 20, 20);
+            emptyText.VerticalAlignment = VerticalAlignment.Center; emptyText.HorizontalAlignment = HorizontalAlignment.Center; emptyText.IsHitTestVisible = false;
+            tableHost.Children.Add(emptyText); Grid.SetRow(tableHost, 3); root.Children.Add(tableHost);
+            var footer = new StackPanel { Margin = new Thickness(0, 8, 0, 0) };
+            selectionText = Text("품목을 선택하면 분류와 가격 비교 기준을 확인할 수 있습니다.", 11, "#728087", false); footer.Children.Add(selectionText);
+            footer.Children.Add(Text("완료된 수집 구간만 집계합니다. 수집 이전·장애 구간은 누락될 수 있으며 옵션이 있는 장비의 단가는 비교하지 않습니다.", 10, "#728087", false)); Grid.SetRow(footer, 4); root.Children.Add(footer);
+            searchDelay = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(150) }; searchDelay.Tick += SearchElapsed;
+            SearchInput.TextChanged += delegate { if (disposed) return; hint.Visibility = SearchInput.Text.Length == 0 ? Visibility.Visible : Visibility.Collapsed; searchDelay.Stop(); searchDelay.Start(); };
+            SearchInput.KeyDown += delegate(object sender, KeyEventArgs e) { if (e.Key == Key.Enter) { e.Handled = true; searchDelay.Stop(); Render(false); } };
+            PeriodInput.SelectionChanged += FilterChanged; SortInput.SelectionChanged += FilterChanged;
+            Table.SelectionChanged += delegate { var row = Table.SelectedItem as MarketStatisticsRow; selectionText.Text = row == null ? "품목을 선택하면 분류와 가격 비교 기준을 확인할 수 있습니다." : row.Detail; };
+            RefreshButton.Click += RefreshClicked; Loaded += ViewLoaded;
+            if (client != null) client.SnapshotPublished += SharedPublished;
+            Render(false);
         }
-        static object MarketValue(IDictionary<string, object> data, string key) { object value; return data != null && data.TryGetValue(key, out value) ? value : null; }
-        static string MarketQuantity(long? value) { return value.HasValue ? value.Value.ToString("N0") : "—"; }
-        static string MarketPrice(decimal? value) { return value.HasValue ? value.Value.ToString("N0") : "—"; }
-        static long MarketCount(IDictionary<string, object> data, string key) { long value; return Int64.TryParse(Convert.ToString(MarketValue(data, key), CultureInfo.InvariantCulture), out value) ? value : 0; }
-        static string MarketPublishedTime(IDictionary<string, object> state) {
-            var published = MarketValue(state, "published") as IDictionary<string, object>; DateTimeOffset time;
-            return DateTimeOffset.TryParse(Convert.ToString(MarketValue(published, "finished_at")), out time) ? time.ToLocalTime().ToString("MM/dd HH:mm") : "대기 중";
+
+        async void ViewLoaded(object sender, RoutedEventArgs e)
+        {
+            if (disposed || loadedOnce) return; loadedOnce = true; if (client == null) return;
+            int generation = snapshotGeneration; SetBusy(true);
+            try { var data = await Task.Run(() => client.ReadCachedData(), lifetime.Token); if (!disposed && generation == snapshotGeneration) await ApplyData(data); }
+            catch (OperationCanceledException) { }
+            catch { if (!disposed && generation == snapshotGeneration) refreshMessage = "저장된 시세를 읽지 못했습니다. 통계 갱신으로 다시 확인하세요."; }
+            finally { if (!disposed) { SetBusy(false); UpdateStatus(Table.Items.Count); } }
+        }
+        async void RefreshClicked(object sender, RoutedEventArgs e)
+        {
+            if (disposed || busy || client == null) return;
+            loadedOnce = true; SetBusy(true); refreshMessage = "새 공통 데이터를 확인하는 중…"; UpdateStatus(Table.Items.Count);
+            try {
+                var result = await client.RefreshAsync(lifetime.Token); if (disposed) return; if (result == null) throw new InvalidOperationException();
+                bool failed = !String.IsNullOrWhiteSpace(result.ErrorMessage);
+                if (result.Data != null && (!failed || prepared == null) && Object.ReferenceEquals(client.CachedData, result.Data)) await ApplyData(result.Data);
+                if (disposed) return;
+                refreshMessage = failed ? result.ErrorMessage + (prepared == null ? "" : " 이전 공통 데이터를 유지합니다.") : result.Downloaded ? "새 공통 데이터를 내려받았습니다." : "최신 버전입니다. 추가 다운로드가 없습니다.";
+            } catch (OperationCanceledException) { }
+            catch { if (!disposed) refreshMessage = "시장 데이터를 확인하지 못했습니다. 이전 공통 데이터를 유지합니다."; }
+            finally { if (!disposed) { SetBusy(false); UpdateStatus(Table.Items.Count); } }
+        }
+        void SharedPublished(MarketSnapshotData data)
+        {
+            if (disposed || Dispatcher.HasShutdownStarted || Dispatcher.HasShutdownFinished) return;
+            try { Dispatcher.BeginInvoke(new Action(async delegate {
+                if (disposed || !Object.ReferenceEquals(client.CachedData, data)) return;
+                try { await ApplyData(data); }
+                catch { if (!disposed) { refreshMessage = "새 시세를 표시하지 못해 이전 결과를 유지합니다."; UpdateStatus(Table.Items.Count); } }
+            })); } catch (InvalidOperationException) { }
+        }
+        async Task ApplyData(MarketSnapshotData data)
+        {
+            if (disposed || data == null || Object.ReferenceEquals(Snapshot, data)) return;
+            int generation; Task<PreparedSnapshot> work;
+            if (Object.ReferenceEquals(buildingData, data) && building != null) { work = building; generation = snapshotGeneration; }
+            else { generation = ++snapshotGeneration; buildingData = data; work = building = Task.Run(() => new PreparedSnapshot(data), lifetime.Token); }
+            try {
+                var next = await work; if (disposed || generation != snapshotGeneration || Object.ReferenceEquals(Snapshot, data)) return;
+                prepared = next; refreshMessage = ""; Render(true);
+            } catch { if (!disposed && generation == snapshotGeneration) throw; }
+            finally { if (generation == snapshotGeneration && Object.ReferenceEquals(building, work)) { building = null; buildingData = null; } }
+        }
+        void SetBusy(bool value) { busy = value; RefreshButton.IsEnabled = !value && client != null; RefreshButton.Content = value ? "확인 중…" : "통계 갱신"; }
+        void SearchElapsed(object sender, EventArgs e) { searchDelay.Stop(); Render(false); }
+        void FilterChanged(object sender, SelectionChangedEventArgs e) { searchDelay.Stop(); Render(false); }
+        void Render(bool preservePosition)
+        {
+            if (disposed) return; int generation = ++renderGeneration;
+            var selected = Table.SelectedItem as MarketStatisticsRow;
+            var scroller = FindScroll(Table); double offset = preservePosition && scroller != null ? scroller.VerticalOffset : 0;
+            var rows = prepared == null ? new List<MarketStatisticsRow>() : PeriodInput.SelectedIndex == 1 ? prepared.Week : prepared.Day;
+            string query = SearchInput.Text.Trim(); var filtered = rows.Where(row => row.Name.IndexOf(query, StringComparison.OrdinalIgnoreCase) >= 0);
+            IOrderedEnumerable<MarketStatisticsRow> ordered;
+            switch (SortInput.SelectedIndex) {
+                case 1: ordered = filtered.OrderByDescending(row => row.Item.TradeCount); break;
+                case 2: ordered = filtered.OrderByDescending(row => row.Item.TradedGold); break;
+                case 3: ordered = filtered.OrderByDescending(row => row.Item.ListedQuantity); break;
+                default: ordered = filtered.OrderByDescending(row => row.Item.SoldQuantity); break;
+            }
+            var matching = ordered.ThenBy(row => row.Name, StringComparer.Ordinal).ThenBy(row => row.Category, StringComparer.Ordinal).ToList(); Table.ItemsSource = matching;
+            if (selected != null) Table.SelectedItem = matching.FirstOrDefault(row => row.Name == selected.Name && row.Category == selected.Category);
+            emptyText.Text = prepared == null ? client == null ? unavailable : "저장된 공통 시세가 없습니다. 통계 갱신으로 데이터를 받으세요." : "검색에 해당하는 품목이 없습니다.";
+            emptyText.Visibility = matching.Count == 0 ? Visibility.Visible : Visibility.Collapsed; UpdateStatus(matching.Count);
+            Dispatcher.BeginInvoke(DispatcherPriority.Loaded, new Action(delegate { if (disposed || generation != renderGeneration) return; var scroll = FindScroll(Table); if (scroll != null) scroll.ScrollToVerticalOffset(offset); }));
+        }
+        void UpdateStatus(int count)
+        {
+            if (prepared == null) StatusText.Text = busy ? "저장된 공통 데이터를 확인하는 중…" : client == null ? unavailable : "아직 받은 시세가 없습니다.";
+            else {
+                var history = Value(Snapshot.Status, "history") as IDictionary<string, object>; var listings = Value(Snapshot.Status, "listings") as IDictionary<string, object>;
+                StatusText.Text = "공통 데이터 " + Stamp(Snapshot.GeneratedUtc) + " · 거래 수집 " + Published(history) + " · 매물 수집 " + (Snapshot.ListingsFetchedUtc.HasValue ? Stamp(Snapshot.ListingsFetchedUtc.Value) : "미확인") + " · " + count.ToString("N0") + "종";
+                if (Snapshot.GeneratedUtc < DateTime.UtcNow.AddHours(-2) || Equals(Value(history, "stale"), true) || Equals(Value(listings, "stale"), true)) StatusText.Text += "\n일부 수집 기록이 오래되었거나 아직 없습니다. 수집 시각을 확인하세요.";
+                if (Count(Snapshot.Status, "failed_runs_7d") > 0) StatusText.Text += "\n최근 수집 실패 구간이 있어 통계에 누락이 있을 수 있습니다.";
+                if (Count(Snapshot.Status, "limited_runs_7d") > 0) StatusText.Text += "\n페이지를 제한한 시범 수집 기록입니다. 전체 시장 통계가 아닙니다.";
+            }
+            if (!String.IsNullOrEmpty(refreshMessage)) StatusText.Text += "\n" + refreshMessage;
+        }
+
+        DataGrid CreateTable()
+        {
+            var grid = new DataGrid { AutoGenerateColumns = false, IsReadOnly = true, CanUserAddRows = false, CanUserDeleteRows = false, CanUserSortColumns = false,
+                CanUserReorderColumns = false, EnableRowVirtualization = true, EnableColumnVirtualization = true, SelectionMode = DataGridSelectionMode.Single,
+                SelectionUnit = DataGridSelectionUnit.FullRow, RowHeaderWidth = 0, HeadersVisibility = DataGridHeadersVisibility.Column,
+                GridLinesVisibility = DataGridGridLinesVisibility.Horizontal, RowHeight = 34, ColumnHeaderHeight = 36, BorderThickness = new Thickness(1),
+                BorderBrush = Paint("#DCE5DF"), HorizontalGridLinesBrush = Paint("#E2E8E5"), Background = AppTheme.Surface, Foreground = Paint("#202D35"), FontSize = 12 };
+            ScrollViewer.SetHorizontalScrollBarVisibility(grid, ScrollBarVisibility.Auto); ScrollViewer.SetVerticalScrollBarVisibility(grid, ScrollBarVisibility.Auto);
+            var header = new Style(typeof(DataGridColumnHeader)); header.Setters.Add(new Setter(Control.BackgroundProperty, Paint("#F4F6F5"))); header.Setters.Add(new Setter(Control.ForegroundProperty, Paint("#202D35")));
+            header.Setters.Add(new Setter(Control.FontWeightProperty, FontWeights.SemiBold)); header.Setters.Add(new Setter(Control.FontSizeProperty, 11.0)); header.Setters.Add(new Setter(Control.PaddingProperty, new Thickness(7, 0, 7, 0))); header.Setters.Add(new Setter(Control.BorderBrushProperty, Paint("#DCE5DF"))); grid.ColumnHeaderStyle = header;
+            var rowStyle = new Style(typeof(DataGridRow)); rowStyle.Setters.Add(new Setter(Control.BackgroundProperty, AppTheme.Surface)); rowStyle.Setters.Add(new Setter(Control.ForegroundProperty, Paint("#202D35"))); rowStyle.Setters.Add(new Setter(FrameworkElement.ToolTipProperty, new Binding("Detail"))); grid.RowStyle = rowStyle;
+            var cells = new Style(typeof(DataGridCell)); cells.Setters.Add(new Setter(Control.BorderThicknessProperty, new Thickness(0)));
+            var selected = new Trigger { Property = DataGridCell.IsSelectedProperty, Value = true }; selected.Setters.Add(new Setter(Control.BackgroundProperty, Paint("#EAF3E9"))); selected.Setters.Add(new Setter(Control.ForegroundProperty, Paint("#19543F"))); cells.Triggers.Add(selected); grid.CellStyle = cells;
+            AddColumn(grid, "품목", "Name", 2.8, 170, false); AddColumn(grid, "판매 수량", "SoldQuantityText", 1, 65, true);
+            AddColumn(grid, "거래 건수", "TradeCountText", .9, 60, true); AddColumn(grid, "거래 금액", "TradedGoldText", 1.4, 90, true);
+            AddColumn(grid, "평균 단가", "AveragePriceText", 1.2, 82, true); AddColumn(grid, "최저 단가", "LowestPriceText", 1.2, 82, true);
+            AddColumn(grid, "매물 수량", "ListedQuantityText", 1, 65, true); AddColumn(grid, "등록 건수", "ListingCountText", .9, 60, true);
+            AutomationProperties.SetName(grid, "시장 통계 품목 표"); return grid;
+        }
+        static void AddColumn(DataGrid grid, string title, string property, double weight, double minimum, bool numeric)
+        {
+            var style = new Style(typeof(TextBlock)); style.Setters.Add(new Setter(TextBlock.TextTrimmingProperty, TextTrimming.CharacterEllipsis)); style.Setters.Add(new Setter(TextBlock.TextAlignmentProperty, numeric ? TextAlignment.Right : TextAlignment.Left));
+            style.Setters.Add(new Setter(FrameworkElement.VerticalAlignmentProperty, VerticalAlignment.Center)); style.Setters.Add(new Setter(FrameworkElement.MarginProperty, new Thickness(7, 0, 7, 0))); style.Setters.Add(new Setter(FrameworkElement.ToolTipProperty, new Binding(property)));
+            grid.Columns.Add(new DataGridTextColumn { Header = title, Binding = new Binding(property), Width = new DataGridLength(weight, DataGridLengthUnitType.Star), MinWidth = minimum, ElementStyle = style });
+        }
+        static ScrollViewer FindScroll(DependencyObject root) { var found = root as ScrollViewer; if (found != null) return found; for (int i = 0; i < VisualTreeHelper.GetChildrenCount(root); i++) { var child = FindScroll(VisualTreeHelper.GetChild(root, i)); if (child != null) return child; } return null; }
+        static ControlTemplate comboTemplate;
+        static Style comboItemStyle;
+        static ComboBox Combo(string[] values, double width)
+        {
+            var combo = new ComboBox { ItemsSource = values, SelectedIndex = 0, Width = width, MinHeight = 34, Padding = new Thickness(8, 0, 23, 0),
+                Background = AppTheme.Surface, Foreground = Paint("#202D35"), BorderBrush = Paint("#DCE5DF"), BorderThickness = new Thickness(1), FontSize = 12 };
+            combo.Resources["MarketComboSurface"] = AppTheme.Surface; combo.Resources["MarketComboInk"] = Paint("#202D35");
+            combo.Resources["MarketComboLine"] = Paint("#DCE5DF"); combo.Resources["MarketComboSelected"] = Paint("#EAF3E9");
+            if (comboTemplate == null) comboTemplate = (ControlTemplate)XamlReader.Parse(ComboTemplate);
+            if (comboItemStyle == null) comboItemStyle = (Style)XamlReader.Parse(ComboItemStyle);
+            combo.Template = comboTemplate; combo.ItemContainerStyle = comboItemStyle; return combo;
+        }
+        const string ComboTemplate = @"
+<ControlTemplate xmlns='http://schemas.microsoft.com/winfx/2006/xaml/presentation' xmlns:x='http://schemas.microsoft.com/winfx/2006/xaml' TargetType='{x:Type ComboBox}'>
+ <Grid>
+  <Border CornerRadius='7' Background='{TemplateBinding Background}' BorderBrush='{TemplateBinding BorderBrush}' BorderThickness='{TemplateBinding BorderThickness}'/>
+  <ToggleButton Focusable='False' ClickMode='Press' IsChecked='{Binding IsDropDownOpen, RelativeSource={RelativeSource TemplatedParent}, Mode=TwoWay}'>
+   <ToggleButton.Template><ControlTemplate TargetType='{x:Type ToggleButton}'><Border Background='Transparent' CornerRadius='7'/></ControlTemplate></ToggleButton.Template>
+  </ToggleButton>
+  <ContentPresenter IsHitTestVisible='False' Margin='{TemplateBinding Padding}' VerticalAlignment='Center' Content='{TemplateBinding SelectionBoxItem}' ContentTemplate='{TemplateBinding SelectionBoxItemTemplate}' TextElement.Foreground='{TemplateBinding Foreground}'/>
+  <TextBlock IsHitTestVisible='False' Text='⌄' Foreground='{TemplateBinding Foreground}' Margin='0,0,8,2' VerticalAlignment='Center' HorizontalAlignment='Right'/>
+  <Popup x:Name='PART_Popup' IsOpen='{TemplateBinding IsDropDownOpen}' Placement='Bottom' AllowsTransparency='True' Focusable='False'>
+   <Border MinWidth='{Binding ActualWidth, RelativeSource={RelativeSource TemplatedParent}}' Background='{DynamicResource MarketComboSurface}' BorderBrush='{DynamicResource MarketComboLine}' BorderThickness='1' CornerRadius='7' Padding='3'>
+    <ScrollViewer MaxHeight='260' CanContentScroll='True'><ItemsPresenter KeyboardNavigation.DirectionalNavigation='Contained'/></ScrollViewer>
+   </Border>
+  </Popup>
+ </Grid>
+ <ControlTemplate.Triggers><Trigger Property='IsEnabled' Value='False'><Setter Property='Opacity' Value='0.45'/></Trigger></ControlTemplate.Triggers>
+</ControlTemplate>";
+        const string ComboItemStyle = @"
+<Style xmlns='http://schemas.microsoft.com/winfx/2006/xaml/presentation' xmlns:x='http://schemas.microsoft.com/winfx/2006/xaml' TargetType='{x:Type ComboBoxItem}'>
+ <Setter Property='Foreground' Value='{DynamicResource MarketComboInk}'/><Setter Property='Background' Value='{DynamicResource MarketComboSurface}'/><Setter Property='Padding' Value='8,7'/>
+ <Setter Property='Template'><Setter.Value><ControlTemplate TargetType='{x:Type ComboBoxItem}'><Border Background='{TemplateBinding Background}' Padding='{TemplateBinding Padding}' CornerRadius='4'><ContentPresenter/></Border></ControlTemplate></Setter.Value></Setter>
+ <Style.Triggers><Trigger Property='IsHighlighted' Value='True'><Setter Property='Background' Value='{DynamicResource MarketComboSelected}'/></Trigger><Trigger Property='IsSelected' Value='True'><Setter Property='Background' Value='{DynamicResource MarketComboSelected}'/></Trigger></Style.Triggers>
+</Style>";
+        static Button RefreshControl()
+        {
+            var button = new Button { Content = "통계 갱신", MinWidth = 96, Padding = new Thickness(12, 6, 12, 6), Background = Paint("#226C54"), Foreground = AppTheme.OnAccent, FontWeight = FontWeights.SemiBold, BorderBrush = Paint("#226C54"), Cursor = Cursors.Hand };
+            var template = new ControlTemplate(typeof(Button)); var border = new FrameworkElementFactory(typeof(Border)); border.SetValue(Border.CornerRadiusProperty, new CornerRadius(7));
+            border.SetBinding(Border.BackgroundProperty, new Binding("Background") { RelativeSource = RelativeSource.TemplatedParent }); border.SetBinding(Border.PaddingProperty, new Binding("Padding") { RelativeSource = RelativeSource.TemplatedParent });
+            var content = new FrameworkElementFactory(typeof(ContentPresenter)); content.SetValue(FrameworkElement.HorizontalAlignmentProperty, HorizontalAlignment.Center); content.SetValue(FrameworkElement.VerticalAlignmentProperty, VerticalAlignment.Center); border.AppendChild(content); template.VisualTree = border;
+            var hover = new Trigger { Property = UIElement.IsMouseOverProperty, Value = true }; hover.Setters.Add(new Setter(UIElement.OpacityProperty, .84)); template.Triggers.Add(hover);
+            var disabled = new Trigger { Property = UIElement.IsEnabledProperty, Value = false }; disabled.Setters.Add(new Setter(UIElement.OpacityProperty, .45)); template.Triggers.Add(disabled); button.Template = template; return button;
+        }
+        static Brush Paint(string color) { return AppTheme.Brush(color); }
+        static TextBlock Text(string value, double size, string color, bool bold) { return new TextBlock { Text = value, FontSize = size, Foreground = Paint(color), FontWeight = bold ? FontWeights.SemiBold : FontWeights.Normal, TextWrapping = TextWrapping.Wrap }; }
+        static object Value(IDictionary<string, object> data, string key) { object value; return data != null && data.TryGetValue(key, out value) ? value : null; }
+        static long Count(IDictionary<string, object> data, string key) { long value; return Int64.TryParse(Convert.ToString(Value(data, key), CultureInfo.InvariantCulture), out value) ? value : 0; }
+        static string Stamp(DateTime time) { return time == DateTime.MinValue ? "미확인" : time.ToLocalTime().ToString("MM/dd HH:mm"); }
+        static string Published(IDictionary<string, object> state) { var published = Value(state, "published") as IDictionary<string, object>; DateTimeOffset time; return DateTimeOffset.TryParse(Convert.ToString(Value(published, "finished_at")), out time) ? time.ToLocalTime().ToString("MM/dd HH:mm") : "대기 중"; }
+        public void Dispose()
+        {
+            VerifyAccess(); if (disposed) return; disposed = true; ++snapshotGeneration; ++renderGeneration;
+            if (client != null) client.SnapshotPublished -= SharedPublished;
+            Loaded -= ViewLoaded; RefreshButton.Click -= RefreshClicked; PeriodInput.SelectionChanged -= FilterChanged; SortInput.SelectionChanged -= FilterChanged;
+            searchDelay.Stop(); searchDelay.Tick -= SearchElapsed; try { lifetime.Cancel(); } catch (AggregateException) { } lifetime.Dispose(); building = null; buildingData = null;
         }
     }
 }

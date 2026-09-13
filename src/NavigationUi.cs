@@ -11,13 +11,20 @@ namespace MabinogiBarter
 {
     public sealed partial class MainWindow
     {
+        void AddNavigationGroup(string name, bool first)
+        {
+            var label = T(name, 10, Muted, true);
+            label.Margin = new Thickness(11, first ? 0 : 13, 0, 8);
+            nav.Children.Add(label);
+        }
+
         Button BuildNavigationButton(string name, string description, string icon, Action action, bool selectedPage)
         {
             bool compact = String.IsNullOrEmpty(description);
             var button = new Button {
                 Background = selectedPage ? Green : compact ? AppTheme.Surface : B("#F5F7F6"),
                 BorderBrush = selectedPage ? Green : Brushes.Transparent,
-                BorderThickness = new Thickness(1), Padding = new Thickness(10, compact ? 10 : 15, 10, compact ? 10 : 15),
+                BorderThickness = new Thickness(1), Padding = new Thickness(10, compact ? 10 : 12, 10, compact ? 10 : 12),
                 Margin = new Thickness(0, 0, 0, compact ? 0 : 6), Cursor = Cursors.Hand,
                 HorizontalContentAlignment = HorizontalAlignment.Stretch, FocusVisualStyle = null
             };
@@ -81,6 +88,8 @@ namespace MabinogiBarter
                 ? "M3,4 L21,4 21,20 3,20 Z M11,12 L19,12 19,18 11,18 Z"
                 : kind == "settlement"
                 ? "M5,3 L19,3 19,21 5,21 Z M8,7 L16,7 M8,12 L10,12 M14,12 L16,12 M8,17 L10,17 M14,17 L16,17"
+                : kind == "market"
+                ? "M3,3 L3,21 22,21 M7,17 L7,12 M12,17 L12,8 M17,17 L17,4"
                 : "M5,3 L5,21 M12,3 L12,21 M19,3 L19,21 M2,8 L8,8 M9,16 L15,16 M16,7 L22,7";
             var drawing = new DrawingGroup();
             drawing.Children.Add(new GeometryDrawing(Brushes.Transparent, null, new RectangleGeometry(new Rect(0, 0, 24, 24))));

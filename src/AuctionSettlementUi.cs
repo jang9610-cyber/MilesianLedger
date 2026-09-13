@@ -1,12 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
-using System.IO;
 using System.Linq;
 using System.Windows;
 using System.Windows.Automation;
 using System.Windows.Controls;
-using System.Windows.Controls.Primitives;
 using System.Windows.Data;
 using System.Windows.Input;
 using System.Windows.Media;
@@ -14,25 +12,7 @@ using System.Windows.Media.Imaging;
 
 namespace MabinogiBarter
 {
-    public sealed partial class MainWindow
-    {
-        AuctionSettlementWindow settlementWindow;
-        void ShowAuctionSettlement()
-        {
-            if (settlementWindow != null) { if (settlementWindow.WindowState == WindowState.Minimized) settlementWindow.WindowState = WindowState.Normal; settlementWindow.Activate(); return; }
-            var window = new AuctionSettlementWindow { Owner = this, Icon = Icon, WindowStartupLocation = WindowStartupLocation.CenterOwner };
-            var config = AuctionProxyConfig.Load(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "data", "auction-proxy.json"));
-            if (config.IsConfigured) {
-                var client = MarketSnapshotClient.ForBaseUri(config.BaseUri);
-                window.MarketPanel.Configure(client);
-            } else window.MarketPanel.Configure(null, null, config.StatusMessage);
-            settlementWindow = window;
-            window.Closed += delegate { if (settlementWindow == window) settlementWindow = null; };
-            window.Show();
-        }
-    }
-
-    public sealed partial class AuctionSettlementWindow : Window
+    public sealed partial class AuctionSettlementView : UserControl, IDisposable
     {
         sealed class CouponView
         {
@@ -47,10 +27,10 @@ namespace MabinogiBarter
         readonly HashSet<int> manualPrices = new HashSet<int>();
         readonly Dictionary<int, decimal?> marketPrices = new Dictionary<int, decimal?>();
         readonly Dictionary<int, DateTime?> marketTimes = new Dictionary<int, DateTime?>();
-        readonly TextBlock summary = Text("", 18, Green, true), status = Text("", 12, Muted, false), amountHint = Text("", 12, Muted, false);
-        readonly TextBlock recommendation = Text("", 13, Green, true);
-        readonly UniformGrid comparisons = new UniformGrid { Columns = 2 };
-        bool fillingPrices;
+        readonly TextBlock summary = Text("", 16, Green, true), status = Text("", 11, Muted, false), amountHint = Text("", 11, Muted, false);
+        readonly TextBlock recommendation = Text("", 12, Green, true);
+        readonly StackPanel comparisons = new StackPanel();
+        bool fillingPrices, disposed;
         int selectedDiscount;
         AuctionSettlementInput currentInput;
         public AuctionSettlementReport CurrentReport { get; private set; }
@@ -61,6 +41,7 @@ namespace MabinogiBarter
         public CheckBox PremiumControl { get; private set; }
         public Button CopyImageButton { get; private set; }
         public ScrollViewer BodyScroll { get; private set; }
+        public ScrollViewer InputScroll { get; private set; }
         public Action<BitmapSource> ImageCopier { get; set; }
         public int SelectedDiscount { get { return selectedDiscount; } }
         public TextBox CouponPriceInput(int discount) { return coupons[discount].Price; }
@@ -71,56 +52,58 @@ namespace MabinogiBarter
         public Border CouponCard(int discount) { return coupons[discount].Card; }
         public TextBlock RecommendationText { get { return recommendation; } }
 
-        public AuctionSettlementWindow()
+        public AuctionSettlementView()
         {
-            Title = "밀레시안 장부 · 수수료·분배";
-            Width = 1080; Height = 880; MinWidth = 780; MinHeight = 580;
-            MaxHeight = Math.Max(MinHeight, SystemParameters.WorkArea.Height - 30);
             Background = AppTheme.Brush("#F4F6F5"); Foreground = Ink; FontFamily = new FontFamily("Malgun Gothic");
             UseLayoutRounding = true; SnapsToDevicePixels = true;
             ImageCopier = bitmap => Clipboard.SetImage(bitmap);
-            var root = new Grid { Margin = new Thickness(24) };
+            var root = new Grid { Margin = new Thickness(16) };
             root.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto }); root.RowDefinitions.Add(new RowDefinition()); root.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
-            var header = new Grid { Margin = new Thickness(0, 0, 0, 16) };
+            var header = new Grid { Margin = new Thickness(0, 0, 0, 12) };
             header.ColumnDefinitions.Add(new ColumnDefinition()); header.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
-            var heading = new StackPanel(); heading.Children.Add(Text("수수료·분배", 26, Ink, true));
-            heading.Children.Add(Text("실제 판매 금액으로 수수료와 함께 나눌 금액을 계산하세요.", 13, Muted, false)); header.Children.Add(heading);
+            var heading = new StackPanel(); heading.Children.Add(Text("수수료·분배", 24, Ink, true));
+            heading.Children.Add(Text("판매한 총액을 입력하고, 함께 나눌 금액을 비교하세요.", 12, Muted, false)); header.Children.Add(heading);
             CopyImageButton = Button("분배표 이미지 복사", CopyReport, true); CopyImageButton.Margin = new Thickness(12, 0, 0, 0);
             AutomationProperties.SetName(CopyImageButton, "분배표 이미지 복사");
             Grid.SetColumn(CopyImageButton, 1); header.Children.Add(CopyImageButton); root.Children.Add(header);
-            var body = new StackPanel();
+            var columns = new Grid();
+            columns.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(320) });
+            columns.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(14) });
+            columns.ColumnDefinitions.Add(new ColumnDefinition());
+            var inputs = new StackPanel(); inputs.Children.Add(BuildInputs());
             MarketPanel = new SettlementMarketPanel(); MarketPanel.SnapshotChanged = ApplyMarketPrices;
-            body.Children.Add(Card(MarketPanel));
-            body.Children.Add(BuildInputs());
+            MarketPanel.ResultsScroll.MaxHeight = 126;
+            inputs.Children.Add(Card(MarketPanel));
+            InputScroll = new ScrollViewer { Content = inputs, VerticalScrollBarVisibility = ScrollBarVisibility.Auto, HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled };
+            columns.Children.Add(InputScroll);
+            var body = new StackPanel();
             var summaryBody = new StackPanel(); summaryBody.Children.Add(summary);
-            recommendation.Margin = new Thickness(0, 10, 0, 0); summaryBody.Children.Add(recommendation);
-            var chosen = Card(summaryBody); chosen.Background = AppTheme.Brush("#EAF3E9"); body.Children.Add(chosen);
-            var compareHeading = Text("쿠폰별 비용과 분배금", 17, Ink, true); compareHeading.Margin = new Thickness(4, 3, 0, 4); body.Children.Add(compareHeading);
-            var couponHint = Text("쿠폰값은 불러온 시세 또는 직접 입력한 금액입니다. 보유 쿠폰은 0 G로 계산할 수 있습니다. 추천은 가격이 확인된 방식 중 분배금이 가장 큰 방법입니다.", 12, Muted, false);
-            couponHint.Margin = new Thickness(4, 0, 0, 12); body.Children.Add(couponHint);
+            recommendation.Margin = new Thickness(0, 5, 0, 0); summaryBody.Children.Add(recommendation);
+            var chosen = Card(summaryBody); chosen.Background = AppTheme.Brush("#EAF3E9"); chosen.Padding = new Thickness(12, 7, 12, 7); body.Children.Add(chosen);
+            var compareHeading = Text("쿠폰별 비용과 분배금", 16, Ink, true); compareHeading.Margin = new Thickness(2, 0, 0, 3); body.Children.Add(compareHeading);
+            var couponHint = Text("보유 쿠폰은 0 G로 입력하세요. 추천은 가격이 확인된 방식 중 분배금이 가장 큰 방법입니다.", 11, Muted, false);
+            couponHint.Margin = new Thickness(2, 0, 0, 6); body.Children.Add(couponHint);
             foreach (int discount in new[] { 0, 10, 20, 30, 50, 100 }) comparisons.Children.Add(BuildCoupon(discount));
             body.Children.Add(comparisons);
-            var note = Text("한 판매 건(묶음)의 총액과 쿠폰 1장 기준입니다. 여러 판매 건은 각각 계산하세요.\n예상 수수료는 소수점까지 계산합니다. 실제 수령 시 골드 단위 처리에 따라 차이가 날 수 있습니다.\n분배금은 1 G 미만을 내리고, 남는 금액을 따로 표시합니다. 보증 수표 발급 등 추가 비용은 기타 비용에 입력하세요.", 11, Muted, false);
-            note.Margin = new Thickness(4, 6, 4, 8); body.Children.Add(note);
-            BodyScroll = new ScrollViewer { Content = body, VerticalScrollBarVisibility = ScrollBarVisibility.Auto, HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled, Padding = new Thickness(0, 0, 10, 0) };
-            Grid.SetRow(BodyScroll, 1); root.Children.Add(BodyScroll);
-            status.Margin = new Thickness(0, 12, 0, 0); Grid.SetRow(status, 2); root.Children.Add(status);
+            var note = Text("한 판매 건(묶음)·쿠폰 1장 기준입니다. 예상 수수료의 골드 단위 처리에 따라 실제 수령액이 달라질 수 있습니다. 분배금은 1 G 미만을 내리고 남는 금액을 표시합니다.", 11, Muted, false);
+            note.Margin = new Thickness(2, 4, 2, 0); body.Children.Add(note);
+            BodyScroll = new ScrollViewer { Content = body, VerticalScrollBarVisibility = ScrollBarVisibility.Auto, HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled };
+            Grid.SetColumn(BodyScroll, 2); columns.Children.Add(BodyScroll);
+            Grid.SetRow(columns, 1); root.Children.Add(columns);
+            status.Margin = new Thickness(0, 8, 0, 0); Grid.SetRow(status, 2); root.Children.Add(status);
             Content = root;
             MarketPanel.ItemNameInput.TextChanged += delegate { ClearCopyStatus(); };
-            Closed += delegate { MarketPanel.Dispose(); };
-            AppMotion.WindowContent(this);
             Recalculate();
         }
 
         Border BuildInputs()
         {
             var body = new StackPanel();
-            var row = new Grid(); row.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(3, GridUnitType.Star) }); row.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(2, GridUnitType.Star) });
-            var sale = new StackPanel { Margin = new Thickness(0, 0, 24, 0) };
+            var sale = new StackPanel();
             sale.Children.Add(Text("실제 판매한 총액 (G)", 14, Ink, true));
-            GrossInput = Input("", "실제 판매한 총액"); GrossInput.FontSize = 21; GrossInput.Height = 44;
+            GrossInput = Input("", "실제 판매한 총액"); GrossInput.FontSize = 21; GrossInput.Height = 40;
             GrossInput.ToolTip = "판매를 마친 금액을 직접 입력합니다. 아이템 검색·시세 갱신은 이 값을 바꾸지 않습니다.";
-            sale.Children.Add(GrossInput); amountHint.Margin = new Thickness(0, 5, 0, 8); sale.Children.Add(amountHint);
+            sale.Children.Add(GrossInput); amountHint.Margin = new Thickness(0, 4, 0, 7); sale.Children.Add(amountHint);
             var amounts = new WrapPanel();
             decimal[] values = { 100000000m, 50000000m, 10000000m, 5000000m, 1000000m, 100000m };
             string[] names = { "+1억", "+5000만", "+1000만", "+500만", "+100만", "+10만" };
@@ -129,9 +112,9 @@ namespace MabinogiBarter
                 add.Margin = new Thickness(0, 0, 5, 5); add.Padding = new Thickness(8, 4, 8, 4); amounts.Children.Add(add);
             }
             var clear = Button("금액 지우기", delegate { GrossInput.Clear(); GrossInput.Focus(); }, false); clear.Margin = new Thickness(0, 0, 5, 5); amounts.Children.Add(clear);
-            sale.Children.Add(amounts); row.Children.Add(sale);
-            var options = new StackPanel(); Grid.SetColumn(options, 1); row.Children.Add(options);
-            PremiumControl = new CheckBox { Content = "프플 / 멤버십 수수료 할인 (4%)", FontSize = 13, Margin = new Thickness(0, 0, 0, 12), VerticalContentAlignment = VerticalAlignment.Center, Cursor = Cursors.Hand };
+            sale.Children.Add(amounts); body.Children.Add(sale);
+            var options = new StackPanel { Margin = new Thickness(0, 8, 0, 0) }; body.Children.Add(options);
+            PremiumControl = new CheckBox { Content = "프플 / 멤버십 수수료 할인 (4%)", FontSize = 12, Margin = new Thickness(0, 0, 0, 10), VerticalContentAlignment = VerticalAlignment.Center, Cursor = Cursors.Hand };
             PremiumControl.ToolTip = "기본 5% · 프리미엄 라이프 또는 콤비네이션 멤버십 혜택 적용 시 4%";
             AutomationProperties.SetName(PremiumControl, "프리미엄 수수료 할인"); options.Children.Add(PremiumControl);
             var small = new Grid(); small.ColumnDefinitions.Add(new ColumnDefinition()); small.ColumnDefinitions.Add(new ColumnDefinition());
@@ -139,7 +122,6 @@ namespace MabinogiBarter
             var extra = new StackPanel(); extra.Children.Add(Text("기타 비용 (총액 · G)", 12, Ink, true)); ExtraCostInput = Input("0", "기타 비용 총액"); extra.Children.Add(ExtraCostInput); Grid.SetColumn(extra, 1); small.Children.Add(extra); options.Children.Add(small);
             var holy = Button("성수 제작비 +800만 G", delegate { AddAmount(ExtraCostInput, 8000000m); }, false);
             holy.Margin = new Thickness(0, 8, 0, 0); holy.ToolTip = "무리아스의 성수 1개 제작비 편의 입력값입니다. 실제 지출한 비용에 맞게 수정하세요."; options.Children.Add(holy);
-            body.Children.Add(row);
             GrossInput.TextChanged += delegate { Recalculate(); };
             ExtraCostInput.TextChanged += delegate { Recalculate(); };
             PeopleInput.TextChanged += delegate { Recalculate(); };
@@ -150,30 +132,45 @@ namespace MabinogiBarter
         Border BuildCoupon(int discount)
         {
             var view = new CouponView { Discount = discount }; coupons.Add(discount, view);
-            var body = new StackPanel();
-            var heading = new Grid(); heading.ColumnDefinitions.Add(new ColumnDefinition()); heading.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
-            heading.Children.Add(Text(CouponName(discount), 15, Ink, true));
-            view.Badge = Text("", 11, Green, true); view.Badge.Margin = new Thickness(10, 0, 0, 0); Grid.SetColumn(view.Badge, 1); heading.Children.Add(view.Badge); body.Children.Add(heading);
+            var body = new Grid();
+            body.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(76) });
+            body.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+            body.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1.04, GridUnitType.Star) });
+            var identity = new StackPanel { VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(0, 0, 8, 0) };
+            identity.Children.Add(Text(discount == 0 ? "쿠폰 없음" : discount + "% 할인", 13, Ink, true));
+            view.Badge = Text("", 10, Green, true); view.Badge.Margin = new Thickness(0, 2, 0, 3); identity.Children.Add(view.Badge);
+            view.Select = Button("선택", delegate { selectedDiscount = discount; Recalculate(); }, false);
+            view.Select.Padding = new Thickness(6, 3, 6, 3); view.Select.MinHeight = 25;
+            AutomationProperties.SetName(view.Select, CouponName(discount) + " 선택"); identity.Children.Add(view.Select); body.Children.Add(identity);
+            var cost = new StackPanel { Margin = new Thickness(0, 0, 10, 0), VerticalAlignment = VerticalAlignment.Center };
+            Grid.SetColumn(cost, 1); body.Children.Add(cost);
             if (discount > 0) {
-                var row = new Grid { Margin = new Thickness(0, 7, 0, 0) }; row.ColumnDefinitions.Add(new ColumnDefinition()); row.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
-                var field = new StackPanel(); field.Children.Add(Text("쿠폰 1장 비용 (G)", 11, Muted, false)); view.Price = Input("", discount + "% 쿠폰 비용"); field.Children.Add(view.Price); row.Children.Add(field);
-                var buttons = new StackPanel { Orientation = Orientation.Horizontal, VerticalAlignment = VerticalAlignment.Bottom, Margin = new Thickness(8, 0, 0, 0) };
-                var owned = Button("보유 · 0 G", delegate { view.Price.Text = "0"; }, false); owned.Margin = new Thickness(0, 0, 5, 0); buttons.Children.Add(owned);
-                var quoted = Button("시세 따르기", delegate { manualPrices.Remove(discount); SetMarketPrice(view); Recalculate(); }, false); view.FollowMarket = quoted;
-                quoted.ToolTip = "현재 저장된 최저가를 적용하고, 이후 공통 시세가 갱신되면 자동으로 반영합니다."; buttons.Children.Add(quoted); Grid.SetColumn(buttons, 1); row.Children.Add(buttons); body.Children.Add(row);
-                view.Market = Text("현재 최저 매물가 미확인 · 시세 갱신으로 확인하세요.", 11, Muted, false); view.Market.Margin = new Thickness(0, 5, 0, 0); body.Children.Add(view.Market);
-                view.Source = Text("시세 미확인 · 직접 입력 가능", 11, Muted, false); view.Source.Margin = new Thickness(0, 4, 0, 6); body.Children.Add(view.Source);
+                var row = new Grid(); row.ColumnDefinitions.Add(new ColumnDefinition()); row.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+                view.Price = Input("", discount + "% 쿠폰 비용 (G)"); view.Price.Height = 28; view.Price.FontSize = 12; view.Price.Padding = new Thickness(5, 0, 5, 0); view.Price.Margin = new Thickness(0);
+                view.Price.ToolTip = "쿠폰 1장 구매 비용 (G) · 직접 입력한 가격은 시세가 갱신되어도 유지됩니다."; row.Children.Add(view.Price);
+                var buttons = new StackPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(4, 0, 0, 0) };
+                var owned = Button("보유", delegate { view.Price.Text = "0"; }, false); owned.Margin = new Thickness(0, 0, 3, 0); owned.ToolTip = "보유 쿠폰 · 구매 비용 0 G 적용";
+                owned.Padding = new Thickness(4, 3, 4, 3); owned.MinHeight = 28; owned.FontSize = 10; buttons.Children.Add(owned);
+                var quoted = Button("시세", delegate { manualPrices.Remove(discount); SetMarketPrice(view); Recalculate(); }, false); view.FollowMarket = quoted;
+                quoted.ToolTip = "시세 따르기 · 현재 저장된 최저가를 적용하고, 공통 시세 갱신을 자동 반영합니다.";
+                AutomationProperties.SetName(quoted, discount + "% 쿠폰 시세 따르기");
+                quoted.Padding = new Thickness(4, 3, 4, 3); quoted.MinHeight = 28; quoted.FontSize = 10;
+                buttons.Children.Add(quoted); Grid.SetColumn(buttons, 1); row.Children.Add(buttons); cost.Children.Add(row);
+                view.Market = Text("현재 최저 매물가 미확인\n수집 시각 미확인", 10, Muted, false); view.Market.Margin = new Thickness(0, 3, 0, 0); cost.Children.Add(view.Market);
+                view.Source = Text("시세 자동 반영 · 직접 수정 가능", 10, Muted, false); view.Source.Margin = new Thickness(0, 2, 0, 0); cost.Children.Add(view.Source);
                 view.Price.TextChanged += delegate { if (fillingPrices) return; manualPrices.Add(discount); UpdateCouponSource(view); Recalculate(); };
             } else {
-                var noCoupon = Text("쿠폰을 사용하지 않는 기본 정산입니다.", 12, Muted, false); noCoupon.Margin = new Thickness(0, 12, 0, 18); body.Children.Add(noCoupon);
+                cost.Children.Add(Text("쿠폰 비용 0 G", 12, Ink, true));
+                cost.Children.Add(Text("기본 수수료로 계산", 11, Muted, false));
             }
-            view.Fee = Text("", 12, Muted, false); body.Children.Add(view.Fee);
-            view.Cost = Text("", 12, Muted, false); body.Children.Add(view.Cost);
-            view.Net = Text("", 13, Ink, true); view.Net.Margin = new Thickness(0, 6, 0, 0); body.Children.Add(view.Net);
-            view.Share = Text("", 18, Green, true); view.Share.Margin = new Thickness(0, 5, 0, 0); body.Children.Add(view.Share);
-            view.Remainder = Text("", 11, Muted, false); view.Remainder.Margin = new Thickness(0, 4, 0, 10); body.Children.Add(view.Remainder);
-            view.Select = Button("이 방식으로 분배", delegate { selectedDiscount = discount; Recalculate(); }, false); body.Children.Add(view.Select);
-            view.Card = Card(body); view.Card.BorderThickness = new Thickness(2); view.Card.Margin = new Thickness(0, 0, 10, 10); return view.Card;
+            var result = new StackPanel { VerticalAlignment = VerticalAlignment.Center }; Grid.SetColumn(result, 2); body.Children.Add(result);
+            view.Share = Text("", 15, Green, true); result.Children.Add(view.Share);
+            view.Fee = Text("", 11, Muted, false); view.Fee.Margin = new Thickness(0, 3, 0, 0); result.Children.Add(view.Fee);
+            view.Net = Text("", 11, Ink, true); result.Children.Add(view.Net);
+            view.Remainder = Text("", 10, Muted, false); result.Children.Add(view.Remainder);
+            view.Cost = Text("", 12, Ink, false); result.ToolTip = view.Cost;
+            view.Card = Card(body); view.Card.Padding = new Thickness(8, 4, 8, 4); view.Card.BorderThickness = new Thickness(2); view.Card.Margin = new Thickness(0, 0, 0, 4);
+            AutomationProperties.SetName(view.Card, CouponName(discount) + " 비교"); return view.Card;
         }
 
         void ApplyMarketPrices(MarketSnapshotData data)
@@ -251,7 +248,7 @@ namespace MabinogiBarter
                 view.Card.Background = best ? AppTheme.Brush("#EAF3E9") : AppTheme.Surface;
                 AutomationProperties.SetItemStatus(view.Card, best ? "가장 유리한 분배 방식" : selected ? "선택한 분배 방식" : "비교 방식");
                 view.Select.IsEnabled = scenario != null && scenario.IsKnown;
-                view.Select.Content = selected ? "현재 분배 방식" : "이 방식으로 분배";
+                view.Select.Content = selected ? "선택 중" : "선택";
                 view.Fee.Text = scenario == null ? "예상 수수료 —" : "예상 수수료 " + Money(scenario.Fee) + " (" + (scenario.EffectiveFeeRate * 100).ToString("0.##") + "%)";
                 view.Cost.Text = scenario == null || !scenario.IsKnown ? "쿠폰값 포함 총비용 —" : "수수료 + 쿠폰 + 기타 " + Money(scenario.Fee + scenario.CouponPrice.Value + input.ExtraCost);
                 view.Net.Text = scenario == null ? "분배할 총액 —" : !scenario.IsKnown ? "쿠폰 비용 입력 후 계산" : (scenario.IsLoss ? "부족한 금액 " : "분배할 총액 ") + Money(Math.Abs(scenario.NetAmount.Value));
@@ -288,6 +285,11 @@ namespace MabinogiBarter
             input.Text = (value + amount).ToString("0.############################", CultureInfo.InvariantCulture);
         }
         void ClearCopyStatus() { if (status.Text.StartsWith("분배표 이미지")) Recalculate(); }
+        public void Dispose()
+        {
+            VerifyAccess(); if (disposed) return;
+            disposed = true; MarketPanel.Dispose(); ImageCopier = null;
+        }
         static string CouponName(int discount) { return discount == 0 ? "쿠폰 없음" : "수수료 " + discount + "% 할인 쿠폰"; }
         static string Money(decimal value) { return value.ToString("#,0.########", CultureInfo.InvariantCulture) + " G"; }
 
@@ -297,7 +299,7 @@ namespace MabinogiBarter
         }
         static Border Card(UIElement child)
         {
-            return new Border { Child = child, Padding = new Thickness(16), Background = AppTheme.Surface, BorderBrush = Line, BorderThickness = new Thickness(1), CornerRadius = new CornerRadius(10), Margin = new Thickness(0, 0, 0, 12) };
+            return new Border { Child = child, Padding = new Thickness(12), Background = AppTheme.Surface, BorderBrush = Line, BorderThickness = new Thickness(1), CornerRadius = new CornerRadius(10), Margin = new Thickness(0, 0, 0, 8) };
         }
         static TextBox Input(string value, string name)
         {

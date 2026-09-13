@@ -186,7 +186,7 @@ namespace MabinogiBarter
             InitializeAuction(injectedService);
             InitializePip();
             selected = catalog.Trades.First(t => t.Station == station);
-            Title = "밀레시안 장부 · 물물교환";
+            Title = "밀레시안 장부";
             Icon = LoadApplicationIcon();
             Width = 1400; Height = 940; MinWidth = 1100; MinHeight = 740;
             WindowStartupLocation = WindowStartupLocation.CenterScreen;
@@ -201,13 +201,14 @@ namespace MabinogiBarter
             delayedRefresh.Interval = TimeSpan.FromMilliseconds(50);
             delayedRefresh.Tick += delegate { if (Mouse.LeftButton == MouseButtonState.Pressed) return; delayedRefresh.Stop(); RefreshProgress(); };
             RenderAll();
-            SizeChanged += delegate(object sender, SizeChangedEventArgs e) { if (summaryView && e.WidthChanged && summaryCardColumns != (ActualWidth >= 1280 ? 3 : 2)) RenderSummaryRows(); };
+            SizeChanged += delegate(object sender, SizeChangedEventArgs e) { if (workspacePage == WorkspacePage.Trade && summaryView && e.WidthChanged && summaryCardColumns != (ActualWidth >= 1280 ? 3 : 2)) RenderSummaryRows(); };
             if (!String.IsNullOrEmpty(store.Notice)) footerMessage.Text = store.Notice;
             if (!fresh && store.ProcurementPresetsMigrated)
             {
                 Persist(); footerMessage.Text = "현재 재료 준비 방식을 1번 프리셋에 저장했습니다. 2~5번에는 다른 준비 방식을 지정할 수 있습니다.";
             }
             Closing += delegate { procurementMainClosing = true; delayedRefresh.Stop(); ClosePipChecklist(); if (sourcesDialog != null) sourcesDialog.Close(); if (!fresh) Persist(); };
+            Closed += delegate { DisposeWorkspacePages(); };
         }
 
         static SolidColorBrush B(string hex) { return AppTheme.Brush(hex); }
@@ -270,12 +271,12 @@ namespace MabinogiBarter
             side.RowDefinitions.Add(new RowDefinition());
             side.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
             shell.Children.Add(side);
-            var brand = new StackPanel { Margin = new Thickness(24, 29, 20, 32) };
+            var brand = new StackPanel { Margin = new Thickness(24, 24, 20, 22) };
             var mark = new Image { Source = LoadApplicationIcon(44), Width = 44, Height = 44, Stretch = Stretch.Uniform, HorizontalAlignment = HorizontalAlignment.Left };
             RenderOptions.SetBitmapScalingMode(mark, BitmapScalingMode.NearestNeighbor);
             brand.Children.Add(mark);
             var brandTitle = T("밀레시안 장부", 20, Ink, true); brandTitle.Margin = new Thickness(0, 16, 0, 5); brand.Children.Add(brandTitle);
-            brand.Children.Add(T("물물교환 준비 노트", 11, Muted, false));
+            brand.Children.Add(T("교역 · 경매장 · 정산", 11, Muted, false));
             side.Children.Add(brand);
             nav.Margin = new Thickness(13, 0, 13, 0);
             var navigationScroll = new ScrollViewer { Content = nav, VerticalScrollBarVisibility = ScrollBarVisibility.Auto, HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled, Focusable = false };
@@ -295,13 +296,13 @@ namespace MabinogiBarter
             bottom.Children.Add(T("v" + (displayVersion != null && !String.IsNullOrWhiteSpace(displayVersion.InformationalVersion)
                 ? displayVersion.InformationalVersion : appAssembly.GetName().Version.ToString(3)), 10, Muted, true));
             Grid.SetRow(bottom, 2); side.Children.Add(bottom);
-            var workspace = new Grid { Margin = new Thickness(30, 24, 30, 14) };
+            var workspace = new Grid { Margin = new Thickness(30, 24, 30, 14) }; mainWorkspace = workspace;
             workspace.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
             workspace.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
             workspace.RowDefinitions.Add(new RowDefinition());
             workspace.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
             Grid.SetColumn(workspace, 1); shell.Children.Add(workspace);
-            var header = new Grid { Margin = new Thickness(0, 0, 0, 20) };
+            var header = new Grid { Margin = new Thickness(0, 0, 0, 20) }; plannerHeader = header;
             header.ColumnDefinitions.Add(new ColumnDefinition()); header.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
             var heading = new StackPanel();
             heading.Children.Add(T("BARTER PLANNER", 10, Green, true));
@@ -310,14 +311,14 @@ namespace MabinogiBarter
             var headerRight = new StackPanel { VerticalAlignment = VerticalAlignment.Center, HorizontalAlignment = HorizontalAlignment.Right };
             saveStatus.FontSize = 11; saveStatus.Foreground = Green; saveStatus.Text = "●  로컬 자동 저장"; saveStatus.HorizontalAlignment = HorizontalAlignment.Right; saveStatus.Margin = new Thickness(0, 0, 8, 12); headerRight.Children.Add(saveStatus);
             headerRight.Children.Add(BuildAuctionHeader()); Grid.SetColumn(headerRight, 1); header.Children.Add(headerRight); workspace.Children.Add(header);
-            var stats = new Grid { Margin = new Thickness(0, 0, 0, 20) };
+            var stats = new Grid { Margin = new Thickness(0, 0, 0, 20) }; plannerStats = stats;
             for (int i = 0; i < 3; i++) stats.ColumnDefinitions.Add(new ColumnDefinition());
             AddStat(stats, 0, "선택한 교역품", plannedStat, "교역품 선택 체크 기준");
             AddStat(stats, 1, "준비 완료", readyStat, "최종 교환 재료를 구비한 품목");
             AddStat(stats, 2, "재료 준비율", percentStat, "구비한 상위 품목도 반영한 준비율");
             Grid.SetRow(stats, 1); workspace.Children.Add(stats);
             Grid.SetRow(content, 2); workspace.Children.Add(content);
-            var footer = new Grid { Margin = new Thickness(0, 13, 0, 0) };
+            var footer = new Grid { Margin = new Thickness(0, 13, 0, 0) }; plannerFooter = footer;
             footer.ColumnDefinitions.Add(new ColumnDefinition()); footer.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
             footerMessage.FontSize = 11; footerMessage.Foreground = Muted; footerMessage.VerticalAlignment = VerticalAlignment.Center; footerMessage.TextWrapping = TextWrapping.Wrap;
             footerMessage.Text = "목표 수량과 준비 체크가 이 PC에 자동으로 저장됩니다."; footer.Children.Add(footerMessage);
@@ -334,6 +335,8 @@ namespace MabinogiBarter
         void RenderAll()
         {
             RenderNav(); RenderStats();
+            SetWorkspaceChrome();
+            if (workspacePage != WorkspacePage.Trade) { RenderWorkspacePage(); return; }
             title.Text = summaryView ? "재료 준비" : stationOverview ? "교역 계획" : station + " 교역소";
             subtitle.Text = summaryView ? "구매·제작 방식을 정하고, 구비한 재료를 체크하세요." : stationOverview ? "교역소별 품목과 수량을 정하고, 예상 비용을 확인하세요." : "교환할 품목과 수량을 정하고, 필요한 재료를 확인하세요.";
             if (summaryView) RenderSummary();
@@ -342,14 +345,16 @@ namespace MabinogiBarter
         void RenderNav()
         {
             nav.Children.Clear();
-            var label = T("교역 준비", 10, Muted, true); label.Margin = new Thickness(11, 0, 0, 12); nav.Children.Add(label);
-            nav.Children.Add(BuildNavigationButton("교역 계획", "품목 · 수량 · 운송", "plan", ShowStationHub, !summaryView));
-            nav.Children.Add(BuildNavigationButton("재료 준비", "구매 · 제작 · 구비", "materials", ShowSummary, summaryView));
+            AddNavigationGroup("교역", true);
+            nav.Children.Add(BuildNavigationButton("교역 계획", "품목 · 수량 · 운송", "plan", ShowStationHub, workspacePage == WorkspacePage.Trade && !summaryView));
+            nav.Children.Add(BuildNavigationButton("재료 준비", "구매 · 제작 · 구비", "materials", ShowSummary, workspacePage == WorkspacePage.Trade && summaryView));
+            AddNavigationGroup("경매장", false);
+            nav.Children.Add(BuildNavigationButton("시장 통계", "판매량 · 매물 현황", "market", ShowMarketStatistics, workspacePage == WorkspacePage.Market));
+            nav.Children.Add(BuildNavigationButton("수수료·분배", "판매 정산 · 분배금", "settlement", ShowAuctionSettlement, workspacePage == WorkspacePage.Settlement));
+            AddNavigationGroup("게임 중 도구", false);
             nav.Children.Add(BuildNavigationButton("PIP", "체크리스트 · 시세 검색", "pip", ShowPipChecklist, false));
-            nav.Children.Add(BuildNavigationButton("시장 통계", "판매량 · 매물 현황", "market", ShowMarketStatistics, false));
-            nav.Children.Add(BuildNavigationButton("수수료·분배", "판매 정산 · 분배금", "settlement", ShowAuctionSettlement, false));
-            var divider = new Border { Height = 1, Background = Line, Margin = new Thickness(11, 18, 11, 17) }; nav.Children.Add(divider);
-            var settingsLabel = T("앱 설정", 10, Muted, true); settingsLabel.Margin = new Thickness(11, 0, 0, 7); nav.Children.Add(settingsLabel);
+            var divider = new Border { Height = 1, Background = Line, Margin = new Thickness(11, 13, 11, 12) }; nav.Children.Add(divider);
+            AddNavigationGroup("앱 설정", true);
             nav.Children.Add(BuildNavigationButton("진행 상태 복원", "", "settings", ShowProgressHistory, false));
         }
         void RenderStats(ProcurementPlan currentPlan = null)
@@ -372,15 +377,16 @@ namespace MabinogiBarter
         {
             AppMotion.Transition(content, delegate {
                 bool changed = station != name;
-                station = name; summaryView = false; stationOverview = false;
+                workspacePage = WorkspacePage.Trade; station = name; summaryView = false; stationOverview = false;
                 if (changed || selected == null) selected = catalog.Trades.First(t => t.Station == name);
                 detailScroll.ScrollToTop();
                 RenderAll();
             });
         }
-        public void ShowSummary() { AppMotion.Transition(content, delegate { summaryView = true; summaryTab = 0; summaryQuery = ""; RenderAll(); }); }
+        public void ShowSummary() { AppMotion.Transition(content, delegate { workspacePage = WorkspacePage.Trade; summaryView = true; summaryTab = 0; summaryQuery = ""; RenderAll(); }); }
         void RenderPlanner()
         {
+            if (workspacePage != WorkspacePage.Trade) return;
             if (stationOverview) { RenderStationHub(); return; }
             stationValueUpdates.Clear();
             if (tradeScroll != null) tradeScroll.Content = null;
@@ -535,6 +541,7 @@ namespace MabinogiBarter
         }
         void RefreshProgress()
         {
+            if (workspacePage != WorkspacePage.Trade) { RenderStats(); return; }
             if (summaryView || stationOverview) { RenderAll(); return; }
             double offset = detailScroll.VerticalOffset;
             RenderStats(); RenderDetail();

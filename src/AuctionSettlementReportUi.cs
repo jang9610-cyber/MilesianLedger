@@ -10,7 +10,7 @@ using System.Windows.Media.Imaging;
 
 namespace MabinogiBarter
 {
-    public sealed partial class AuctionSettlementWindow
+    public sealed partial class AuctionSettlementView
     {
         void CopyReport()
         {

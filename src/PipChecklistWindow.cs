@@ -52,6 +52,8 @@ namespace MabinogiBarter
         readonly TabView purchases;
         readonly TabView preparations;
         readonly Grid listContent = new Grid();
+        StackPanel checklistProgress;
+        TextBlock footerNote;
         readonly Dictionary<string, ProcurementStep> latest = new Dictionary<string, ProcurementStep>(StringComparer.Ordinal);
         readonly Dictionary<string, CheckBox> readyControls = new Dictionary<string, CheckBox>(StringComparer.Ordinal);
         readonly Dictionary<string, Expander> groupControls = new Dictionary<string, Expander>(StringComparer.Ordinal);
@@ -108,22 +110,24 @@ namespace MabinogiBarter
             set
             {
                 VerifyAccess();
-                int next = value == 2 ? 2 : 1;
+                int next = value == 3 ? 3 : value == 2 ? 2 : 1;
                 if (selectedTab == next) return;
                 CloseAcquisitionHelp();
                 SaveOffset(CurrentView);
+                SaveSearchOffset();
                 AppMotion.Transition(listContent, delegate {
+                    if (closed) return;
                     selectedTab = next;
                     MountCurrentView();
                     UpdateTabButtons();
                     UpdateSelectedCount();
+                    var changed = TabChanged;
+                    if (changed != null) changed(selectedTab);
                 });
-                var changed = TabChanged;
-                if (changed != null) changed(selectedTab);
             }
         }
 
-        TabView CurrentView { get { return selectedTab == 1 ? purchases : preparations; } }
+        TabView CurrentView { get { return selectedTab == 3 ? null : selectedTab == 1 ? purchases : preparations; } }
 
         public PipChecklistWindow(Func<string, ImageSource> icons, Action<string, bool> setReady, Action openMain)
         {
@@ -131,7 +135,7 @@ namespace MabinogiBarter
             this.setReady = setReady;
             this.openMain = openMain;
             selectedCount.ToolTip = "하위 재료 → 중간 제작품 → 최종 교환 재료 순서입니다. 각 단계에서 같은 분류의 재료끼리 모아 이름순으로 표시합니다.";
-            Title = "밀레시안 장부 · PIP 체크리스트";
+            Title = "밀레시안 장부 · PIP";
             Width = 360; Height = 540; MinWidth = 320; MinHeight = 300; MaxWidth = 720; MaxHeight = 1000;
             WindowStyle = WindowStyle.None;
             ResizeMode = ResizeMode.CanResizeWithGrip;
@@ -145,6 +149,7 @@ namespace MabinogiBarter
                 GlassFrameThickness = new Thickness(0), CornerRadius = new CornerRadius(12), UseAeroCaptionButtons = false
             });
             purchases = CreateTab(1); preparations = CreateTab(2);
+            BuildMarketSearch();
             BuildShell();
             UpdateSteps(new List<ProcurementStep>(), 0m, null);
             MountCurrentView();
@@ -152,7 +157,7 @@ namespace MabinogiBarter
             PipWindowBehavior.Attach(this);
             LocationChanged += delegate { CloseAcquisitionHelp(); };
             SizeChanged += delegate { CloseAcquisitionHelp(); };
-            Closed += delegate { CloseAcquisitionHelp(); closed = true; ++purchases.RestoreRevision; ++preparations.RestoreRevision; };
+            Closed += delegate { CloseAcquisitionHelp(); closed = true; CloseMarketSearch(); ++purchases.RestoreRevision; ++preparations.RestoreRevision; };
         }
 
         void BuildShell()
@@ -167,8 +172,8 @@ namespace MabinogiBarter
             var header = new Grid { Margin = new Thickness(0, 0, 0, 12), MinHeight = 30 };
             header.ColumnDefinitions.Add(new ColumnDefinition());
             header.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
-            var drag = new Border { Background = Brushes.Transparent, Cursor = Cursors.SizeAll, ToolTip = "드래그해서 체크리스트 위치 이동" };
-            var title = Label("PIP 체크리스트", 13, Ink, true);
+            var drag = new Border { Background = Brushes.Transparent, Cursor = Cursors.SizeAll, ToolTip = "드래그해서 PIP 위치 이동" };
+            var title = Label("밀레시안 장부", 13, Ink, true);
             drag.Child = title;
             drag.MouseLeftButtonDown += delegate(object sender, MouseButtonEventArgs e) {
                 if (e.LeftButton != MouseButtonState.Pressed) return;
@@ -181,11 +186,12 @@ namespace MabinogiBarter
             OpenMainButton.ToolTip = "메인 앱으로 돌아가 교역 계획과 준비 방식을 설정합니다.";
             AutomationProperties.SetName(OpenMainButton, "PIP 메인 앱 열기");
             CloseButton = SmallButton("닫기", Close); CloseButton.Margin = new Thickness(5, 0, 0, 0);
-            CloseButton.ToolTip = "PIP 체크리스트만 닫습니다. 메인 앱과 준비 상태는 유지됩니다.";
+            CloseButton.ToolTip = "PIP만 닫습니다. 메인 앱과 준비 상태는 유지됩니다.";
             AutomationProperties.SetName(CloseButton, "PIP 닫기");
             tools.Children.Add(OpenMainButton); tools.Children.Add(CloseButton); Grid.SetColumn(tools, 1); header.Children.Add(tools); layout.Children.Add(header);
 
             var progress = new StackPanel { Margin = new Thickness(1, 0, 1, 12) };
+            checklistProgress = progress;
             var totals = new Grid { Margin = new Thickness(0, 0, 0, 7) };
             totals.ColumnDefinitions.Add(new ColumnDefinition()); totals.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
             totals.Children.Add(Label("전체 재료 준비율", 11, Muted, true));
@@ -195,12 +201,16 @@ namespace MabinogiBarter
             Grid.SetRow(progress, 1); layout.Children.Add(progress);
 
             var tabs = new StackPanel { Margin = new Thickness(0, 0, 0, 8) };
-            var buttons = new Grid(); buttons.ColumnDefinitions.Add(new ColumnDefinition()); buttons.ColumnDefinitions.Add(new ColumnDefinition());
-            PurchaseTabButton = SmallButton("경매장 구매", delegate { SelectedTab = 1; }); PurchaseTabButton.Height = 34; PurchaseTabButton.Margin = new Thickness(0, 0, 4, 0);
-            PreparationTabButton = SmallButton("제작·확보", delegate { SelectedTab = 2; }); PreparationTabButton.Height = 34; PreparationTabButton.Margin = new Thickness(4, 0, 0, 0);
+            var buttons = new Grid(); buttons.ColumnDefinitions.Add(new ColumnDefinition()); buttons.ColumnDefinitions.Add(new ColumnDefinition()); buttons.ColumnDefinitions.Add(new ColumnDefinition());
+            PurchaseTabButton = SmallButton("경매장 구매", delegate { SelectedTab = 1; }); PurchaseTabButton.Height = 34; PurchaseTabButton.Margin = new Thickness(0, 0, 3, 0);
+            PreparationTabButton = SmallButton("제작·확보", delegate { SelectedTab = 2; }); PreparationTabButton.Height = 34; PreparationTabButton.Margin = new Thickness(3, 0, 3, 0);
+            SearchTabButton = SmallButton("시세 검색", delegate { SelectedTab = 3; }); SearchTabButton.Height = 34; SearchTabButton.Margin = new Thickness(3, 0, 0, 0);
+            foreach (var button in new[] { PurchaseTabButton, PreparationTabButton, SearchTabButton }) button.Padding = new Thickness(3, 0, 3, 0);
             AutomationProperties.SetName(PurchaseTabButton, "PIP 경매장 구매 체크리스트");
             AutomationProperties.SetName(PreparationTabButton, "PIP 제작·확보 체크리스트");
+            AutomationProperties.SetName(SearchTabButton, "PIP 경매장 시세 검색");
             buttons.Children.Add(PurchaseTabButton); Grid.SetColumn(PreparationTabButton, 1); buttons.Children.Add(PreparationTabButton); tabs.Children.Add(buttons);
+            Grid.SetColumn(SearchTabButton, 2); buttons.Children.Add(SearchTabButton);
             selectedCount.Margin = new Thickness(2, 8, 2, 0); tabs.Children.Add(selectedCount);
             AutomationProperties.SetName(selectedCount, "PIP 현재 목록 준비 개수");
             RemainingOnlyControl = new CheckBox { Content = "남은 품목만 보기", Focusable = false, FontSize = 12, Margin = new Thickness(2, 8, 0, 0), Cursor = Cursors.Hand };
@@ -215,7 +225,7 @@ namespace MabinogiBarter
 
             Grid.SetRow(listContent, 3); layout.Children.Add(listContent);
             var footer = new Grid { Margin = new Thickness(1, 8, 0, 0) };
-            var note = Label("체크는 메인 앱과 함께 저장됩니다.", 10, Muted, false); note.Margin = new Thickness(0, 0, 16, 0); footer.Children.Add(note);
+            footerNote = Label("체크는 메인 앱과 함께 저장됩니다.", 10, Muted, false); footerNote.Margin = new Thickness(0, 0, 16, 0); footer.Children.Add(footerNote);
             var grip = new ResizeGrip { Width = 15, Height = 15, Focusable = false, HorizontalAlignment = HorizontalAlignment.Right, VerticalAlignment = VerticalAlignment.Bottom };
             AutomationProperties.SetName(grip, "PIP 크기 조절"); footer.Children.Add(grip);
             Grid.SetRow(footer, 4); layout.Children.Add(footer);
@@ -268,6 +278,7 @@ namespace MabinogiBarter
             if (blocked) CloseAcquisitionHelp();
             purchases.Body.IsEnabled = !blocked; preparations.Body.IsEnabled = !blocked;
             PurchaseTabButton.IsEnabled = !blocked; PreparationTabButton.IsEnabled = !blocked;
+            SearchTabButton.IsEnabled = !blocked; marketSearchRoot.IsEnabled = !blocked;
             interactionMessage.Text = blocked ? message : "";
             interactionMessage.Visibility = blocked ? Visibility.Visible : Visibility.Collapsed;
         }
@@ -378,12 +389,20 @@ namespace MabinogiBarter
 
         void MountCurrentView()
         {
-            listContent.Children.Clear(); listContent.Children.Add(CurrentView.Scroll); RestoreOffset(CurrentView);
+            bool search = selectedTab == 3;
+            checklistProgress.Visibility = selectedCount.Visibility = RemainingOnlyControl.Visibility = search ? Visibility.Collapsed : Visibility.Visible;
+            footerNote.Text = search ? "수집 시점의 개당 최저가 · 실시간 아님" : "체크는 메인 앱과 함께 저장됩니다.";
+            listContent.Children.Clear();
+            if (search) {
+                listContent.Children.Add(marketSearchRoot);
+                RestoreSearchOffset();
+                EnterMarketSearch();
+            } else { listContent.Children.Add(CurrentView.Scroll); RestoreOffset(CurrentView); }
         }
 
         static void SaveOffset(TabView view)
         {
-            if (!view.Restoring && view.Scroll.IsVisible) view.Offset = view.Scroll.VerticalOffset;
+            if (view != null && !view.Restoring && view.Scroll.IsVisible) view.Offset = view.Scroll.VerticalOffset;
         }
 
         void RestoreOffset(TabView view)
@@ -406,10 +425,10 @@ namespace MabinogiBarter
 
         void UpdateTabButtons()
         {
-            if (PurchaseTabButton == null || PreparationTabButton == null) return;
-            foreach (var button in new[] { PurchaseTabButton, PreparationTabButton })
+            if (PurchaseTabButton == null || PreparationTabButton == null || SearchTabButton == null) return;
+            foreach (var button in new[] { PurchaseTabButton, PreparationTabButton, SearchTabButton })
             {
-                bool active = button == (selectedTab == 1 ? PurchaseTabButton : PreparationTabButton);
+                bool active = button == (selectedTab == 3 ? SearchTabButton : selectedTab == 1 ? PurchaseTabButton : PreparationTabButton);
                 button.Background = active ? Green : AppTheme.Surface; button.Foreground = active ? AppTheme.OnAccent : Ink; button.BorderBrush = active ? Green : Line;
                 AutomationProperties.SetItemStatus(button, active ? "현재 목록" : "목록 전환");
             }
@@ -417,6 +436,7 @@ namespace MabinogiBarter
 
         void UpdateSelectedCount()
         {
+            if (selectedTab == 3) return;
             var steps = latest.Values.Where(s => selectedTab == 1 ? s.Kind == "purchase" : s.Kind != "purchase").ToList();
             selectedCount.Text = (selectedTab == 1 ? "구매 " : "제작·확보 ") + steps.Count + "종 · " + steps.Count(s => s.CompletionFraction == 1m) + " / " + steps.Count + " 준비";
             selectedCount.ToolTip = "직접 구비 체크 " + steps.Count(s => s.IsReady) + "종 · 상위 품목 구비로 충족 " + steps.Count(s => s.IsCovered) + "종";

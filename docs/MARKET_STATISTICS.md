@@ -166,6 +166,14 @@ metrics에서 DB 크기·완료 거래 수·청크 수·SQL 예산·게시 버�
 
 ## 로컬 검증
 
+### PIP 시세 검색
+
+`PipMarketSearchUi.cs`는 메인 앱과 같은 `MarketSnapshotClient`를 사용합니다. 탭을 열면 디스크에 보관한 검증본을 백그라운드에서 읽고, `MarketSearchIndex`를 만들어 이름을 검색합니다. 서버 요청은 PIP의 시세 받기·갱신 버튼으로만 시작합니다. 같은 버전이면 압축 파일을 다시 받지 않으며 검색어 입력은 로컬 연산만 수행합니다.
+
+검색 색인은 이름별 매물 시세와 24시간·7일 통계의 품목을 합칩니다. 이름의 공백과 영문 대소문자를 무시하고 정확히 일치 → 앞부분 일치 → 포함 순서로 최대 30개를 표시합니다. 현재 가격은 매물 시세에서만 가져오며 과거 거래 평균을 현재 최저가로 대체하지 않습니다. 매물 수집 기록이 없으면 미확인, 완료된 전체 수집에서 해당 매물이 없으면 수집 당시 매물 없음으로 구분합니다. 장비·분류 미확인 품목에는 옵션별 가격 차이 안내를 표시합니다.
+
+PIP의 구매·제작 체크와 검색 화면은 별도 상태를 유지합니다. 메인 앱에서 수량이나 체크 상태가 바뀌어도 검색어·결과·스크롤을 다시 만들지 않습니다. 창을 닫으면 입력 지연 타이머와 진행 중인 다운로드 대기를 취소합니다. 게임 입력 처리는 변경하지 않습니다.
+
 저장소 루트에서 실행합니다.
 
 ```powershell
@@ -173,6 +181,8 @@ node --test "server/cloudflare/*.test.mjs"
 powershell -NoProfile -ExecutionPolicy Bypass -File scripts/test.ps1
 powershell -NoProfile -ExecutionPolicy Bypass -File scripts/test-market-snapshot.ps1
 powershell -NoProfile -ExecutionPolicy Bypass -File scripts/test-market-ui.ps1
+powershell -NoProfile -ExecutionPolicy Bypass -File scripts/test-market-search.ps1
+powershell -NoProfile -ExecutionPolicy Bypass -File scripts/test-pip-search-ui.ps1
 ```
 
 서버는 실제 SQLite와 모의 넥슨 응답으로 중복 제거·부분 수집·재시작·저장 실패 롤백·게시 원자성·gzip 해시·조건부 요청·구버전 무호출을 검증합니다. 앱 검증은 격리 캐시와 로컬 서버로 다운로드·무변경 재사용·취소·손상 파일·이전 데이터 보존을 확인합니다. 검증에 실제 넥슨 호출이나 개인 키가 필요하지 않습니다.

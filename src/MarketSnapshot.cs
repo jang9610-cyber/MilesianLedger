@@ -90,6 +90,15 @@ namespace MabinogiBarter
         }
         public MarketSnapshotData CachedData { get { lock (gate) return cached; } }
 
+        // Local-only restoration for views that must work before any refresh.
+        // LoadDisk holds gate through its one-time verification, so it cannot
+        // publish an older disk value over a concurrently refreshed snapshot.
+        public MarketSnapshotData ReadCachedData()
+        {
+            LoadDisk();
+            lock (gate) return cached;
+        }
+
         public async Task<MarketSnapshotResult> RefreshAsync(CancellationToken token)
         {
             token.ThrowIfCancellationRequested();

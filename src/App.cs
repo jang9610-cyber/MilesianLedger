@@ -343,7 +343,7 @@ namespace MabinogiBarter
             var label = T("교역 준비", 10, Muted, true); label.Margin = new Thickness(11, 0, 0, 12); nav.Children.Add(label);
             nav.Children.Add(BuildNavigationButton("교역 계획", "품목 · 수량 · 운송", "plan", ShowStationHub, !summaryView));
             nav.Children.Add(BuildNavigationButton("재료 준비", "구매 · 제작 · 구비", "materials", ShowSummary, summaryView));
-            nav.Children.Add(BuildNavigationButton("PIP 체크리스트", "게임 위에 작게 띄우기", "pip", ShowPipChecklist, false));
+            nav.Children.Add(BuildNavigationButton("PIP", "체크리스트 · 시세 검색", "pip", ShowPipChecklist, false));
             nav.Children.Add(BuildNavigationButton("시장 통계", "판매량 · 매물 현황", "market", ShowMarketStatistics, false));
             var divider = new Border { Height = 1, Background = Line, Margin = new Thickness(11, 18, 11, 17) }; nav.Children.Add(divider);
             var settingsLabel = T("앱 설정", 10, Muted, true); settingsLabel.Margin = new Thickness(11, 0, 0, 7); nav.Children.Add(settingsLabel);

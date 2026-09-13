@@ -49,7 +49,19 @@ public static class MarketSnapshotLiveVerificationRunner
                 Console.WriteLine("PASS whole-item AuctionService refresh: items=" + names.Length + ", updated=" + refreshed.UpdatedMaterials + ", failed=" + refreshed.FailedMaterials + ", requests=" + batchRequests);
             }
             Console.WriteLine("PASS snapshot price/source-time/count comparison: listed=" + listed + ", verified_empty=" + empty);
+            var search = new MarketSearchIndex(client.CachedData);
+            int searchedQuotes = 0;
+            foreach (var quote in client.CachedData.Quotes.Values.Where(q => q.UnitPrice.HasValue && q.ListingCount > 0)) {
+                var found = search.Search(quote.Name, 1);
+                if (found.Count != 1 || found[0].UnitPrice != quote.UnitPrice || found[0].ListingCount != quote.ListingCount
+                    || found[0].Quantity != quote.Quantity || found[0].QuantityKnown != quote.QuantityKnown || found[0].FetchedUtc != quote.FetchedUtc)
+                    throw new Exception("PIP exact-name search differs from the shared quote: " + quote.Name);
+                searchedQuotes++;
+            }
+            if (searchedQuotes <= names.Length) throw new Exception("PIP live fixture does not contain items beyond barter materials.");
+            Console.WriteLine("PASS PIP search against every priced market quote: " + searchedQuotes + " names; zero extra HTTP requests");
             var report = new { verified_at = DateTime.UtcNow.ToString("o"), first_requests = first.Requests, whole_item_requests = batchRequests,
+                pip_search_names = search.Count, pip_verified_quotes = searchedQuotes,
                 names = names.Length, listed = listed, verified_empty = empty, version = client.CachedData.Version,
                 snapshot_generated_utc = client.CachedData.GeneratedUtc.ToString("o"), items24h = client.CachedData.Items24h.Count,
                 items7d = client.CachedData.Items7d.Count, quotes = client.CachedData.Quotes.Count };

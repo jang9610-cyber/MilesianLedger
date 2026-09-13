@@ -33,6 +33,11 @@ namespace MabinogiBarter
             RenderStats();
             if (pipChecklist != null) { PipWindowSettings.EnsureVisible(pipChecklist); RefreshPipChecklist(); if (!pipBehindModal) PipWindowBehavior.BringForward(pipChecklist); return; }
             var pip = new PipChecklistWindow(name => itemIcons.Get(name), SetPipReady, OpenMainFromPip);
+            var marketConfig = AuctionProxyConfig.Load(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "data", "auction-proxy.json"));
+            if (marketConfig.IsConfigured) {
+                var marketClient = MarketSnapshotClient.ForBaseUri(marketConfig.BaseUri);
+                pip.ConfigureMarketSearch(() => marketClient.ReadCachedData(), token => marketClient.RefreshAsync(token), null);
+            } else pip.ConfigureMarketSearch(null, null, marketConfig.StatusMessage);
             pip.AcquisitionContent = name => BuildPipAcquisitionContent(name);
             pipChecklist = pip;
             pipBehindModal = false;

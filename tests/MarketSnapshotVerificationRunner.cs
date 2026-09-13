@@ -94,6 +94,21 @@ public static class MarketSnapshotVerificationRunner
         Check(next.UsedCached && !next.Downloaded && next.Requests == 1 && h.Artifacts == 1, "304 no download");
         Pass("conditional manifest 304 uses cached snapshot");
         var saved = File.ReadAllBytes(Path.Combine(root, "main.json"));
+        var diskHandler = new Handler { Fixture = first, Offline = true };
+        var diskClient = Client("main", diskHandler);
+        Check(diskClient.CachedData == null, "fresh client begins without in-memory data");
+        var diskReads = await Task.WhenAll(Enumerable.Range(0, 12).Select(i => Task.Run(() => diskClient.ReadCachedData())));
+        Check(diskReads.All(value => value != null && value.Version == first.Version && Object.ReferenceEquals(value, diskReads[0]))
+            && Object.ReferenceEquals(diskClient.CachedData, diskReads[0]) && diskHandler.Calls == 0, "local concurrent cache restore made HTTP or lost data");
+        Pass("fresh client restores verified disk snapshot with concurrent local reads and zero HTTP requests");
+        File.WriteAllText(Path.Combine(root, "corrupt-disk.json"), "{ invalid persisted snapshot", Encoding.UTF8);
+        var corruptDiskHandler = new Handler { Fixture = first, Offline = true };
+        var corruptDiskClient = Client("corrupt-disk", corruptDiskHandler);
+        Check(corruptDiskClient.ReadCachedData() == null && corruptDiskClient.ReadCachedData() == null && corruptDiskHandler.Calls == 0,
+            "corrupt local cache caused HTTP or fabricated data");
+        var missingDiskHandler = new Handler { Fixture = first, Offline = true };
+        Check(Client("missing-disk", missingDiskHandler).ReadCachedData() == null && missingDiskHandler.Calls == 0, "missing local cache caused HTTP");
+        Pass("corrupt and missing disk snapshots remain unavailable with zero HTTP requests");
         h.Fixture = new Fixture(20, true); h.Corrupt = true;
         var bad = await client.RefreshAsync(CancellationToken.None);
         Check(bad.Data.Version == first.Version && bad.ErrorMessage != null && saved.SequenceEqual(File.ReadAllBytes(Path.Combine(root, "main.json"))), "corrupt preserved disk");

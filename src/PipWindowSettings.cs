@@ -31,7 +31,7 @@ namespace MabinogiBarter
             Height = Finite(Height) ? Math.Max(300, Math.Min(1000, Height)) : 540;
             if (Left.HasValue && !Finite(Left.Value)) Left = null;
             if (Top.HasValue && !Finite(Top.Value)) Top = null;
-            Tab = Tab == 2 ? 2 : 1;
+            Tab = Tab == 3 ? 3 : Tab == 2 ? 2 : 1;
         }
         public static PipWindowSettings Load(string path)
         {

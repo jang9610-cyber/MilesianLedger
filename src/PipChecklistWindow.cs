@@ -51,8 +51,9 @@ namespace MabinogiBarter
         readonly Action openMain;
         readonly TabView purchases;
         readonly TabView preparations;
+        readonly Grid sectionContent = new Grid();
         readonly Grid listContent = new Grid();
-        StackPanel checklistProgress;
+        StackPanel checklistControls;
         TextBlock footerNote;
         readonly Dictionary<string, ProcurementStep> latest = new Dictionary<string, ProcurementStep>(StringComparer.Ordinal);
         readonly Dictionary<string, CheckBox> readyControls = new Dictionary<string, CheckBox>(StringComparer.Ordinal);
@@ -63,6 +64,7 @@ namespace MabinogiBarter
         readonly ProgressBar overallBar = new ProgressBar { Minimum = 0, Maximum = 100, Height = 5, Foreground = Green, Background = Paint("#E4EBE6"), BorderThickness = new Thickness(0) };
         Func<ProcurementStep, string> describe;
         int selectedTab = 1;
+        int lastTradeTab = 1;
         bool closed;
         bool remainingOnly;
         public CheckBox RemainingOnlyControl { get; private set; }
@@ -90,6 +92,7 @@ namespace MabinogiBarter
         static readonly Brush CoveredInk = Paint("#547A98");
 
         public Action<int> TabChanged;
+        public Button TradeTabButton { get; private set; }
         public Button PurchaseTabButton { get; private set; }
         public Button PreparationTabButton { get; private set; }
         public Button OpenMainButton { get; private set; }
@@ -115,9 +118,10 @@ namespace MabinogiBarter
                 CloseAcquisitionHelp();
                 SaveOffset(CurrentView);
                 SaveSearchOffset();
-                AppMotion.Transition(listContent, delegate {
+                AppMotion.Transition(sectionContent, delegate {
                     if (closed) return;
                     selectedTab = next;
+                    if (next != 3) lastTradeTab = next;
                     MountCurrentView();
                     UpdateTabButtons();
                     UpdateSelectedCount();
@@ -165,7 +169,6 @@ namespace MabinogiBarter
             var layout = new Grid { Margin = new Thickness(12, 10, 12, 8) };
             layout.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
             layout.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
-            layout.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
             layout.RowDefinitions.Add(new RowDefinition());
             layout.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
 
@@ -190,27 +193,44 @@ namespace MabinogiBarter
             AutomationProperties.SetName(CloseButton, "PIP 닫기");
             tools.Children.Add(OpenMainButton); tools.Children.Add(CloseButton); Grid.SetColumn(tools, 1); header.Children.Add(tools); layout.Children.Add(header);
 
-            var progress = new StackPanel { Margin = new Thickness(1, 0, 1, 12) };
-            checklistProgress = progress;
+            // Keep primary navigation above all view-specific content so its hit
+            // targets stay in place when checklist progress is hidden for search.
+            var navigation = new Grid { Margin = new Thickness(0, 0, 0, 10) };
+            navigation.ColumnDefinitions.Add(new ColumnDefinition()); navigation.ColumnDefinitions.Add(new ColumnDefinition());
+            TradeTabButton = SmallButton("교역", delegate { SelectedTab = lastTradeTab; });
+            SearchTabButton = SmallButton("경매장 검색", delegate { SelectedTab = 3; });
+            TradeTabButton.Margin = new Thickness(0, 0, 4, 0); SearchTabButton.Margin = new Thickness(4, 0, 0, 0);
+            foreach (var button in new[] { TradeTabButton, SearchTabButton }) { button.Height = 34; button.FontSize = 12; }
+            TradeTabButton.ToolTip = "교역에 필요한 구매·제작 목록과 준비율을 확인합니다.";
+            SearchTabButton.ToolTip = "아이템 이름으로 경매장 시세를 검색합니다.";
+            AutomationProperties.SetName(TradeTabButton, "PIP 교역");
+            AutomationProperties.SetName(SearchTabButton, "PIP 경매장 검색");
+            navigation.Children.Add(TradeTabButton); Grid.SetColumn(SearchTabButton, 1); navigation.Children.Add(SearchTabButton);
+            Grid.SetRow(navigation, 1); layout.Children.Add(navigation);
+
+            sectionContent.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+            sectionContent.RowDefinitions.Add(new RowDefinition());
+            checklistControls = new StackPanel { Margin = new Thickness(0, 0, 0, 8) };
+            var progress = new StackPanel { Margin = new Thickness(1, 0, 1, 10) };
             var totals = new Grid { Margin = new Thickness(0, 0, 0, 7) };
             totals.ColumnDefinitions.Add(new ColumnDefinition()); totals.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
             totals.Children.Add(Label("전체 재료 준비율", 11, Muted, true));
             Grid.SetColumn(overallText, 1); totals.Children.Add(overallText); progress.Children.Add(totals); progress.Children.Add(overallBar);
             AutomationProperties.SetName(overallText, "PIP 전체 재료 준비율");
             AutomationProperties.SetName(overallBar, "PIP 준비 진행도");
-            Grid.SetRow(progress, 1); layout.Children.Add(progress);
+            checklistControls.Children.Add(progress);
 
-            var tabs = new StackPanel { Margin = new Thickness(0, 0, 0, 8) };
-            var buttons = new Grid(); buttons.ColumnDefinitions.Add(new ColumnDefinition()); buttons.ColumnDefinitions.Add(new ColumnDefinition()); buttons.ColumnDefinitions.Add(new ColumnDefinition());
-            PurchaseTabButton = SmallButton("경매장 구매", delegate { SelectedTab = 1; }); PurchaseTabButton.Height = 34; PurchaseTabButton.Margin = new Thickness(0, 0, 3, 0);
-            PreparationTabButton = SmallButton("제작·확보", delegate { SelectedTab = 2; }); PreparationTabButton.Height = 34; PreparationTabButton.Margin = new Thickness(3, 0, 3, 0);
-            SearchTabButton = SmallButton("시세 검색", delegate { SelectedTab = 3; }); SearchTabButton.Height = 34; SearchTabButton.Margin = new Thickness(3, 0, 0, 0);
-            foreach (var button in new[] { PurchaseTabButton, PreparationTabButton, SearchTabButton }) button.Padding = new Thickness(3, 0, 3, 0);
+            var tabs = checklistControls;
+            var buttons = new Grid(); buttons.ColumnDefinitions.Add(new ColumnDefinition()); buttons.ColumnDefinitions.Add(new ColumnDefinition());
+            PurchaseTabButton = SmallButton("구매 목록", delegate { SelectedTab = 1; }); PurchaseTabButton.Margin = new Thickness(0, 0, 2, 0);
+            PreparationTabButton = SmallButton("제작·확보 목록", delegate { SelectedTab = 2; }); PreparationTabButton.Margin = new Thickness(2, 0, 0, 0);
+            foreach (var button in new[] { PurchaseTabButton, PreparationTabButton }) { button.Height = 30; button.Padding = new Thickness(3, 0, 3, 0); }
+            PurchaseTabButton.ToolTip = "경매장에서 구매하기로 정한 교역 재료입니다. 구매 후 체크하세요.";
+            PreparationTabButton.ToolTip = "직접 제작하거나 확보하기로 정한 교역 재료입니다. 준비 후 체크하세요.";
             AutomationProperties.SetName(PurchaseTabButton, "PIP 경매장 구매 체크리스트");
             AutomationProperties.SetName(PreparationTabButton, "PIP 제작·확보 체크리스트");
-            AutomationProperties.SetName(SearchTabButton, "PIP 경매장 시세 검색");
-            buttons.Children.Add(PurchaseTabButton); Grid.SetColumn(PreparationTabButton, 1); buttons.Children.Add(PreparationTabButton); tabs.Children.Add(buttons);
-            Grid.SetColumn(SearchTabButton, 2); buttons.Children.Add(SearchTabButton);
+            buttons.Children.Add(PurchaseTabButton); Grid.SetColumn(PreparationTabButton, 1); buttons.Children.Add(PreparationTabButton);
+            tabs.Children.Add(new Border { Child = buttons, Padding = new Thickness(3), CornerRadius = new CornerRadius(9), Background = Paint("#E4EBE6") });
             selectedCount.Margin = new Thickness(2, 8, 2, 0); tabs.Children.Add(selectedCount);
             AutomationProperties.SetName(selectedCount, "PIP 현재 목록 준비 개수");
             RemainingOnlyControl = new CheckBox { Content = "남은 품목만 보기", Focusable = false, FontSize = 12, Margin = new Thickness(2, 8, 0, 0), Cursor = Cursors.Hand };
@@ -221,14 +241,15 @@ namespace MabinogiBarter
             tabs.Children.Add(RemainingOnlyControl);
             interactionMessage.TextWrapping = TextWrapping.Wrap; interactionMessage.Margin = new Thickness(2, 6, 2, 0); interactionMessage.Visibility = Visibility.Collapsed;
             AutomationProperties.SetName(interactionMessage, "PIP 조작 제한 안내"); tabs.Children.Add(interactionMessage);
-            Grid.SetRow(tabs, 2); layout.Children.Add(tabs);
+            sectionContent.Children.Add(tabs);
 
-            Grid.SetRow(listContent, 3); layout.Children.Add(listContent);
+            Grid.SetRow(listContent, 1); sectionContent.Children.Add(listContent);
+            Grid.SetRow(sectionContent, 2); layout.Children.Add(sectionContent);
             var footer = new Grid { Margin = new Thickness(1, 8, 0, 0) };
             footerNote = Label("체크는 메인 앱과 함께 저장됩니다.", 10, Muted, false); footerNote.Margin = new Thickness(0, 0, 16, 0); footer.Children.Add(footerNote);
             var grip = new ResizeGrip { Width = 15, Height = 15, Focusable = false, HorizontalAlignment = HorizontalAlignment.Right, VerticalAlignment = VerticalAlignment.Bottom };
             AutomationProperties.SetName(grip, "PIP 크기 조절"); footer.Children.Add(grip);
-            Grid.SetRow(footer, 4); layout.Children.Add(footer);
+            Grid.SetRow(footer, 3); layout.Children.Add(footer);
             Content = new Border { Background = Background, BorderBrush = Paint("#AAC4B5"), BorderThickness = new Thickness(1), CornerRadius = new CornerRadius(11), Child = layout };
             UpdateTabButtons();
         }
@@ -278,7 +299,7 @@ namespace MabinogiBarter
             if (blocked) CloseAcquisitionHelp();
             purchases.Body.IsEnabled = !blocked; preparations.Body.IsEnabled = !blocked;
             PurchaseTabButton.IsEnabled = !blocked; PreparationTabButton.IsEnabled = !blocked;
-            SearchTabButton.IsEnabled = !blocked; marketSearchRoot.IsEnabled = !blocked;
+            TradeTabButton.IsEnabled = !blocked; SearchTabButton.IsEnabled = !blocked; marketSearchRoot.IsEnabled = !blocked;
             interactionMessage.Text = blocked ? message : "";
             interactionMessage.Visibility = blocked ? Visibility.Visible : Visibility.Collapsed;
         }
@@ -390,7 +411,7 @@ namespace MabinogiBarter
         void MountCurrentView()
         {
             bool search = selectedTab == 3;
-            checklistProgress.Visibility = selectedCount.Visibility = RemainingOnlyControl.Visibility = search ? Visibility.Collapsed : Visibility.Visible;
+            checklistControls.Visibility = search ? Visibility.Collapsed : Visibility.Visible;
             footerNote.Text = search ? "수집 시점의 개당 최저가 · 실시간 아님" : "체크는 메인 앱과 함께 저장됩니다.";
             listContent.Children.Clear();
             if (search) {
@@ -425,11 +446,18 @@ namespace MabinogiBarter
 
         void UpdateTabButtons()
         {
-            if (PurchaseTabButton == null || PreparationTabButton == null || SearchTabButton == null) return;
-            foreach (var button in new[] { PurchaseTabButton, PreparationTabButton, SearchTabButton })
+            if (TradeTabButton == null || PurchaseTabButton == null || PreparationTabButton == null || SearchTabButton == null) return;
+            foreach (var button in new[] { TradeTabButton, SearchTabButton })
             {
-                bool active = button == (selectedTab == 3 ? SearchTabButton : selectedTab == 1 ? PurchaseTabButton : PreparationTabButton);
+                bool active = button == (selectedTab == 3 ? SearchTabButton : TradeTabButton);
                 button.Background = active ? Green : AppTheme.Surface; button.Foreground = active ? AppTheme.OnAccent : Ink; button.BorderBrush = active ? Green : Line;
+                AutomationProperties.SetItemStatus(button, active ? "현재 탭" : "탭 전환");
+            }
+            foreach (var button in new[] { PurchaseTabButton, PreparationTabButton })
+            {
+                bool active = button == (lastTradeTab == 1 ? PurchaseTabButton : PreparationTabButton);
+                button.Background = active ? AppTheme.Surface : Brushes.Transparent;
+                button.Foreground = active ? Green : Muted; button.BorderBrush = active ? Line : Brushes.Transparent;
                 AutomationProperties.SetItemStatus(button, active ? "현재 목록" : "목록 전환");
             }
         }

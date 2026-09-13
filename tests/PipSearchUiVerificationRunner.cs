@@ -104,8 +104,12 @@ public static class PipSearchUiVerificationRunner
         string checkKey = null; bool checkValue = false;
         var steps = new List<ProcurementStep>();
         for (int i = 0; i < 20; i++) steps.Add(new ProcurementStep { Key = "purchase:fixture" + i, Name = "구매 확인 재료 " + i.ToString("00"), Kind = "purchase", Quantity = i + 1, GroupKey = "lower", GroupLabel = "테스트 구매" });
+        for (int i = 0; i < 20; i++) steps.Add(new ProcurementStep { Key = "craft:fixture" + i, Name = "제작 확인 재료 " + i.ToString("00"), Kind = "craft", Quantity = i + 1, GroupKey = "lower", GroupLabel = "테스트 제작" });
         var window = NewWindow(delegate(string key, bool value) { checkCalls++; checkKey = key; checkValue = value; });
-        window.UpdateSteps(steps, 0m, null);
+        window.UpdateSteps(steps, 0m, null); Pump(); Pump();
+        var primaryBounds = PrimaryTabBounds(window);
+        VerifyPrimaryTabs(window, primaryBounds, false);
+        Assert(Convert.ToString(window.TradeTabButton.Content) == "교역" && Convert.ToString(window.SearchTabButton.Content) == "경매장 검색", "Primary tabs do not identify trade and auction search");
         var snapshot = Fixture("cached");
         int uiThread = Thread.CurrentThread.ManagedThreadId, cacheThread = uiThread;
         using (var gate = new ManualResetEvent(false)) {
@@ -118,6 +122,7 @@ public static class PipSearchUiVerificationRunner
         }
         Assert(cacheThread != uiThread, "Cache load ran on the WPF dispatcher");
         Assert(refreshCalls == 0, "Tab entry fetched data");
+        VerifyPrimaryTabs(window, primaryBounds, true);
         Query(window, "오프라인신규거미줄", ExactName);
         Assert(Blocks(Cards(window).First()).Any(t => t.Text == ExactName), "Exact match did not rank first");
         Assert(Text(Cards(window).First()).Contains("187.25 G"), "Fractional unit price was rounded away");
@@ -144,28 +149,58 @@ public static class PipSearchUiVerificationRunner
         Assert(window.SelectedTab == 3 && window.SearchInput.Text == "오프라인 공통 재료", "Checklist update replaced active query or tab");
         Assert(Object.ReferenceEquals(firstCard, Cards(window).First()), "Checklist update rebuilt search cards");
         Assert(Math.Abs(window.SearchResultsScroll.VerticalOffset - searchOffset) < 2, "Checklist update reset search scroll");
-        window.SelectedTab = 1; Pump(); Pump();
+        VerifyPrimaryTabs(window, primaryBounds, true);
+        Click(window.TradeTabButton); Pump();
+        Assert(window.SelectedTab == 1, "Trade tab did not return to the purchase checklist");
+        VerifyPrimaryTabs(window, primaryBounds, false);
         window.PurchaseScroll.ScrollToVerticalOffset(130); Pump(); Pump();
         double purchaseOffset = window.PurchaseScroll.VerticalOffset;
+        Assert(purchaseOffset > 0, "Purchase fixture has no scrollable checklist");
         var check = window.ReadyControls[steps[0].Key]; check.IsChecked = true;
         check.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
         Assert(checkCalls == 1 && checkKey == steps[0].Key && checkValue, "Purchase checkbox callback broke");
         steps[0].IsReady = true; window.UpdateSteps(steps, 5m, null);
-        window.SelectedTab = 3; Pump(); Pump();
+        Click(window.SearchTabButton); Pump();
+        VerifyPrimaryTabs(window, primaryBounds, true);
         Assert(Object.ReferenceEquals(searchInput, window.SearchInput) && window.SearchInput.Text == "오프라인 공통 재료", "Tab switching lost the search input");
         Assert(Math.Abs(window.SearchResultsScroll.VerticalOffset - searchOffset) < 2, "Tab switching reset search scroll");
-        window.SelectedTab = 1; Pump(); Pump();
+        Click(window.TradeTabButton); Pump();
         Assert(Math.Abs(window.PurchaseScroll.VerticalOffset - purchaseOffset) < 2, "Search tab reset purchase scroll");
-        window.SelectedTab = 3; Pump(); Pump();
+        Assert(Object.ReferenceEquals(check, window.ReadyControls[steps[0].Key]) && check.IsChecked == true, "Search navigation lost the synchronized purchase check");
+        Click(window.PreparationTabButton); Pump();
+        Assert(window.SelectedTab == 2, "Preparation subtab did not select the craft checklist");
+        VerifyPrimaryTabs(window, primaryBounds, false);
+        window.PreparationScroll.ScrollToVerticalOffset(170); Pump(); Pump();
+        double preparationOffset = window.PreparationScroll.VerticalOffset;
+        Assert(preparationOffset > 0, "Preparation fixture has no scrollable checklist");
+        var craft = steps.First(s => s.Kind == "craft");
+        var craftCheck = window.ReadyControls[craft.Key]; craftCheck.IsChecked = true;
+        craftCheck.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+        Assert(checkCalls == 2 && checkKey == craft.Key && checkValue, "Preparation checkbox callback broke");
+        Click(window.SearchTabButton); Pump();
+        VerifyPrimaryTabs(window, primaryBounds, true);
+        craft.IsReady = true; window.UpdateSteps(steps, 33m, null); Pump(); Pump();
+        Assert(window.SelectedTab == 3 && Object.ReferenceEquals(firstCard, Cards(window).First()) && window.SearchInput.Text == "오프라인 공통 재료", "Craft synchronization replaced the active search state");
+        Assert(Math.Abs(window.SearchResultsScroll.VerticalOffset - searchOffset) < 2, "Craft synchronization reset search scroll");
+        VerifyPrimaryTabs(window, primaryBounds, true);
+        Click(window.TradeTabButton); Pump();
+        Assert(window.SelectedTab == 2, "Craft to search to trade navigation forgot the craft subtab");
+        VerifyPrimaryTabs(window, primaryBounds, false);
+        Assert(Math.Abs(window.PreparationScroll.VerticalOffset - preparationOffset) < 2, "Search navigation reset preparation scroll");
+        Assert(Object.ReferenceEquals(craftCheck, window.ReadyControls[craft.Key]) && craftCheck.IsChecked == true, "Search navigation lost the synchronized preparation check");
+        Assert(window.OverallProgress.Value == 33 && window.OverallPercentText.Text.Contains("33"), "Trade view did not show the progress synchronized while searching");
+        Click(window.SearchTabButton); Pump();
+        VerifyPrimaryTabs(window, primaryBounds, true);
         Wait(delegate { return !window.SearchBusy; }, "return to cached search");
         Assert(refreshCalls == 0, "Typing or tab switching fetched data");
         Assert(!window.SearchStatusText.Text.Contains("읽지 못"), "Returning to the cache failed");
         passed.Add("cached exact/space-insensitive/full-universe search; fractional prices and unknown quantity; empty/option/no-result states; 30-result cap; zero implicit fetches");
-        passed.Add("checkbox callback and purchase/search query, scroll, and controls preserved through updates");
+        passed.Add("fixed trade/search primary tabs; hidden trade progress and subtabs while searching; remembered craft subtab; both checklist callbacks, checks, scrolls, search query and cards preserved through synchronization");
 
         Query(window, LongName, LongName);
         window.Width = 320; window.Height = 540; PumpFor(100);
         VerifyWidth(window);
+        VerifyPrimaryNavigationGeometry(window, "tabs-minimum-light");
         var name = Blocks(window.SearchResultsPanel).First(t => t.Text == LongName);
         Assert(name.TextWrapping != TextWrapping.NoWrap && name.ActualHeight > name.FontSize * 2, "Long name does not wrap at minimum width");
         Color light = ((SolidColorBrush)window.SearchInput.Background).Color;
@@ -173,19 +208,20 @@ public static class PipSearchUiVerificationRunner
         Capture(window, "search-minimum-light.png");
         AppTheme.SetDark(true); Pump(); Pump();
         VerifyWidth(window);
+        VerifyPrimaryNavigationGeometry(window, "tabs-minimum-dark");
         Assert(((SolidColorBrush)window.SearchInput.Background).Color != light, "Existing search field did not update its theme");
         Assert(Object.ReferenceEquals(visibleCard, Cards(window).First()) && window.SearchInput.Text == LongName, "Theme change rebuilt or reset search");
         Capture(window, "search-minimum-dark.png");
         AppTheme.SetDark(false); Pump();
         window.Width = 360; PumpFor(100);
-        VerifyWidth(window); Capture(window, "search-default-light.png");
+        VerifyWidth(window); VerifyPrimaryNavigationGeometry(window, "tabs-default-light"); Capture(window, "search-default-light.png");
         AppTheme.SetDark(true); Pump(); Pump();
-        VerifyWidth(window); Capture(window, "search-default-dark.png");
+        VerifyWidth(window); VerifyPrimaryNavigationGeometry(window, "tabs-default-dark"); Capture(window, "search-default-dark.png");
         Assert(window.SearchInput.Focusable && window.SearchInput.IsTabStop && !window.SearchInput.IsReadOnly, "Search field cannot accept normal keyboard input");
         FocusManager.SetFocusedElement(window, window.SearchInput); Pump();
         Assert(Object.ReferenceEquals(FocusManager.GetFocusedElement(window), window.SearchInput), "Search input cannot retain logical focus");
         AppTheme.SetDark(false); Pump();
-        passed.Add("live light/dark appearance and wrapped long names at 320px, with captures");
+        passed.Add("live light/dark appearance, wrapped long names and invariant primary tab bounds across purchase/craft/search at 320px and 360px, with captures");
     }
 
     static void VerifyRefresh()
@@ -321,11 +357,71 @@ public static class PipSearchUiVerificationRunner
         while (!done()) { if (clock.ElapsedMilliseconds > 6000) throw new Exception("Timed out waiting for " + reason); Pump(); Thread.Sleep(10); }
         Pump();
     }
+    static Rect Bounds(PipChecklistWindow window, FrameworkElement control)
+    {
+        var root = (FrameworkElement)window.Content;
+        return control.TransformToAncestor(root).TransformBounds(new Rect(0, 0, control.ActualWidth, control.ActualHeight));
+    }
+    static Rect[] PrimaryTabBounds(PipChecklistWindow window)
+    {
+        window.UpdateLayout();
+        Assert(window.TradeTabButton != null && window.SearchTabButton != null, "Trade/search primary tab controls are missing");
+        Assert(window.TradeTabButton.IsVisible && window.SearchTabButton.IsVisible, "A primary tab is not visible");
+        return new[] { Bounds(window, window.TradeTabButton), Bounds(window, window.SearchTabButton) };
+    }
+    static void VerifyPrimaryTabs(PipChecklistWindow window, Rect[] expected, bool search)
+    {
+        var actual = PrimaryTabBounds(window);
+        var root = (FrameworkElement)window.Content;
+        for (int i = 0; i < actual.Length; i++) {
+            Assert(actual[i].Width > 0 && actual[i].Height > 0, "A primary tab has no clickable area");
+            Assert(actual[i].Left >= -1 && actual[i].Right <= root.ActualWidth + 1, "A primary tab clips outside the window");
+            Assert(Math.Abs(actual[i].Top - expected[i].Top) < 1 && Math.Abs(actual[i].Left - expected[i].Left) < 1
+                && Math.Abs(actual[i].Width - expected[i].Width) < 1 && Math.Abs(actual[i].Height - expected[i].Height) < 1,
+                "Primary tab bounds moved while switching trade/search: expected " + expected[i] + ", actual " + actual[i]);
+        }
+        Assert(Math.Abs(actual[0].Top - actual[1].Top) < 1 && actual[0].Right <= actual[1].Left + 1, "Trade/search primary tabs are not aligned as two separate buttons");
+        Assert((window.SelectedTab == 3) == search, "SelectedTab does not match the visible primary view");
+        foreach (var control in new FrameworkElement[] { window.PurchaseTabButton, window.PreparationTabButton,
+            window.OverallPercentText, window.OverallProgress, window.SelectedCountText, window.RemainingOnlyControl }) {
+            Assert(control.IsVisible == !search, "Trade-only control has wrong visibility in search/trade: " + control.GetType().Name);
+            if (!search) Assert(Bounds(window, control).Top >= Math.Max(actual[0].Bottom, actual[1].Bottom) - 1, "Trade progress or subtab appears above the primary navigation");
+        }
+        Assert(window.SearchInput.IsVisible == search && window.SearchResultsScroll.IsVisible == search, "Auction search controls leaked into the trade view or disappeared from search");
+        Assert(window.PurchaseScroll.IsVisible == (!search && window.SelectedTab == 1)
+            && window.PreparationScroll.IsVisible == (!search && window.SelectedTab == 2), "The wrong checklist is visible under the selected subtab");
+    }
+    static void VerifyPrimaryNavigationGeometry(PipChecklistWindow window, string capturePrefix)
+    {
+        Assert(window.SelectedTab == 3, "Navigation geometry fixture must begin in search");
+        var expected = PrimaryTabBounds(window);
+        var input = window.SearchInput;
+        string query = input.Text;
+        var cards = Cards(window).ToArray();
+        double searchOffset = window.SearchResultsScroll.VerticalOffset;
+        Click(window.TradeTabButton); Pump();
+        Assert(window.SelectedTab == 2, "Trade return forgot the last preparation subtab during size/theme verification");
+        VerifyPrimaryTabs(window, expected, false);
+        Capture(window, capturePrefix + "-craft.png");
+        Click(window.PurchaseTabButton); Pump();
+        Assert(window.SelectedTab == 1, "Purchase subtab selection changed its saved numeric value");
+        VerifyPrimaryTabs(window, expected, false);
+        Capture(window, capturePrefix + "-purchase.png");
+        Click(window.PreparationTabButton); Pump();
+        Assert(window.SelectedTab == 2, "Preparation subtab selection changed its saved numeric value");
+        VerifyPrimaryTabs(window, expected, false);
+        Click(window.SearchTabButton); Pump();
+        Wait(delegate { return !window.SearchBusy; }, "search after primary tab geometry checks");
+        VerifyPrimaryTabs(window, expected, true);
+        Assert(Object.ReferenceEquals(input, window.SearchInput) && input.Text == query, "Navigation geometry checks lost the search input");
+        Assert(cards.SequenceEqual(Cards(window)), "Primary navigation rebuilt the cached search results");
+        Assert(Math.Abs(window.SearchResultsScroll.VerticalOffset - searchOffset) < 2, "Primary navigation changed the search scroll at this size/theme");
+    }
     static void VerifyWidth(PipChecklistWindow window)
     {
         window.UpdateLayout();
         var root = (FrameworkElement)window.Content;
-        foreach (var control in new FrameworkElement[] { window.SearchTabButton, window.SearchInput, window.SearchRefreshButton, window.SearchResultsScroll }) {
+        foreach (var control in new FrameworkElement[] { window.TradeTabButton, window.SearchTabButton, window.SearchInput, window.SearchRefreshButton, window.SearchResultsScroll }) {
             Assert(control.ActualWidth > 0, "Search control collapsed at minimum width");
             var bounds = control.TransformToAncestor(root).TransformBounds(new Rect(0, 0, control.ActualWidth, control.ActualHeight));
             Assert(bounds.Left >= -1 && bounds.Right <= root.ActualWidth + 1, "Search control clips horizontally at minimum width");

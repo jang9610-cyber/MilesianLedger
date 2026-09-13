@@ -34,6 +34,7 @@ namespace MabinogiBarter
             var credits = new UniformGrid { Columns = 2, Margin = new Thickness(0, 0, -10, 4) };
             credits.Children.Add(SourceCreditCard("게임 자료 권리", "마비노기", "게임 명칭·캐릭터·아이템 이미지의 권리는\nNEXON 등 각 권리자에게 있습니다.", null));
             credits.Children.Add(SourceCreditCard("경매장 시세", "NEXON Open API", "Data based on NEXON Open API", "https://openapi.nexon.com/ko/game/mabinogi/?id=33"));
+            credits.Children.Add(SourceCreditCard("수수료·쿠폰 기준", "넥슨 고객센터", "기본 수수료 5% · 프리미엄 혜택 4%\n쿠폰은 판매 수수료에 할인율을 적용합니다.", "https://cs.nexon.com/helpBoard/popuphelpview/20851"));
             credits.Children.Add(SourceCreditCard("아이콘", itemIcons.SourceName ?? "아이콘 자료", "게임 이미지의 권리는 원권리자에게 있습니다.\n개별 이미지 원문은 아래에서 확인할 수 있습니다.", itemIcons.SourceUrl));
             credits.Children.Add(SourceCreditCard("판매·운송 기준", "마비교역", "판매 평균가·적재량·교역 설정\n자료 확인 " + tradePlanningData.CheckedAt, tradePlanningData.SourceUrl));
             body.Children.Add(credits);

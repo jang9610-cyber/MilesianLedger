@@ -79,6 +79,8 @@ namespace MabinogiBarter
                 ? "M9,5 L21,5 M9,12 L21,12 M9,19 L21,19 M2,5 L4,7 7,3 M2,12 L4,14 7,10 M2,19 L4,21 7,17"
                 : kind == "pip"
                 ? "M3,4 L21,4 21,20 3,20 Z M11,12 L19,12 19,18 11,18 Z"
+                : kind == "settlement"
+                ? "M5,3 L19,3 19,21 5,21 Z M8,7 L16,7 M8,12 L10,12 M14,12 L16,12 M8,17 L10,17 M14,17 L16,17"
                 : "M5,3 L5,21 M12,3 L12,21 M19,3 L19,21 M2,8 L8,8 M9,16 L15,16 M16,7 L22,7";
             var drawing = new DrawingGroup();
             drawing.Children.Add(new GeometryDrawing(Brushes.Transparent, null, new RectangleGeometry(new Rect(0, 0, 24, 24))));

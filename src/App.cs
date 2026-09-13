@@ -277,7 +277,9 @@ namespace MabinogiBarter
             var brandTitle = T("밀레시안 장부", 20, Ink, true); brandTitle.Margin = new Thickness(0, 16, 0, 5); brand.Children.Add(brandTitle);
             brand.Children.Add(T("물물교환 준비 노트", 11, Muted, false));
             side.Children.Add(brand);
-            nav.Margin = new Thickness(13, 0, 13, 0); Grid.SetRow(nav, 1); side.Children.Add(nav);
+            nav.Margin = new Thickness(13, 0, 13, 0);
+            var navigationScroll = new ScrollViewer { Content = nav, VerticalScrollBarVisibility = ScrollBarVisibility.Auto, HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled, Focusable = false };
+            Grid.SetRow(navigationScroll, 1); side.Children.Add(navigationScroll);
             var bottom = new StackPanel { Margin = new Thickness(24, 20, 20, 25) };
             var darkMode = new CheckBox { Content = "다크모드", IsChecked = AppTheme.IsDark, Foreground = Ink, FontSize = 12, Margin = new Thickness(0, 0, 0, 14), Cursor = Cursors.Hand };
             darkMode.Click += delegate {
@@ -345,6 +347,7 @@ namespace MabinogiBarter
             nav.Children.Add(BuildNavigationButton("재료 준비", "구매 · 제작 · 구비", "materials", ShowSummary, summaryView));
             nav.Children.Add(BuildNavigationButton("PIP", "체크리스트 · 시세 검색", "pip", ShowPipChecklist, false));
             nav.Children.Add(BuildNavigationButton("시장 통계", "판매량 · 매물 현황", "market", ShowMarketStatistics, false));
+            nav.Children.Add(BuildNavigationButton("수수료·분배", "판매 정산 · 분배금", "settlement", ShowAuctionSettlement, false));
             var divider = new Border { Height = 1, Background = Line, Margin = new Thickness(11, 18, 11, 17) }; nav.Children.Add(divider);
             var settingsLabel = T("앱 설정", 10, Muted, true); settingsLabel.Margin = new Thickness(11, 0, 0, 7); nav.Children.Add(settingsLabel);
             nav.Children.Add(BuildNavigationButton("진행 상태 복원", "", "settings", ShowProgressHistory, false));

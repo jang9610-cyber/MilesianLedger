@@ -85,7 +85,41 @@ public static class MarketSnapshotVerificationRunner
     static MarketSnapshotClient Client(string name, Handler handler) { return new MarketSnapshotClient(Origin, Path.Combine(root, name + ".json"), handler); }
     static void Check(bool value, string what) { if (!value) throw new Exception(what); }
     static void Pass(string what) { passed++; Console.WriteLine("PASS " + what); }
+    static async Task VerifyPublications() {
+        var handler = new Handler { Fixture = new Fixture(11, true) };
+        var client = Client("publication", handler);
+        int notifications = 0; bool outsideLock = false, seesPublishedCache = false;
+        Action<MarketSnapshotData> brokenView = delegate { throw new InvalidOperationException("offline failing observer"); };
+        Action<MarketSnapshotData> view = delegate(MarketSnapshotData published) {
+            notifications++;
+            var read = Task.Run(() => client.CachedData);
+            outsideLock = read.Wait(2000);
+            seesPublishedCache = outsideLock && Object.ReferenceEquals(read.Result, published);
+        };
+        client.SnapshotPublished += brokenView; client.SnapshotPublished += view;
+        var first = await client.RefreshAsync(CancellationToken.None);
+        Check(first.Downloaded && first.ErrorMessage == null && notifications == 1 && outsideLock && seesPublishedCache,
+            "publication must be outside cache lock, expose committed cache, and isolate observer exceptions");
+        await client.RefreshAsync(CancellationToken.None);
+        Check(notifications == 1, "unchanged refresh republished the same snapshot");
+        handler.Fixture = new Fixture(12, true); handler.Corrupt = true;
+        var failed = await client.RefreshAsync(CancellationToken.None);
+        Check(failed.ErrorMessage != null && notifications == 1 && Object.ReferenceEquals(client.CachedData, first.Data), "failed validation published or replaced the cache");
+        handler.Corrupt = false;
+        var second = await client.RefreshAsync(CancellationToken.None);
+        Check(second.Downloaded && notifications == 2 && !Object.ReferenceEquals(first.Data, second.Data), "new snapshot did not publish exactly once");
+        client.SnapshotPublished -= brokenView; client.SnapshotPublished -= view;
+        handler.Fixture = new Fixture(13, true); await client.RefreshAsync(CancellationToken.None);
+        Check(notifications == 2, "unsubscribed view still received a publication");
+        var diskHandler = new Handler { Fixture = handler.Fixture, Offline = true };
+        var restored = Client("publication", diskHandler); int diskNotifications = 0;
+        restored.SnapshotPublished += delegate { diskNotifications++; };
+        Check(restored.ReadCachedData() != null && restored.ReadCachedData() != null && diskNotifications == 0 && diskHandler.Calls == 0,
+            "disk restoration must remain local and must not publish a download event");
+        Pass("new snapshot notifications occur outside the cache lock, survive observer errors, stop on unsubscribe, and exclude unchanged/failed/local reads");
+    }
     static async Task Run() {
+        await VerifyPublications();
         var first = new Fixture(10, true); var h = new Handler { Fixture = first }; var client = Client("main", h);
         var data = await client.RefreshAsync(CancellationToken.None);
         Check(data.Downloaded && data.Requests == 2 && data.Data.Items24h.Count == 120 && data.Data.Quotes.Count == 120, "initial verified download");

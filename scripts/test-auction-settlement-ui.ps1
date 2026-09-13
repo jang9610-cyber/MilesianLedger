@@ -29,3 +29,23 @@ if ($taskProcess.ExitCode -ne 0) {
     throw ('Auction settlement UI verification failed. Artifacts: ' + $taskOutput)
 }
 Write-Output ('Auction settlement UI artifacts: ' + $taskOutput)
+
+# Exercise notifications from another open view with the same app assembly.
+$taskPublicationOutput = Join-Path $taskOutput 'shared-publication'
+New-Item -ItemType Directory -Path $taskPublicationOutput -Force | Out-Null
+$taskPublicationRunner = Join-Path $taskRuntime 'MarketSnapshotPublicationVerificationRunner.exe'
+$taskPublicationArgs = @('/nologo', '/target:exe', '/langversion:5', '/codepage:65001', ('/out:' + $taskPublicationRunner), ('/reference:' + (Join-Path $taskRuntime 'MilesianLedger.exe')))
+foreach ($taskReference in @('System.dll', 'System.Core.dll', 'System.Net.Http.dll', 'System.Xaml.dll', 'WPF/WindowsBase.dll', 'WPF/PresentationCore.dll', 'WPF/PresentationFramework.dll')) {
+    $taskPublicationArgs += '/reference:' + (Join-Path $taskFramework $taskReference)
+}
+$taskPublicationArgs += Join-Path $taskRepo 'tests/MarketSnapshotPublicationVerificationRunner.cs'
+& (Join-Path $taskFramework 'csc.exe') @taskPublicationArgs
+if ($LASTEXITCODE -ne 0) { throw 'Snapshot publication verification compilation failed.' }
+$taskPublicationProcess = Start-Process -FilePath $taskPublicationRunner -ArgumentList ('"' + $taskPublicationOutput + '"') -WorkingDirectory $taskRuntime -WindowStyle Hidden -RedirectStandardOutput (Join-Path $taskPublicationOutput 'stdout.txt') -RedirectStandardError (Join-Path $taskPublicationOutput 'stderr.txt') -PassThru
+$taskPublicationProcess.Handle | Out-Null
+if (-not $taskPublicationProcess.WaitForExit(30000)) { $taskPublicationProcess.Kill(); throw 'Snapshot publication verification timed out.' }
+Get-Content -LiteralPath (Join-Path $taskPublicationOutput 'stdout.txt')
+if ($taskPublicationProcess.ExitCode -ne 0) {
+    Get-Content -LiteralPath (Join-Path $taskPublicationOutput 'stderr.txt')
+    throw ('Snapshot publication verification failed. Artifacts: ' + $taskPublicationOutput)
+}

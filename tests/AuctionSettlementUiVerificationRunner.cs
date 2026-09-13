@@ -179,6 +179,9 @@ public static class AuctionSettlementUiVerificationRunner
         SameSale(window, "Completed refresh");
         Check(window.CouponPriceInput(10).Text == "0" && window.CouponPriceInput(20).Text == "123456" && window.CouponPriceInput(100).Text == "", "Refresh overwrote a manual/free/unknown coupon cost");
         Check(Row(window, 10).CouponPrice == 0m && Row(window, 20).CouponPrice == 123456m && !Row(window, 100).IsKnown && Row(window, 30).CouponPrice == 2000000m, "Manual and market-derived coupon costs were not kept distinct");
+        VerifyCouponMarket(window, fresh);
+        Check(window.CouponSourceText(10).Text.Contains("보유") && window.CouponSourceText(20).Text.Contains("직접")
+            && window.CouponSourceText(30).Text.Contains("자동"), "Coupon cost sources do not distinguish owned, manual and market-following prices");
         Check(window.SelectedDiscount == 10, "Refresh changed the explicitly selected coupon");
         var failed = new TaskCompletionSource<MarketSnapshotResult>(); setPending(failed); Click(window.MarketPanel.RefreshButton);
         failed.SetResult(new MarketSnapshotResult { Data = Fixture("failed-old", false), UsedCached = true, ErrorMessage = "오프라인 검증 갱신 실패" });
@@ -186,6 +189,114 @@ public static class AuctionSettlementUiVerificationRunner
         Check(Object.ReferenceEquals(window.MarketPanel.Snapshot, fresh) && Row(window, 30).CouponPrice == 2000000m && refreshCalls == 2, "Failed refresh replaced the successful snapshot or automatically retried");
         SameSale(window, "Failed refresh");
         Pass("explicit refresh pending/success/failure retains sale inputs, selected coupon, manual/free/unknown prices and the last successful market snapshot");
+    }
+    static void VerifyCouponMarket(AuctionSettlementWindow window, MarketSnapshotData snapshot)
+    {
+        foreach (int discount in Coupons) {
+            var quote = snapshot.Quotes["경매장 수수료 " + discount + "% 할인 쿠폰"];
+            string expectedPrice = quote.UnitPrice.Value.ToString("#,0.########", CultureInfo.InvariantCulture) + " G";
+            var market = window.CouponMarketText(discount);
+            Check(market.IsVisible && market.Text.Contains(expectedPrice) && market.Text.Contains("최저"), "Coupon card does not retain its current market minimum: " + discount + " / " + market.Text);
+            Check(market.Text.Contains("수집") && market.Text.Contains(quote.FetchedUtc.ToLocalTime().ToString("HH:mm")), "Coupon card lacks its market collection time: " + discount);
+        }
+    }
+    static Color BrushColor(Brush brush)
+    {
+        var solid = brush as SolidColorBrush;
+        Check(solid != null, "Recommendation highlight is not a verifiable solid color");
+        return solid.Color;
+    }
+    static int ColorDistance(Color left, Color right)
+    {
+        return Math.Abs(left.R - right.R) + Math.Abs(left.G - right.G) + Math.Abs(left.B - right.B);
+    }
+    static void VerifyRecommendation(AuctionSettlementWindow window, int discount)
+    {
+        Pump(); Check(window.CurrentReport != null && window.CurrentReport.BestScenario.DiscountPercent == discount, "Recommendation did not change to coupon " + discount);
+        Check(window.SelectedDiscount == 0, "Recommending a different coupon changed the actual no-coupon selection");
+        string label = discount == 0 ? "쿠폰 없음" : discount + "%";
+        Check(window.RecommendationText.IsVisible && window.RecommendationText.Text.Contains(label), "Recommendation summary does not identify the best coupon: " + window.RecommendationText.Text);
+        var best = window.CouponCard(discount);
+        var neutral = window.CouponCard(Coupons.First(d => d != discount));
+        Color fill = BrushColor(best.Background), edge = BrushColor(best.BorderBrush);
+        Check(fill.G > fill.R && fill.G >= fill.B && edge.G > edge.R && edge.G >= edge.B, "Best coupon is not emphasized with a green fill and border");
+        Check(ColorDistance(fill, BrushColor(neutral.Background)) >= 12 && ColorDistance(edge, BrushColor(neutral.BorderBrush)) >= 30, "Best coupon highlight is indistinguishable from another coupon");
+        if (discount != 0) Check(ColorDistance(fill, BrushColor(window.CouponCard(0).Background)) >= 12, "Actual no-coupon selection masks the different best coupon highlight");
+        Check(Text(best).Contains("추천") || Text(best).Contains("비용 최소"), "Recommended card has no textual explanation of its highlight");
+    }
+    static MarketSnapshotData DifferentCouponFixture(string version, decimal[] prices, int minute)
+    {
+        var data = Fixture(version, false);
+        var stamp = new DateTime(2026, 9, 13, 13, minute, 0, DateTimeKind.Utc);
+        data.GeneratedUtc = stamp; data.ListingsFetchedUtc = stamp;
+        foreach (var quote in data.Quotes.Values) quote.FetchedUtc = stamp;
+        for (int i = 0; i < Coupons.Length; i++) data.Quotes["경매장 수수료 " + Coupons[i] + "% 할인 쿠폰"].UnitPrice = prices[i];
+        return data;
+    }
+    static void VerifyCouponSourcesAndRecommendation()
+    {
+        var window = NewWindow(); SetSale(window, ManualGross);
+        var original = DifferentCouponFixture("different-market", new[] { 210123m, 800456m, 1900789m, 11111222m, 22333444m }, 17);
+        var refreshed = DifferentCouponFixture("different-market-refreshed", new[] { 310321m, 920654m, 2100987m, 12111333m, 23333555m }, 43);
+        var later = DifferentCouponFixture("different-market-later", new[] { 123987m, 923456m, 2134567m, 12345678m, 23456789m }, 56);
+        MarketSnapshotData next = refreshed;
+        int explicitCalls = 0, before = refreshCalls;
+        window.MarketPanel.Configure(delegate { return original; }, delegate {
+            explicitCalls++; refreshCalls++; return Task.FromResult(new MarketSnapshotResult { Data = next, Downloaded = true });
+        }, null);
+        Wait(delegate { return !window.MarketPanel.IsBusy && Object.ReferenceEquals(window.MarketPanel.Snapshot, original); }, "different coupon fixture cache");
+        VerifyCouponMarket(window, original);
+        foreach (int discount in Coupons) Check(window.CouponSourceText(discount).Text.Contains("자동"), "Initial market coupon is not identified as automatic: " + discount);
+        Check(Row(window, 10).CouponPrice == 210123m && Row(window, 20).CouponPrice == 800456m && Row(window, 100).CouponPrice == 22333444m, "Coupon defaults are screenshot constants rather than snapshot values");
+        VerifyRecommendation(window, 10);
+        foreach (bool dark in new[] { false, true }) {
+            AppTheme.SetDark(dark); Pump(); window.Width = 780;
+            window.CouponCard(10).BringIntoView(); Pump(); VerifyRecommendation(window, 10); VerifyWidth(window);
+            CaptureWindow(window, "settlement-coupon-recommendation-" + (dark ? "dark" : "light") + ".png");
+        }
+        AppTheme.SetDark(false); Pump();
+        window.CouponPriceInput(10).Text = "1000000";
+        Check(window.CouponSourceText(10).Text.Contains("직접"), "Manual coupon input retained its automatic source label");
+        VerifyCouponMarket(window, original); VerifyRecommendation(window, 20);
+        window.CouponPriceInput(20).Clear();
+        Check(!Row(window, 20).IsKnown, "Cleared coupon cost was treated as zero");
+        VerifyRecommendation(window, 0);
+        Click(window.CouponMarketButton(10));
+        Check(Row(window, 10).CouponPrice == 210123m && window.CouponSourceText(10).Text.Contains("자동"), "Follow-market action did not restore the latest quote and automatic mode");
+        VerifyRecommendation(window, 10);
+        window.CouponPriceInput(20).Text = "650123"; VerifyRecommendation(window, 20);
+        window.PremiumControl.IsChecked = true; VerifyRecommendation(window, 10);
+        window.PremiumControl.IsChecked = false; VerifyRecommendation(window, 20);
+        window.GrossInput.Text = "10000000"; VerifyRecommendation(window, 0);
+        window.GrossInput.Text = ManualGross; VerifyRecommendation(window, 20);
+        window.CouponPriceInput(10).Text = "0";
+        Check(window.CouponSourceText(10).Text.Contains("보유"), "Explicit zero coupon input is not labeled as owned/free");
+        VerifyCouponMarket(window, original); VerifyRecommendation(window, 10);
+        Click(window.MarketPanel.RefreshButton);
+        Wait(delegate { return !window.MarketPanel.IsBusy && Object.ReferenceEquals(window.MarketPanel.Snapshot, refreshed); }, "refresh market labels behind manual costs");
+        VerifyCouponMarket(window, refreshed);
+        Check(Row(window, 10).CouponPrice == 0m && window.CouponSourceText(10).Text.Contains("보유")
+            && Row(window, 20).CouponPrice == 650123m && window.CouponSourceText(20).Text.Contains("직접"), "New quotes replaced owned/manual coupon costs or their source modes");
+        Check(Row(window, 30).CouponPrice == 2100987m && window.CouponSourceText(30).Text.Contains("자동"), "Automatic coupon did not advance with the new market snapshot");
+        SameSale(window, "New market labels behind manual prices");
+        Click(window.CouponMarketButton(10));
+        Check(Row(window, 10).CouponPrice == 310321m && window.CouponSourceText(10).Text.Contains("자동"), "Owned coupon could not return to current market pricing");
+        next = later; Click(window.MarketPanel.RefreshButton);
+        Wait(delegate { return !window.MarketPanel.IsBusy && Object.ReferenceEquals(window.MarketPanel.Snapshot, later); }, "follow-market subsequent refresh");
+        VerifyCouponMarket(window, later);
+        Check(Row(window, 10).CouponPrice == 123987m && window.CouponSourceText(10).Text.Contains("자동") && Row(window, 20).CouponPrice == 650123m,
+            "Follow-market mode did not persist into the next refresh or affected a different manual coupon");
+        SameSale(window, "Follow-market subsequent refresh");
+        VerifyRecommendation(window, 10);
+        var missing = DifferentCouponFixture("different-market-missing", new[] { 123987m, 923456m, 2134567m, 12345678m, 23456789m }, 59);
+        missing.Quotes.Remove("경매장 수수료 10% 할인 쿠폰"); next = missing; Click(window.MarketPanel.RefreshButton);
+        Wait(delegate { return !window.MarketPanel.IsBusy && Object.ReferenceEquals(window.MarketPanel.Snapshot, missing); }, "coupon missing from the next snapshot");
+        Check(!Row(window, 10).IsKnown && window.CouponPriceInput(10).Text == "" && window.CouponSourceText(10).Text.Contains("자동")
+            && window.CouponMarketText(10).Text.Contains("미확인") && !window.CouponMarketText(10).Text.Contains("123,987 G"), "Missing automatic coupon retained an old price or recommendation eligibility");
+        VerifyRecommendation(window, 20); SameSale(window, "Missing automatic coupon quote");
+        Check(explicitCalls == 3 && refreshCalls == before + 3, "Coupon editing, recommendation, or following an already cached price fetched extra data");
+        window.Close(); Pump(); current = null;
+        Pass("different market fixture values and collection times stay visible behind manual/free costs; follow-market mode survives refresh; green recommendation moves with coupon/premium/sale inputs without changing selection or including unknown costs");
     }
     static void VerifyInvalidAndRemainder(AuctionSettlementWindow window)
     {
@@ -216,6 +327,8 @@ public static class AuctionSettlementUiVerificationRunner
     static void InvalidReport(AuctionSettlementWindow window, string reason)
     {
         Pump(); Check(window.CurrentReport == null && !window.CopyImageButton.IsEnabled, "Invalid input retained a report or enabled copying: " + reason);
+        Check(!window.RecommendationText.IsVisible, "Invalid input retained a visible recommendation: " + reason);
+        VerifyCouponMarket(window, window.MarketPanel.Snapshot);
         int before = copyCalls; window.CopyImageButton.RaiseEvent(new RoutedEventArgs(Button.ClickEvent)); Pump();
         Check(copyCalls == before, "Invalid input copied a previous report: " + reason);
         BitmapSource invalid = null;
@@ -259,9 +372,10 @@ public static class AuctionSettlementUiVerificationRunner
         }
         Check(readThread != uiThread && cacheReads == 1 && refreshCalls == 0, "Cache loading used the UI thread or triggered a market refresh");
         SameSale(window, "Cached snapshot application");
+        VerifyCouponMarket(window, snapshot);
         VerifyExpected(window, false); VerifySearch(window); VerifyImagesAndLayout(window);
         VerifyRefreshAndManualPrices(window, delegate(TaskCompletionSource<MarketSnapshotResult> value) { pending = value; });
-        VerifyInvalidAndRemainder(window); VerifyNoProviderAndCloseCancellation();
+        VerifyInvalidAndRemainder(window); VerifyNoProviderAndCloseCancellation(); VerifyCouponSourcesAndRecommendation();
     }
     static void Click(Button button) { Check(button.IsEnabled, "Attempt to click a disabled fixture button"); button.RaiseEvent(new RoutedEventArgs(Button.ClickEvent)); Pump(); }
     static IEnumerable<T> Elements<T>(DependencyObject root) where T : DependencyObject

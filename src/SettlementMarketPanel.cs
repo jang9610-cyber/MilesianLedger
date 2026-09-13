@@ -49,9 +49,14 @@ namespace MabinogiBarter
         Func<CancellationToken, Task<MarketSnapshotResult>> refresh;
         CancellationTokenSource operation;
         IndexedSnapshot indexed;
+        MarketSnapshotClient observedClient;
+        Action<MarketSnapshotData> publicationListener;
+        MarketSnapshotData buildingData;
+        Task<IndexedSnapshot> buildingIndex;
         string unavailable = "시세 서버 연결이 설정되지 않았습니다.";
-        int sourceRevision;
-        bool disposed, cacheAttempted, settingSelection, busy;
+        int sourceRevision, snapshotRevision;
+        volatile bool disposed;
+        bool cacheAttempted, settingSelection, busy;
 
         public TextBox ItemNameInput;
         public Action<MarketSnapshotData> SnapshotChanged;
@@ -113,13 +118,53 @@ namespace MabinogiBarter
         public void Configure(Func<MarketSnapshotData> cacheReader,
             Func<CancellationToken, Task<MarketSnapshotResult>> refreshData, string unavailableMessage)
         {
+            ConfigureSources(cacheReader, refreshData, unavailableMessage);
+            if (!disposed && IsLoaded) ReadCacheOnce();
+        }
+
+        public void Configure(MarketSnapshotClient client)
+        {
+            if (client == null) { Configure(null, null, null); return; }
+            ConfigureSources(client.ReadCachedData, client.RefreshAsync, null);
+            if (disposed) return;
+            int revision = sourceRevision;
+            observedClient = client;
+            publicationListener = delegate(MarketSnapshotData data) {
+                if (disposed || Dispatcher.HasShutdownStarted || Dispatcher.HasShutdownFinished) return;
+                try { Dispatcher.BeginInvoke(new Action(delegate { ReceivePublication(client, data, revision); })); }
+                catch (InvalidOperationException) { /* The owning dispatcher is closing. */ }
+            };
+            client.SnapshotPublished += publicationListener;
+            if (IsLoaded) ReadCacheOnce();
+        }
+
+        void ConfigureSources(Func<MarketSnapshotData> cacheReader,
+            Func<CancellationToken, Task<MarketSnapshotResult>> refreshData, string unavailableMessage)
+        {
             VerifyAccess(); if (disposed) return;
-            ++sourceRevision; CancelOperation();
+            ++sourceRevision; ++snapshotRevision; StopObserving(); CancelOperation();
+            buildingData = null; buildingIndex = null;
             readCache = cacheReader; refresh = refreshData;
             unavailable = String.IsNullOrWhiteSpace(unavailableMessage) ? "시세 서버 연결이 설정되지 않았습니다." : unavailableMessage;
             indexed = null; cacheAttempted = false; inputDelay.Stop();
             SetBusy(false); Message("", false); UpdateSource(); RenderSearch();
-            if (IsLoaded) ReadCacheOnce();
+        }
+
+        void StopObserving()
+        {
+            if (observedClient != null && publicationListener != null) observedClient.SnapshotPublished -= publicationListener;
+            observedClient = null; publicationListener = null;
+        }
+
+        async void ReceivePublication(MarketSnapshotClient client, MarketSnapshotData data, int revision)
+        {
+            if (disposed || revision != sourceRevision || !Object.ReferenceEquals(observedClient, client)
+                || !Object.ReferenceEquals(client.CachedData, data) || Object.ReferenceEquals(Snapshot, data)) return;
+            try { await ApplyData(data, revision); }
+            catch {
+                if (!disposed && revision == sourceRevision)
+                    Message("새 공통 시세를 표시하지 못해 기존 시세를 유지합니다.", true);
+            }
         }
 
         void PanelLoaded(object sender, RoutedEventArgs e) { ReadCacheOnce(); }
@@ -127,21 +172,25 @@ namespace MabinogiBarter
         {
             if (disposed || cacheAttempted || busy || readCache == null) return;
             cacheAttempted = true;
-            int revision = sourceRevision; var reader = readCache;
+            int revision = sourceRevision, previousSnapshot = snapshotRevision; var reader = readCache;
+            bool restoring = true;
             var pending = StartOperation();
             try {
-                var next = await Task.Run(delegate {
+                var data = await Task.Run(delegate {
                     pending.Token.ThrowIfCancellationRequested();
-                    var data = reader();
+                    var restored = reader();
                     pending.Token.ThrowIfCancellationRequested();
-                    return data == null ? null : new IndexedSnapshot(data);
+                    return restored;
                 }, pending.Token);
                 if (!Current(revision, pending)) return;
-                if (next != null) Apply(next);
+                restoring = false;
+                // A publication received while disk I/O was pending owns the view.
+                if (previousSnapshot == snapshotRevision) await ApplyData(data, revision);
             } catch (OperationCanceledException) {
                 // Cancellation during disposal/reconfiguration has no UI result.
             } catch {
-                if (Current(revision, pending)) Message("저장된 시세를 읽지 못했습니다. 시세 갱신으로 다시 확인하세요.", true);
+                if (Current(revision, pending) && (!restoring || previousSnapshot == snapshotRevision))
+                    Message("저장된 시세를 읽지 못했습니다. 시세 갱신으로 다시 확인하세요.", true);
             } finally { FinishOperation(revision, pending); }
         }
 
@@ -160,9 +209,8 @@ namespace MabinogiBarter
                 bool failed = !String.IsNullOrWhiteSpace(result.ErrorMessage);
                 if (result.Data != null && (!failed || indexed == null)
                     && !Object.ReferenceEquals(Snapshot, result.Data)) {
-                    var next = await Task.Run(() => new IndexedSnapshot(result.Data), pending.Token);
-                    if (!Current(revision, pending)) return;
-                    Apply(next);
+                    if (observedClient == null || Object.ReferenceEquals(observedClient.CachedData, result.Data))
+                        await ApplyData(result.Data, revision);
                 }
                 if (!Current(revision, pending)) return;
                 if (failed) Message(result.ErrorMessage + (indexed == null ? "" : " 저장된 시세를 유지합니다."), true);
@@ -202,6 +250,29 @@ namespace MabinogiBarter
             indexed = next; UpdateSource(); RenderSearch();
             var changed = SnapshotChanged;
             if (changed != null) changed(next.Data);
+        }
+        async Task ApplyData(MarketSnapshotData data, int revision)
+        {
+            if (disposed || revision != sourceRevision || data == null || Object.ReferenceEquals(Snapshot, data)) return;
+            Task<IndexedSnapshot> work;
+            int publication;
+            if (Object.ReferenceEquals(buildingData, data) && buildingIndex != null) {
+                work = buildingIndex; publication = snapshotRevision;
+            } else {
+                publication = ++snapshotRevision; buildingData = data;
+                work = buildingIndex = Task.Run(() => new IndexedSnapshot(data), lifetime.Token);
+            }
+            try {
+                var next = await work;
+                if (disposed || revision != sourceRevision || publication != snapshotRevision) return;
+                if (!Object.ReferenceEquals(Snapshot, data)) Apply(next);
+            } catch {
+                if (!disposed && revision == sourceRevision && publication == snapshotRevision) throw;
+            } finally {
+                if (publication == snapshotRevision && Object.ReferenceEquals(buildingIndex, work)) {
+                    buildingData = null; buildingIndex = null;
+                }
+            }
         }
         void SetBusy(bool value)
         {
@@ -334,7 +405,8 @@ namespace MabinogiBarter
         public void Dispose()
         {
             VerifyAccess(); if (disposed) return;
-            disposed = true; ++sourceRevision; inputDelay.Stop(); CancelOperation();
+            disposed = true; ++sourceRevision; ++snapshotRevision; StopObserving(); inputDelay.Stop(); CancelOperation();
+            buildingData = null; buildingIndex = null;
             try { lifetime.Cancel(); } catch (AggregateException) { }
             lifetime.Dispose();
             inputDelay.Tick -= DelayElapsed; Loaded -= PanelLoaded;

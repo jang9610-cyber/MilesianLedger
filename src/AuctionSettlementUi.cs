@@ -24,7 +24,7 @@ namespace MabinogiBarter
             var config = AuctionProxyConfig.Load(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "data", "auction-proxy.json"));
             if (config.IsConfigured) {
                 var client = MarketSnapshotClient.ForBaseUri(config.BaseUri);
-                window.MarketPanel.Configure(() => client.ReadCachedData(), token => client.RefreshAsync(token), null);
+                window.MarketPanel.Configure(client);
             } else window.MarketPanel.Configure(null, null, config.StatusMessage);
             settlementWindow = window;
             window.Closed += delegate { if (settlementWindow == window) settlementWindow = null; };
@@ -38,15 +38,17 @@ namespace MabinogiBarter
         {
             public int Discount;
             public TextBox Price;
-            public TextBlock Source, Fee, Cost, Net, Share, Remainder, Badge;
-            public Button Select;
+            public TextBlock Source, Market, Fee, Cost, Net, Share, Remainder, Badge;
+            public Button Select, FollowMarket;
             public Border Card;
         }
         static readonly Brush Green = AppTheme.Brush("#226C54"), Ink = AppTheme.Brush("#202D35"), Muted = AppTheme.Brush("#748278"), Line = AppTheme.Brush("#DCE5DF");
         readonly Dictionary<int, CouponView> coupons = new Dictionary<int, CouponView>();
         readonly HashSet<int> manualPrices = new HashSet<int>();
         readonly Dictionary<int, decimal?> marketPrices = new Dictionary<int, decimal?>();
+        readonly Dictionary<int, DateTime?> marketTimes = new Dictionary<int, DateTime?>();
         readonly TextBlock summary = Text("", 18, Green, true), status = Text("", 12, Muted, false), amountHint = Text("", 12, Muted, false);
+        readonly TextBlock recommendation = Text("", 13, Green, true);
         readonly UniformGrid comparisons = new UniformGrid { Columns = 2 };
         bool fillingPrices;
         int selectedDiscount;
@@ -63,6 +65,11 @@ namespace MabinogiBarter
         public int SelectedDiscount { get { return selectedDiscount; } }
         public TextBox CouponPriceInput(int discount) { return coupons[discount].Price; }
         public Button CouponSelectButton(int discount) { return coupons[discount].Select; }
+        public Button CouponMarketButton(int discount) { return coupons[discount].FollowMarket; }
+        public TextBlock CouponMarketText(int discount) { return coupons[discount].Market; }
+        public TextBlock CouponSourceText(int discount) { return coupons[discount].Source; }
+        public Border CouponCard(int discount) { return coupons[discount].Card; }
+        public TextBlock RecommendationText { get { return recommendation; } }
 
         public AuctionSettlementWindow()
         {
@@ -85,9 +92,11 @@ namespace MabinogiBarter
             MarketPanel = new SettlementMarketPanel(); MarketPanel.SnapshotChanged = ApplyMarketPrices;
             body.Children.Add(Card(MarketPanel));
             body.Children.Add(BuildInputs());
-            var chosen = Card(summary); chosen.Background = AppTheme.Brush("#EAF3E9"); body.Children.Add(chosen);
+            var summaryBody = new StackPanel(); summaryBody.Children.Add(summary);
+            recommendation.Margin = new Thickness(0, 10, 0, 0); summaryBody.Children.Add(recommendation);
+            var chosen = Card(summaryBody); chosen.Background = AppTheme.Brush("#EAF3E9"); body.Children.Add(chosen);
             var compareHeading = Text("쿠폰별 비용과 분배금", 17, Ink, true); compareHeading.Margin = new Thickness(4, 3, 0, 4); body.Children.Add(compareHeading);
-            var couponHint = Text("쿠폰값은 불러온 시세 또는 직접 입력한 금액입니다. 보유 쿠폰은 0 G로 계산할 수 있습니다. 비용 최소는 가격이 확인된 방식끼리 비교합니다.", 12, Muted, false);
+            var couponHint = Text("쿠폰값은 불러온 시세 또는 직접 입력한 금액입니다. 보유 쿠폰은 0 G로 계산할 수 있습니다. 추천은 가격이 확인된 방식 중 분배금이 가장 큰 방법입니다.", 12, Muted, false);
             couponHint.Margin = new Thickness(4, 0, 0, 12); body.Children.Add(couponHint);
             foreach (int discount in new[] { 0, 10, 20, 30, 50, 100 }) comparisons.Children.Add(BuildCoupon(discount));
             body.Children.Add(comparisons);
@@ -150,10 +159,11 @@ namespace MabinogiBarter
                 var field = new StackPanel(); field.Children.Add(Text("쿠폰 1장 비용 (G)", 11, Muted, false)); view.Price = Input("", discount + "% 쿠폰 비용"); field.Children.Add(view.Price); row.Children.Add(field);
                 var buttons = new StackPanel { Orientation = Orientation.Horizontal, VerticalAlignment = VerticalAlignment.Bottom, Margin = new Thickness(8, 0, 0, 0) };
                 var owned = Button("보유 · 0 G", delegate { view.Price.Text = "0"; }, false); owned.Margin = new Thickness(0, 0, 5, 0); buttons.Children.Add(owned);
-                var quoted = Button("시세 적용", delegate { manualPrices.Remove(discount); SetMarketPrice(view); Recalculate(); }, false);
-                quoted.ToolTip = "마지막으로 받은 공통 시세의 쿠폰 1장 가격을 적용합니다."; buttons.Children.Add(quoted); Grid.SetColumn(buttons, 1); row.Children.Add(buttons); body.Children.Add(row);
+                var quoted = Button("시세 따르기", delegate { manualPrices.Remove(discount); SetMarketPrice(view); Recalculate(); }, false); view.FollowMarket = quoted;
+                quoted.ToolTip = "현재 저장된 최저가를 적용하고, 이후 공통 시세가 갱신되면 자동으로 반영합니다."; buttons.Children.Add(quoted); Grid.SetColumn(buttons, 1); row.Children.Add(buttons); body.Children.Add(row);
+                view.Market = Text("현재 최저 매물가 미확인 · 시세 갱신으로 확인하세요.", 11, Muted, false); view.Market.Margin = new Thickness(0, 5, 0, 0); body.Children.Add(view.Market);
                 view.Source = Text("시세 미확인 · 직접 입력 가능", 11, Muted, false); view.Source.Margin = new Thickness(0, 4, 0, 6); body.Children.Add(view.Source);
-                view.Price.TextChanged += delegate { if (fillingPrices) return; manualPrices.Add(discount); view.Source.Text = view.Price.Text.Trim() == "0" ? "보유 쿠폰 · 비용 0 G" : "직접 입력한 쿠폰 비용"; Recalculate(); };
+                view.Price.TextChanged += delegate { if (fillingPrices) return; manualPrices.Add(discount); UpdateCouponSource(view); Recalculate(); };
             } else {
                 var noCoupon = Text("쿠폰을 사용하지 않는 기본 정산입니다.", 12, Muted, false); noCoupon.Margin = new Thickness(0, 12, 0, 18); body.Children.Add(noCoupon);
             }
@@ -163,7 +173,7 @@ namespace MabinogiBarter
             view.Share = Text("", 18, Green, true); view.Share.Margin = new Thickness(0, 5, 0, 0); body.Children.Add(view.Share);
             view.Remainder = Text("", 11, Muted, false); view.Remainder.Margin = new Thickness(0, 4, 0, 10); body.Children.Add(view.Remainder);
             view.Select = Button("이 방식으로 분배", delegate { selectedDiscount = discount; Recalculate(); }, false); body.Children.Add(view.Select);
-            view.Card = Card(body); view.Card.Margin = new Thickness(0, 0, 10, 10); return view.Card;
+            view.Card = Card(body); view.Card.BorderThickness = new Thickness(2); view.Card.Margin = new Thickness(0, 0, 10, 10); return view.Card;
         }
 
         void ApplyMarketPrices(MarketSnapshotData data)
@@ -173,6 +183,8 @@ namespace MabinogiBarter
                 MarketSnapshotQuote quote = null;
                 if (data != null && data.Quotes != null) data.Quotes.TryGetValue(name, out quote);
                 marketPrices[discount] = quote != null && quote.ListingCount > 0 && quote.UnitPrice.HasValue && quote.UnitPrice.Value > 0 ? quote.UnitPrice : null;
+                marketTimes[discount] = quote != null && quote.FetchedUtc != DateTime.MinValue ? (DateTime?)quote.FetchedUtc : data == null ? null : data.ListingsFetchedUtc;
+                UpdateCouponMarket(coupons[discount]);
                 if (!manualPrices.Contains(discount)) SetMarketPrice(coupons[discount]);
             }
             Recalculate();
@@ -184,7 +196,25 @@ namespace MabinogiBarter
             fillingPrices = true;
             try { view.Price.Text = value.HasValue ? value.Value.ToString("0.############################", CultureInfo.InvariantCulture) : ""; }
             finally { fillingPrices = false; }
-            view.Source.Text = value.HasValue ? "불러온 쿠폰 최저 매물가 · 수정 가능" : "시세 미확인 · 직접 입력 또는 보유 선택";
+            UpdateCouponSource(view);
+        }
+
+        void UpdateCouponMarket(CouponView view)
+        {
+            decimal? price; DateTime? time;
+            marketPrices.TryGetValue(view.Discount, out price); marketTimes.TryGetValue(view.Discount, out time);
+            view.Market.Text = "현재 최저 매물가 " + (price.HasValue ? Money(price.Value) : "미확인")
+                + "\n" + (time.HasValue && time.Value != DateTime.MinValue ? time.Value.ToLocalTime().ToString("MM/dd HH:mm") + " 수집" : "수집 시각 미확인");
+        }
+
+        void UpdateCouponSource(CouponView view)
+        {
+            decimal value;
+            bool manual = manualPrices.Contains(view.Discount);
+            view.Source.Text = !manual ? "시세 자동 반영 · 직접 수정 가능"
+                : TryMoney(view.Price.Text, out value) && value == 0 ? "보유 쿠폰 · 직접 입력 비용 0 G"
+                : String.IsNullOrWhiteSpace(view.Price.Text) ? "직접 입력 대기 · 비용 미확인"
+                : "직접 입력한 구매가 · 시세 갱신 시 유지";
         }
 
         void Recalculate()
@@ -216,9 +246,10 @@ namespace MabinogiBarter
                 var scenario = CurrentReport == null ? null : CurrentReport.Scenarios.First(s => s.DiscountPercent == view.Discount);
                 bool selected = selectedDiscount == view.Discount;
                 bool best = CurrentReport != null && CurrentReport.BestScenario != null && CurrentReport.BestScenario.DiscountPercent == view.Discount;
-                view.Badge.Text = (selected ? "선택됨" : "") + (best ? (selected ? " · " : "") + "비용 최소" : "");
-                view.Card.BorderBrush = selected ? Green : Line;
-                view.Card.Background = selected ? AppTheme.Brush("#EAF3E9") : AppTheme.Surface;
+                view.Badge.Text = (best ? scenario.IsLoss ? "비용 최소" : "추천" : "") + (selected ? (best ? " · " : "") + "선택됨" : "");
+                view.Card.BorderBrush = best ? Green : selected ? AppTheme.Brush("#547A98") : Line;
+                view.Card.Background = best ? AppTheme.Brush("#EAF3E9") : AppTheme.Surface;
+                AutomationProperties.SetItemStatus(view.Card, best ? "가장 유리한 분배 방식" : selected ? "선택한 분배 방식" : "비교 방식");
                 view.Select.IsEnabled = scenario != null && scenario.IsKnown;
                 view.Select.Content = selected ? "현재 분배 방식" : "이 방식으로 분배";
                 view.Fee.Text = scenario == null ? "예상 수수료 —" : "예상 수수료 " + Money(scenario.Fee) + " (" + (scenario.EffectiveFeeRate * 100).ToString("0.##") + "%)";
@@ -232,6 +263,15 @@ namespace MabinogiBarter
             else if (!chosen.IsKnown) summary.Text = CouponName(selectedDiscount) + " · 쿠폰 비용을 입력하세요.";
             else if (chosen.IsLoss) summary.Text = CouponName(selectedDiscount) + " · 비용이 판매 금액보다 " + Money(-chosen.NetAmount.Value) + " 많습니다.";
             else summary.Text = CouponName(selectedDiscount) + " · " + input.People + "명 분배\n1인당 " + Money(chosen.PerPerson.Value) + "  ·  남는 금액 " + Money(chosen.Remainder.Value);
+            var recommended = CurrentReport == null ? null : CurrentReport.BestScenario;
+            recommendation.Visibility = recommended == null ? Visibility.Collapsed : Visibility.Visible;
+            if (recommended != null) {
+                recommendation.Text = recommended.IsLoss ? "확인된 방식 모두 비용이 판매 금액보다 큽니다. 비용 최소: " + CouponName(recommended.DiscountPercent)
+                    : "추천 · " + CouponName(recommended.DiscountPercent) + " · 1인당 " + Money(recommended.PerPerson.Value);
+                if (CurrentReport.Scenarios.Any(s => !s.IsKnown)) recommendation.Text += " (가격이 확인된 방식 기준)";
+                if (chosen != null && chosen.IsKnown && recommended.NetAmount > chosen.NetAmount)
+                    recommendation.Text += "\n선택한 방식보다 분배할 총액 " + Money(recommended.NetAmount.Value - chosen.NetAmount.Value) + " 증가";
+            }
             CopyImageButton.IsEnabled = chosen != null && chosen.IsKnown;
         }
 

@@ -48,6 +48,12 @@ namespace MabinogiBarter
                 result.Children.Add(ReportText("분배할 총액 " + Money(chosen.NetAmount.Value) + "  ·  분배 후 남는 금액 " + Money(chosen.Remainder.Value), 15, false));
             }
             body.Children.Add(new Border { Child = result, Padding = new Thickness(20), Margin = new Thickness(0, 18, 0, 20), CornerRadius = new CornerRadius(10), Background = new SolidColorBrush(Color.FromRgb(232, 244, 236)) });
+            var recommended = CurrentReport.BestScenario;
+            if (recommended != null && !recommended.IsLoss && recommended.DiscountPercent != selectedDiscount) {
+                var best = ReportText("추천 · " + CouponName(recommended.DiscountPercent) + " · 1인당 " + Money(recommended.PerPerson.Value)
+                    + (CurrentReport.Scenarios.Any(s => !s.IsKnown) ? " (확인된 비용 기준)" : ""), 15, true);
+                best.Margin = new Thickness(0, 0, 0, 12); body.Children.Add(best);
+            }
             body.Children.Add(ReportText("쿠폰별 비교 · 입력한 비용 기준", 17, true));
             var table = new Grid { Margin = new Thickness(0, 10, 0, 16) };
             foreach (int width in new[] { 145, 160, 160, 175, 200 }) table.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(width) });
@@ -55,12 +61,13 @@ namespace MabinogiBarter
             int row = 1;
             foreach (var scenario in CurrentReport.Scenarios) {
                 AddReportRow(table, row++, new[] {
-                    (scenario.DiscountPercent == 0 ? "없음" : scenario.DiscountPercent + "%") + (scenario.DiscountPercent == selectedDiscount ? " · 선택" : ""),
+                    (scenario.DiscountPercent == 0 ? "없음" : scenario.DiscountPercent + "%")
+                        + (recommended == scenario && !scenario.IsLoss ? " · 추천" : "") + (scenario.DiscountPercent == selectedDiscount ? " · 선택" : ""),
                     scenario.CouponPrice.HasValue ? Money(scenario.CouponPrice.Value) : "미입력",
                     Money(scenario.Fee),
                     scenario.NetAmount.HasValue ? Money(scenario.NetAmount.Value) : "미확인",
                     scenario.PerPerson.HasValue ? Money(scenario.PerPerson.Value) : scenario.IsLoss ? "분배 없음" : "미확인"
-                }, scenario.DiscountPercent == selectedDiscount);
+                }, scenario.DiscountPercent == selectedDiscount || recommended == scenario, recommended == scenario && !scenario.IsLoss);
             }
             body.Children.Add(table);
             body.Children.Add(ReportText("판매 금액은 직접 입력한 값입니다. 한 판매 건(묶음)의 총액과 쿠폰 1장 기준입니다.\n수수료의 골드 단위 처리에 따라 실제 수령액이 달라질 수 있습니다. 분배금은 1 G 미만을 내립니다.", 12, false));
@@ -76,12 +83,12 @@ namespace MabinogiBarter
         {
             return new TextBlock { Text = text, FontSize = size, FontFamily = new FontFamily("Malgun Gothic"), Foreground = new SolidColorBrush(Color.FromRgb(32, 45, 53)), FontWeight = bold ? FontWeights.SemiBold : FontWeights.Normal, TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 2, 0, 2) };
         }
-        static void AddReportRow(Grid table, int number, string[] values, bool bold)
+        static void AddReportRow(Grid table, int number, string[] values, bool bold, bool recommended = false)
         {
             table.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
             for (int col = 0; col < values.Length; col++) {
                 var line = ReportText(values[col], number == 0 ? 12 : 13, bold); line.Margin = new Thickness(8, 9, 8, 9);
-                var cell = new Border { Child = line, Background = number == 0 ? new SolidColorBrush(Color.FromRgb(241, 245, 243)) : Brushes.White, BorderBrush = new SolidColorBrush(Color.FromRgb(220, 229, 223)), BorderThickness = new Thickness(0, 0, 0, 1) };
+                var cell = new Border { Child = line, Background = number == 0 ? new SolidColorBrush(Color.FromRgb(241, 245, 243)) : recommended ? new SolidColorBrush(Color.FromRgb(232, 244, 236)) : Brushes.White, BorderBrush = new SolidColorBrush(Color.FromRgb(220, 229, 223)), BorderThickness = new Thickness(0, 0, 0, 1) };
                 Grid.SetRow(cell, number); Grid.SetColumn(cell, col); table.Children.Add(cell);
             }
         }

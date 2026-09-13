@@ -89,6 +89,27 @@ namespace MabinogiBarter
             client.DefaultRequestHeaders.UserAgent.ParseAdd("MilesianLedger/1.1.0-dev.1");
         }
         public MarketSnapshotData CachedData { get { lock (gate) return cached; } }
+        // A successful new download is announced after the cache lock is released.
+        // Local disk restoration and unchanged/error responses do not publish.
+        public event Action<MarketSnapshotData> SnapshotPublished;
+
+        void PublishSnapshot(MarketSnapshotData data)
+        {
+            Action<MarketSnapshotData> listeners;
+            lock (gate) {
+                if (Object.ReferenceEquals(cached, data)) return;
+                cached = data; listeners = SnapshotPublished;
+            }
+            if (listeners == null) return;
+            foreach (Action<MarketSnapshotData> listener in listeners.GetInvocationList()) {
+                try { listener(data); }
+                catch (Exception ex) {
+                    if (ex is OutOfMemoryException || ex is StackOverflowException) throw;
+                    // A view callback cannot turn a verified download into a failure
+                    // or prevent other open views from seeing the publication.
+                }
+            }
+        }
 
         // Local-only restoration for views that must work before any refresh.
         // LoadDisk holds gate through its one-time verification, so it cannot
@@ -169,7 +190,7 @@ namespace MabinogiBarter
                     });
                     // One atomic envelope keeps manifest and payload from different versions apart.
                     WriteAtomic(cachePath, envelope, token);
-                    lock (gate) { cached = data; }
+                    PublishSnapshot(data);
                     result.Data = data; result.Downloaded = true;
                     return result;
                 } catch (OperationCanceledException) {

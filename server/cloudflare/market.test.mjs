@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { DatabaseSync } from 'node:sqlite';
+import { readFileSync } from 'node:fs';
 import worker, { AuctionCoordinator, MarketCollector } from './worker.mjs';
 import { MarketStore } from './market-store.mjs';
 import { validateMarketPage, parseMarketQuery } from './market-core.mjs';
@@ -26,6 +27,35 @@ function storage() {
   };
 }
 function storeFixture(fn) { const state = storage(); try { return fn(new MarketStore(state), state); } finally { state.db.close(); } }
+
+test('production two-hour listing interval retains twenty-minute history and resumes after restart', async () => {
+  const config = JSON.parse(readFileSync(new URL('./wrangler.market.jsonc', import.meta.url), 'utf8'));
+  assert.equal(config.vars.MARKET_LIST_INTERVAL_MINUTES, '120');
+  const state = storage(), savedNow = Date.now; let now = NOW;
+  Date.now = () => now;
+  try {
+    const env = { ...config.vars };
+    let c = new MarketCollector({ storage: state }, env);
+    const tick = () => c.fetch(new Request('https://market.internal/tick', { method: 'POST' }));
+    const complete = kind => c.store.commitPage(c.store.active(kind), { rows: [], next_cursor: null }, now);
+    await tick(); complete('history'); complete('list');
+    for (let minutes = 20; minutes < 120; minutes += 20) {
+      now = NOW + minutes * 60_000;
+      c = new MarketCollector({ storage: state }, env);
+      await tick();
+      assert(c.store.active('history'), 'history remains eligible every twenty minutes');
+      assert.equal(c.store.active('list'), null, 'no premature full-list scan');
+      complete('history');
+    }
+    now = NOW + 120 * 60_000; await tick();
+    const listing = c.store.active('list');
+    assert(listing); assert(c.store.active('history'));
+    await tick(); assert.equal(c.store.active('list').id, listing.id, 'repeat tick cannot duplicate a running scan');
+    const budget = c.store.reserveCollectionPage(now);
+    assert.equal(budget.write_limit, 60_000, 'keep the collection write safety cap');
+    assert.equal(budget.read_limit, 3_000_000);
+  } finally { Date.now = savedNow; state.db.close(); }
+});
 
 test('daily storage guard stops collection before any upstream request', async () => {
   const state = storage(), now = Date.now(); let calls = 0;

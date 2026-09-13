@@ -84,8 +84,11 @@ export class MarketStore {
       for (const chunk of encodeChunks(accepted, run.kind)) this.exec('INSERT INTO market_v2_chunks VALUES (?,?,?,?,?,?,?)',
         run.id, current.pages, part++, chunk.min_time, chunk.max_time, chunk.records, chunk.payload);
       this.exec('INSERT INTO market_v2_pages VALUES (?,?)', run.id, cursorKey);
-      this.exec(`UPDATE market_v2_runs SET pages=pages+1,rows_seen=rows_seen+?,cursor=?,attempts=0,error=NULL,next_attempt=0,
-        state=?,finished=? WHERE id=?`, page.rows.length, page.next_cursor, page.next_cursor ? 'running' : 'complete', page.next_cursor ? null : now, run.id);
+      // Intermediate checkpoints do not assign the indexed state column again.
+      // SQLite rewrites v2_runs_state when state appears in SET, even if unchanged.
+      const completion = page.next_cursor ? '' : ",state='complete',finished=?";
+      this.exec(`UPDATE market_v2_runs SET pages=pages+1,rows_seen=rows_seen+?,cursor=?,attempts=0,error=NULL,next_attempt=0${completion}
+        WHERE id=?`, page.rows.length, page.next_cursor, ...(page.next_cursor ? [] : [now]), run.id);
       // This pointer and the last page are one SQLite transaction. Publication
       // always reads complete runs, including history: no partial-run statistics.
       if (!page.next_cursor) this.setMeta(`${run.kind}_published`, run.id);
@@ -173,9 +176,10 @@ export class MarketStore {
     if (!reservation?.allowed || reservation.settled) return;
     this.storage.transactionSync(() => {
       const key = `sql_budget:${reservation.day}`, budget = JSON.parse(this.meta(key) || '{}');
-      // Include the settlement write itself (one primary-key replacement; bounded
-      // conservatively at four writes). A reservation survives process death.
-      const written = Math.max(0, this.accounting.rows_written - reservation.baseline.rows_written) + 4;
+      // Native workerd measures this WITHOUT ROWID primary-key replacement as one
+      // write. Charge two to include it and retain one extra write of headroom.
+      // A reservation survives process death and approximate counters never refund.
+      const written = Math.max(0, this.accounting.rows_written - reservation.baseline.rows_written) + 2;
       const read = Math.max(0, this.accounting.rows_read - reservation.baseline.rows_read) + 2;
       // Refund only when every query in this invocation has authoritative
       // native counters. Offline estimates retain the full reservation; an

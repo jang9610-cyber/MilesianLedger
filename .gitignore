@@ -4,6 +4,7 @@
 /build/
 /release/
 /tmp/
+/.wrangler/
 **/bin/
 **/obj/
 **/verification/

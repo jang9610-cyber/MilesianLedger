@@ -87,7 +87,7 @@ npm run dev:market
 | `UPSTREAM_REQUESTS_PER_SECOND` | 텍스트 | 넥슨 호출 속도, 기본·최대 5 |
 | `MARKET_ENABLED` | 텍스트 | 시장 Collector 및 API 사용 |
 | `MARKET_SCHEDULE_ENABLED` | 텍스트 | `true`일 때 신규 정기 수집 시작 |
-| `MARKET_LIST_INTERVAL_MINUTES` | 텍스트 | 매물 시작 간격, 기본·최소 60분 |
+| `MARKET_LIST_INTERVAL_MINUTES` | 텍스트 | 매물 시작 간격, 운영값 120분·기본 및 최소 60분 |
 | `MARKET_PAGES_PER_ALARM` | 텍스트 | Alarm당 최대 페이지 수, 기본·최대 40, 새 요청 시작 8초 제한 |
 | `SHARED_MARKET_QUOTES_ENABLED` | 텍스트 | 구버전 품목별 조회도 공통 데이터로 응답 |
 | `AUCTION_COORDINATOR` | DO binding | 공통 upstream 예산과 직렬 요청 |

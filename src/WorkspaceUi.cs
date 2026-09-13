@@ -43,7 +43,8 @@ namespace MabinogiBarter
             if (workspacePage == WorkspacePage.Market) {
                 if (marketView == null) {
                     string message; var client = WorkspaceMarketClient(out message);
-                    marketView = new MarketStatisticsView(client, message);
+                    marketView = new MarketStatisticsView(client, message,
+                        Path.Combine(Path.GetDirectoryName(store.FilePath), "market-watchlist.json"));
                 }
                 page = marketView;
             } else {

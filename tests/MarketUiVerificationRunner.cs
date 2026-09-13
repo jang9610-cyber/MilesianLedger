@@ -99,6 +99,7 @@ public static class MarketUiVerificationRunner
             view.Table.SelectedItem = view.Table.Items[100]; var selected = ((MarketStatisticsRow)view.Table.SelectedItem).Name;
             var scroll = Find<ScrollViewer>(view.Table); scroll.ScrollToVerticalOffset(90); Pump(); double offset = scroll.VerticalOffset;
             Check(offset > 0 && scroll.ScrollableHeight > 0, "table must own its vertical scrolling");
+            VerifyStarClick(view);
             window.Content = null; Pump(); window.Content = view; Pump();
             Check(view.PeriodInput.SelectedIndex == 1 && view.SortInput.SelectedIndex == 2 && ((MarketStatisticsRow)view.Table.SelectedItem).Name == selected,
                 "detaching and reattaching must preserve filters/selection");
@@ -115,6 +116,8 @@ public static class MarketUiVerificationRunner
             view.Dispose(); unavailable = false; CreateFixture(200); var final = client.RefreshAsync(CancellationToken.None); Wait(() => final.IsCompleted);
             Check(view.Snapshot.Version == newer && requests == 8, "disposed view must stop observing shared publications");
             window.Close(); window = null; view = null;
+            VerifyInsights(output);
+            Check(requests == 8, "insight filters, favorites and restart must not make network requests");
             var empty = new MarketStatisticsView(null, "오프라인 연결 미설정"); window = new Window { Content = empty, Width = 830, Height = 650, Left = -18000, Top = -18000, ShowActivated = false, ShowInTaskbar = false };
             window.Show(); Pump(); Check(!empty.RefreshButton.IsEnabled && empty.Table.Items.Count == 0, "unconfigured view must remain a local empty state"); empty.Dispose();
             Console.WriteLine("PASS embedded table, 252 rows, initial/mixed/space-insensitive Korean search preserving metric sorting and period, precise/unknown/equipment values, 1130x820 and 830x650 light/dark layout, cache-only entry, explicit refresh, hidden publication, filter/selection/scroll retention, failure fallback and disposal; 8 loopback fixture requests."); return 0;
@@ -122,6 +125,121 @@ public static class MarketUiVerificationRunner
         finally { if (view != null) view.Dispose(); if (window != null) window.Close(); stopped = true; listener.Stop(); }
     }
     static void Check(bool value, string message) { if (!value) throw new Exception(message); }
+    static void VerifyStarClick(MarketStatisticsView view)
+    {
+        view.Table.UpdateLayout();
+        var container = Enumerable.Range(0, view.Table.Items.Count)
+            .Select(index => view.Table.ItemContainerGenerator.ContainerFromIndex(index) as DataGridRow)
+            .First(row => row != null && row.IsVisible && row.TransformToAncestor(view.Table).TransformBounds(new Rect(0, 0, row.ActualWidth, row.ActualHeight)).Top > 40);
+        var button = Find<Button>(container); var item = (MarketStatisticsRow)container.Item;
+        Check(button != null && button.IsHitTestVisible, "star cell has no clickable button");
+        var point = button.TranslatePoint(new Point(button.ActualWidth / 2, button.ActualHeight / 2), view);
+        DependencyObject hit = view.InputHitTest(point) as DependencyObject;
+        while (hit != null && !Object.ReferenceEquals(hit, button)) hit = VisualTreeHelper.GetParent(hit);
+        Check(Object.ReferenceEquals(hit, button), "star is covered by another hit-test surface");
+        var source = view.Table.ItemsSource; var selected = view.Table.SelectedItem;
+        double offset = Find<ScrollViewer>(view.Table).VerticalOffset;
+        Click(button); Check(item.IsWatched && (string)button.Content == "★", "star click did not update saved state and binding");
+        Check(Object.ReferenceEquals(source, view.Table.ItemsSource) && Object.ReferenceEquals(selected, view.Table.SelectedItem), "star click rebuilt the table or changed selected row");
+        Check(Math.Abs(Find<ScrollViewer>(view.Table).VerticalOffset - offset) < 1, "star click jumped the viewport");
+        Click(button); Check(!item.IsWatched && (string)button.Content == "☆", "second star click did not remove the favorite");
+    }
+    static MarketSnapshotItem InsightItem(string name, string category, long? sold, long? trades, long? listed, decimal? average, decimal? lowest, bool comparable = true)
+    {
+        return new MarketSnapshotItem { Name = name, Category = category, SoldQuantity = sold, TradeCount = trades, ListedQuantity = listed,
+            ListingCount = listed.HasValue ? (long?)Math.Min(listed.Value, 10) : null, AverageSalePrice = average, LowestListingPrice = lowest,
+            TradedGold = sold.HasValue && average.HasValue ? sold * average : null, PriceComparable = comparable };
+    }
+    static MarketSnapshotData InsightData(bool removeWeb)
+    {
+        var items = new List<MarketSnapshotItem> {
+            InsightItem("거미줄", "천옷/방직", 1000, 50, 100, 200, 150),
+            InsightItem("가는 실뭉치", "천옷/방직", 500, 100, 500, 300, 300),
+            InsightItem("굵은 실뭉치", "천옷/방직", 200, 40, 0, 400, null),
+            InsightItem("양털", "천옷/방직", 100, 5, 10, 100, 25),
+            InsightItem("튼튼한 고리", "블랙스미스", 80, 12, null, 200, 100),
+            InsightItem("검", "검", 3, 3, 2, 1000, 1, false),
+            InsightItem("베이스 허브", "허브", 0, 0, 90, null, 10),
+            InsightItem("판매 미확인", "재료", null, null, 5, null, 10),
+            InsightItem("템포 (접미 / 랭크 6) · 전용 인챈트 스크롤", "인챈트 스크롤", 20, 10, 2, 100000, 80000),
+            InsightItem("템포 (접미 / 랭크 6) · 인챈트 스크롤", "인챈트 스크롤", 30, 11, 30, 90000, 90000)
+        };
+        if (removeWeb) items.RemoveAll(item => item.Name == "거미줄");
+        return new MarketSnapshotData { Version = removeWeb ? "insight-next" : "insight-first", GeneratedUtc = DateTime.UtcNow,
+            ListingsFetchedUtc = DateTime.UtcNow, Items24h = items, Items7d = items.Where(item => item.Name != "거미줄").ToList(),
+            Quotes = new Dictionary<string, MarketSnapshotQuote>(), Status = new Dictionary<string, object>() };
+    }
+    static void Publish(MarketStatisticsView view, MarketSnapshotData data)
+    {
+        var task = (System.Threading.Tasks.Task)typeof(MarketStatisticsView).GetMethod("ApplyData", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic).Invoke(view, new object[] { data });
+        Wait(() => task.IsCompleted); if (task.IsFaulted) throw task.Exception;
+    }
+    static List<MarketStatisticsRow> Rows(MarketStatisticsView view) { return view.Table.Items.Cast<MarketStatisticsRow>().ToList(); }
+    static void VerifyInsights(string output)
+    {
+        string file = Path.Combine(output, "insights-watchlist.json");
+        var view = new MarketStatisticsView(null, "테스트 공통 시세", file) { Margin = new Thickness(24) };
+        var window = new Window { Content = view, Width = 1130, Height = 820, Left = -18000, Top = -18000, ShowActivated = false, ShowInTaskbar = false, Background = AppTheme.Brush("#F4F6F5") };
+        try {
+            window.Show(); Publish(view, InsightData(false));
+            Check(view.CategoryInput.Items.Contains("천옷/방직") && view.CategoryInput.Items.Contains("인챈트 스크롤"), "categories must come from snapshot data");
+            view.CategoryInput.SelectedItem = "천옷/방직"; Pump(); Check(view.Table.Items.Count == 4, "category filter failed");
+            Search(view, "ㅅㅁㅊ", 2);
+            view.OpportunityInput.SelectedIndex = 1; Pump();
+            Check(Rows(view)[0].Name == "가는 실뭉치", "active trading must rank by observed trade count");
+            view.OpportunityInput.SelectedIndex = 2; Pump();
+            Check(view.Table.Items.Count == 1 && Rows(view)[0].Name == "굵은 실뭉치", "low supply must intersect category/initial search");
+            Search(view, "", 3);
+            Check(Rows(view)[0].Name == "굵은 실뭉치", "confirmed zero listings must rank first without division by zero");
+            Check(Rows(view)[0].OpportunityMetricText == "매물 없음" && (string)view.Table.Columns.Last().Header == "판매/매물", "low-supply metric must show no listings rather than its sort sentinel");
+            view.CategoryInput.SelectedIndex = 0; view.OpportunityInput.SelectedIndex = 3; Pump();
+            Check(Rows(view)[0].Name == "양털", "below-average results must rank by percentage gap");
+            Check(Rows(view)[0].OpportunityMetricText == "-75%" && (string)view.Table.Columns.Last().Header == "가격 차이", "price-gap percentage is missing from the table");
+            Check(Rows(view).All(row => row.Item.PriceComparable && row.Item.LowestListingPrice > 0 && row.Item.ListedQuantity > 0 && row.Item.TradeCount > 0), "unknown, unavailable and option-sensitive prices entered price comparison");
+            Check(!Rows(view).Any(row => row.Name == "가는 실뭉치" || row.Name == "튼튼한 고리" || row.Name == "검"), "equal price, unknown supply or equipment passed comparison");
+            foreach (bool dark in new[] { false, true }) {
+                AppTheme.SetDark(dark); window.Width = 830; window.Height = 650; Pump(); CheckLayout(view);
+                foreach (var control in new FrameworkElement[] { view.CategoryInput, view.OpportunityInput, view.WatchlistOnlyInput }) {
+                    var bounds = control.TransformToAncestor(view).TransformBounds(new Rect(0, 0, control.ActualWidth, control.ActualHeight));
+                    Check(bounds.Left >= -1 && bounds.Right <= view.ActualWidth + 1, "insight controls overflow minimum width");
+                }
+                Capture(window, Path.Combine(output, dark ? "market-insights-minimum-dark.png" : "market-insights-minimum-light.png"));
+            }
+            view.OpportunityInput.SelectedIndex = 0; Pump();
+            Check((string)view.Table.Columns.Last().Header == "등록 건수", "leaving a preset did not restore listing counts");
+            Check(view.SetWatched("거미줄", true), "adding a favorite failed");
+            string enchant = "템포 (접미 / 랭크 6) · 전용 인챈트 스크롤";
+            Check(view.SetWatched(enchant, true), "adding named enchant favorite failed");
+            Check(Rows(view).Single(row => row.Name == "거미줄").IsWatched, "row star did not update");
+            view.WatchlistOnlyInput.IsChecked = true; Pump(); Check(view.Table.Items.Count == 2, "watchlist filter failed");
+            Check(!Rows(view).Any(row => row.Name.EndsWith("· 인챈트 스크롤")), "normal and dedicated enchant favorites were conflated");
+            view.CategoryInput.SelectedItem = "천옷/방직"; view.PeriodInput.SelectedIndex = 1; Pump();
+            Check(view.Table.Items.Count == 1 && Rows(view)[0].Name == "거미줄" && !Rows(view)[0].IsObserved && Rows(view)[0].SoldQuantityText == "—", "missing-period favorite must stay visible with unknown values");
+            view.CategoryInput.SelectedIndex = 0; view.PeriodInput.SelectedIndex = 0; Publish(view, InsightData(true));
+            Check(view.Table.Items.Count == 2 && !Rows(view).Single(row => row.Name == "거미줄").IsObserved, "new snapshot silently removed a missing favorite");
+            window.Width = 1130; window.Height = 820; Capture(window, Path.Combine(output, "market-watchlist-dark.png"));
+            view.Dispose(); window.Content = null;
+            view = new MarketStatisticsView(null, "테스트 공통 시세", file) { Margin = new Thickness(24) }; window.Content = view;
+            Publish(view, InsightData(true)); view.WatchlistOnlyInput.IsChecked = true; Pump();
+            Check(view.Table.Items.Count == 2 && Rows(view).All(row => row.IsWatched), "watchlist did not survive a fresh view/store instance");
+            Check(view.SetWatched(enchant, false), "removing a favorite failed"); Pump();
+            Check(view.Table.Items.Count == 1 && Rows(view)[0].Name == "거미줄", "favorite removal did not update filtered list");
+            Check(view.SetWatched("거미줄", false), "removing missing favorite failed"); Pump();
+            Check(view.Table.Items.Count == 0, "cleared watchlist still contains rows");
+            var bulk = InsightData(false);
+            bulk.Items24h = Enumerable.Range(0, 25000).Select(i => InsightItem("대량 검증 재료 " + i, "분류 " + i % 10,
+                1000 + i, 100 + i % 300, 10 + i % 100, 100 + i % 10, 50 + i % 10)).ToList();
+            bulk.Items7d = bulk.Items24h; view.WatchlistOnlyInput.IsChecked = false; Publish(view, bulk);
+            Check(view.Table.Items.Count == 25000 && view.Table.EnableRowVirtualization, "large snapshot lost rows or row virtualization");
+            var elapsed = System.Diagnostics.Stopwatch.StartNew(); view.CategoryInput.SelectedItem = "분류 0"; view.OpportunityInput.SelectedIndex = 3; Pump(); elapsed.Stop();
+            Check(view.Table.Items.Count == 2500, "large snapshot category and opportunity intersection failed");
+            var sourceBeforeStar = view.Table.ItemsSource;
+            Check(view.SetWatched("대량 검증 재료 100", true) && Object.ReferenceEquals(sourceBeforeStar, view.Table.ItemsSource), "large-list favorite toggle rebuilt the grid");
+            Console.WriteLine("25,000-item local category/opportunity change: " + elapsed.ElapsedMilliseconds + " ms; 2,500 matching virtualized rows.");
+            Console.WriteLine("PASS category/opportunity/initial intersections, ranking boundaries, light/dark minimum layout, exact enchant favorites, missing-period/missing-snapshot retention and persisted restart/removal; local calculations only.");
+        } catch { Capture(window, Path.Combine(output, "insights-failure.png")); throw; }
+        finally { view.Dispose(); window.Close(); }
+    }
     static void Search(MarketStatisticsView view, string query, int count)
     {
         var previous = view.Table.ItemsSource;

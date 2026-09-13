@@ -18,6 +18,7 @@
 **/auction-settings.json*
 **/auction-cache.json*
 **/market-snapshots/
+**/market-watchlist.json*
 **/progress.json*
 **/progress-history.json*
 **/pip-settings.json*

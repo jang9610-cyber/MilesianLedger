@@ -91,6 +91,10 @@ public static class WorkspaceUiVerificationRunner
             Check(market.Table.Items.Count == 60, "table fixture did not fill the embedded page");
             market.SearchInput.Text = "거미줄"; market.PeriodInput.SelectedIndex = 1; market.SortInput.SelectedIndex = 2; Pump();
             Check(market.IsVisible && !market.RefreshButton.IsEnabled, "unconfigured page unexpectedly enables HTTP");
+            string favorite = fixture.Items24h[0].Name;
+            Check(market.SetWatched(favorite, true), "workspace favorite could not be saved");
+            Check(new WatchlistStore(Path.Combine(output, "market-watchlist.json")).Contains(favorite), "workspace favorites were not stored beside the personal progress file");
+            market.CategoryInput.SelectedItem = "테스트 데이터"; market.OpportunityInput.SelectedIndex = 3; Pump();
             Capture(main, output, "workspace-market-dark");
             Call(main, "RefreshProgress"); Call(main, "RenderAll");
             Check(market.IsVisible && market.SearchInput.Text == "거미줄", "background trade update displaced the market page");
@@ -108,6 +112,8 @@ public static class WorkspaceUiVerificationRunner
             Call(main, "ShowMarketStatistics"); Selected(main, "시장 통계");
             Check(Object.ReferenceEquals(Field(main, "marketView"), market) && market.SearchInput.Text == "거미줄"
                 && market.PeriodInput.SelectedIndex == 1 && market.SortInput.SelectedIndex == 2, "navigation lost market filters");
+            Check((string)market.CategoryInput.SelectedItem == "테스트 데이터" && market.OpportunityInput.SelectedIndex == 3
+                && market.Table.Items.Cast<MarketStatisticsRow>().Single(row => row.Name == favorite).IsWatched, "navigation lost category, opportunity filter or favorite");
             AppTheme.SetDark(false); Capture(main, output, "workspace-market-light");
 
             main.Width = 1100; main.Height = 740; Pump();

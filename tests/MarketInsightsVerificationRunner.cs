@@ -81,6 +81,85 @@ public static class MarketInsightsVerificationRunner
             "identically displayed integer percentages retain precise ranking");
         Pass("ratios and percentages truncate for display while eligibility and ranks keep precision");
 
+        Check(MarketInsights.PriceRiskThreshold == 5m, "risk threshold is the confirmed five-times minimum");
+        Check(!MarketInsights.IsPriceRisk(null) && !MarketInsights.RiskMultiple(null).HasValue
+            && MarketInsights.RiskReason(null) == "", "missing row has no risk classification");
+        var boundary = Item(2, 10, 2); boundary.LowestListingPrice = 100;
+        boundary.AverageSalePrice = 499.9m;
+        Check(MarketInsights.RiskMultiple(boundary) == 4.999m && !MarketInsights.IsPriceRisk(boundary),
+            "4.999 times stays below the threshold without display rounding");
+        boundary.AverageSalePrice = 500;
+        Check(MarketInsights.RiskMultiple(boundary) == 5 && MarketInsights.IsPriceRisk(boundary),
+            "exactly five times is excluded");
+        Check(MarketInsights.RiskReason(boundary).Contains("5배 이상")
+            && MarketInsights.RiskReason(boundary).Contains("일반 목록에서 제외"), "reason exposes the exact rule and scope");
+        boundary.AverageSalePrice = 1055;
+        Check(MarketInsights.RiskMultiple(boundary) == 10.55m && MarketInsights.IsPriceRisk(boundary),
+            "more than ten times is excluded without altering its ratio");
+        Check(MarketInsights.RiskReason(boundary).Contains("10배 이상")
+            && !MarketInsights.RiskReason(boundary).Contains("10.55"), "risk ratio text drops decimals");
+        Check(MarketInsights.Matches(boundary, MarketOpportunity.BelowAverage)
+            && MarketInsights.Matches(boundary, MarketOpportunity.ActiveTrading),
+            "risk classification stays separate from opportunity criteria for inspecting exclusions");
+        boundary.AverageSalePrice = 50;
+        Check(!MarketInsights.IsPriceRisk(boundary) && MarketInsights.RiskMultiple(boundary) == 0.5m
+            && MarketInsights.RiskReason(boundary) == "", "higher listing price does not imply a high-average anomaly");
+        Pass("five-times exclusion is exact at ordinary price boundaries and independent of opportunity filters");
+
+        foreach (decimal? value in new decimal?[] { null, 0, -1 }) {
+            item = Item(1, 1, 1); item.AverageSalePrice = value; item.LowestListingPrice = 1;
+            Check(!MarketInsights.IsPriceRisk(item) && !MarketInsights.RiskMultiple(item).HasValue,
+                "unknown or nonpositive average cannot classify risk");
+            item = Item(1, 1, 1); item.AverageSalePrice = 1000; item.LowestListingPrice = value;
+            Check(!MarketInsights.IsPriceRisk(item) && !MarketInsights.RiskMultiple(item).HasValue,
+                "unknown or nonpositive minimum cannot classify risk");
+        }
+        foreach (long? value in new long?[] { null, 0, -1 }) {
+            var observations = new[] { Item(value, 1, 1), Item(1, value, 1), Item(1, 1, value) };
+            foreach (var observation in observations) {
+                observation.AverageSalePrice = 1000; observation.LowestListingPrice = 1;
+                Check(!MarketInsights.IsPriceRisk(observation) && !MarketInsights.RiskMultiple(observation).HasValue
+                    && MarketInsights.RiskReason(observation) == "", "requires known positive sales, listings, and trades");
+            }
+        }
+        item = Item(1, 1, 1); item.AverageSalePrice = 100000; item.LowestListingPrice = 1;
+        foreach (long value in new long[] { 0, -1 }) {
+            item.ListingCount = value;
+            Check(!MarketInsights.IsPriceRisk(item) && !MarketInsights.RiskMultiple(item).HasValue,
+                "explicit absent or invalid listing count overrides stale positive quantity and price");
+        }
+        item.ListingCount = null;
+        Check(MarketInsights.IsPriceRisk(item), "unknown listing count allows positive observed quantity and price");
+        item.ListingCount = 1;
+        Check(MarketInsights.IsPriceRisk(item), "positive listing count allows risk classification");
+        item.PriceComparable = false;
+        Check(!MarketInsights.IsPriceRisk(item) && !MarketInsights.RiskMultiple(item).HasValue,
+            "option-sensitive equipment is unclassified rather than compared by incompatible prices");
+        Pass("unknown prices, absent observations, and option-sensitive equipment have no risk determination");
+
+        item = Item(1, 1, 1); item.AverageSalePrice = Decimal.MaxValue; item.LowestListingPrice = 0.0000000000000000000000000001m;
+        Check(MarketInsights.IsPriceRisk(item) && MarketInsights.RiskMultiple(item) == Decimal.MaxValue,
+            "extreme ratio overflow saturates the display but remains classifiable");
+        Check(!String.IsNullOrEmpty(MarketInsights.RiskReason(item)), "extreme ratio reason cannot throw");
+        item.LowestListingPrice = Decimal.MaxValue;
+        Check(!MarketInsights.IsPriceRisk(item) && MarketInsights.RiskMultiple(item) == 1,
+            "largest minimum does not overflow threshold comparison");
+        var anomalous = Item(2, 349, 2); anomalous.Name = "아몬드";
+        anomalous.AverageSalePrice = 22350150; anomalous.LowestListingPrice = 190; anomalous.TradedGold = 44700300;
+        var normal = Item(10, 20, 4);
+        var snapshot = new MarketSnapshotData { Items24h = new List<MarketSnapshotItem> { anomalous, normal },
+            Items7d = new List<MarketSnapshotItem> { anomalous, normal } };
+        var selectedRows = snapshot.Items24h.Where(x => !MarketInsights.IsPriceRisk(x)).ToList();
+        var excludedRows = snapshot.Items24h.Where(MarketInsights.IsPriceRisk).ToList();
+        Check(selectedRows.Count == 1 && Object.ReferenceEquals(selectedRows[0], normal)
+            && excludedRows.Count == 1 && Object.ReferenceEquals(excludedRows[0], anomalous),
+            "normal and excluded views partition existing observations without rewriting them");
+        Check(snapshot.Items24h.Count == 2 && snapshot.Items7d.Count == 2
+            && anomalous.AverageSalePrice == 22350150 && anomalous.LowestListingPrice == 190
+            && anomalous.TradedGold == 44700300 && anomalous.SoldQuantity == 2,
+            "source snapshot and raw aggregates remain unchanged for inspection");
+        Pass("risk inspection handles extreme values and preserves the source snapshot and aggregates");
+
         string path = Path.Combine(directory, "personal", "market-watchlist.json"), error;
         var store = new WatchlistStore(path);
         Check(store.Count == 0 && store.Notice == null, "missing file starts clean");

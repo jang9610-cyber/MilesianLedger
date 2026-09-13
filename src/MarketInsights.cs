@@ -15,6 +15,39 @@ namespace MabinogiBarter
     public static class MarketInsights
     {
         static readonly CultureInfo Korean = CultureInfo.GetCultureInfo("ko-KR");
+        public const decimal PriceRiskThreshold = 5m;
+
+        // A missing observation is not evidence of a safe price. Keep classification
+        // separate from the opportunity filters so excluded rows remain inspectable.
+        static bool HasRiskObservations(MarketSnapshotItem item)
+        {
+            return item != null && item.PriceComparable && item.AverageSalePrice > 0
+                && item.LowestListingPrice > 0 && item.SoldQuantity > 0
+                && item.TradeCount > 0 && item.ListedQuantity > 0
+                && (!item.ListingCount.HasValue || item.ListingCount.Value > 0);
+        }
+
+        public static decimal? RiskMultiple(MarketSnapshotItem item)
+        {
+            if (!HasRiskObservations(item)) return null;
+            try { return item.AverageSalePrice.Value / item.LowestListingPrice.Value; }
+            catch (OverflowException) { return Decimal.MaxValue; }
+        }
+
+        public static bool IsPriceRisk(MarketSnapshotItem item)
+        {
+            if (!HasRiskObservations(item)) return false;
+            // Dividing the average avoids overflow from multiplying a large minimum.
+            return item.LowestListingPrice.Value <= item.AverageSalePrice.Value / PriceRiskThreshold;
+        }
+
+        public static string RiskReason(MarketSnapshotItem item)
+        {
+            if (!IsPriceRisk(item)) return "";
+            return "평균 거래 단가가 현재 최저 단가의 " + RatioText(RiskMultiple(item).Value)
+                + "배 이상입니다. " + RatioText(PriceRiskThreshold)
+                + "배 이상 차이로 일반 목록에서 제외했습니다. 일부 고가 거래나 매물 변동의 영향을 확인해 주세요.";
+        }
 
         public static bool Matches(MarketSnapshotItem item, MarketOpportunity mode)
         {

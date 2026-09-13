@@ -20,6 +20,9 @@ namespace MabinogiBarter
     public sealed class MarketStatisticsRow : INotifyPropertyChanged
     {
         bool watched;
+        bool riskView;
+        readonly decimal? referenceLowest;
+        readonly bool isNameQuote;
         MarketOpportunity opportunity;
         public event PropertyChangedEventHandler PropertyChanged;
         public MarketSnapshotItem Item { get; private set; }
@@ -47,13 +50,26 @@ namespace MabinogiBarter
                     + "고가·저가 거래를 모두 포함한 수량 가중 평균입니다. 일반적인 판매 가격과 다를 수 있습니다.";
             }
         }
-        public string LowestPriceText { get { return !IsObserved ? "—" : Item.PriceComparable ? Price(Item.LowestListingPrice) : "옵션 제외"; } }
+        public string LowestPriceText { get { return !IsObserved ? "—" : referenceLowest > 0 ? Price(referenceLowest) : Item.ListingCount == 0 || Item.ListedQuantity == 0 ? "매물 없음" : "미확인"; } }
+        public string LowestPriceDetail
+        {
+            get {
+                if (!IsObserved) return "선택 기간에 관측된 시세가 없습니다.";
+                if (!(referenceLowest > 0)) return LowestPriceText == "매물 없음" ? "수집 시점에 확인된 매물이 없습니다." : "수집 데이터에서 최저 단가를 확인하지 못했습니다.";
+                string scope = isNameQuote ? "같은 이름 전체 매물의 최저 단가입니다. 분류와 옵션이 다를 수 있습니다." : Item.PriceComparable ? "수집 시점에 등록된 매물의 최저 단가입니다." : "옵션이 서로 다른 매물을 포함한 최저 단가입니다. 같은 옵션의 가격을 뜻하지 않습니다.";
+                return "최저 단가 " + LowestPriceText + " G · 소수점 버림\n" + scope;
+            }
+        }
+        public bool IsPriceRisk { get { return IsObserved && MarketInsights.IsPriceRisk(Item); } }
+        public string RiskReason { get { return IsPriceRisk ? MarketInsights.RiskReason(Item) : ""; } }
+        public string RiskMultipleText { get { decimal? multiple = MarketInsights.RiskMultiple(Item); return IsPriceRisk && multiple.HasValue ? Decimal.Truncate(multiple.Value).ToString("N0", CultureInfo.InvariantCulture) + "배" : "—"; } }
         public string ListedQuantityText { get { return Count(Item.ListedQuantity); } }
         public string ListingCountText { get { return Count(Item.ListingCount); } }
-        public string OpportunityDetail { get { return IsObserved ? MarketInsights.Detail(Item, opportunity) : "선택 기간에 관측 없음 · 관심 품목은 계속 보관됩니다."; } }
+        public string OpportunityDetail { get { return riskView ? RiskReason : IsObserved ? MarketInsights.Detail(Item, opportunity) : "선택 기간에 관측 없음 · 관심 품목은 계속 보관됩니다."; } }
         public string OpportunityMetricText
         {
             get {
+                if (riskView) return RiskMultipleText;
                 if (!IsObserved || !MarketInsights.Matches(Item, opportunity)) return "—";
                 if (opportunity == MarketOpportunity.LowSupply) return Item.ListedQuantity == 0 ? "매물 없음" : MarketInsights.RatioText(MarketInsights.Rank(Item, opportunity).Value) + "배";
                 if (opportunity == MarketOpportunity.BelowAverage) {
@@ -63,12 +79,17 @@ namespace MabinogiBarter
                 return "—";
             }
         }
-        public string Detail { get { return Name + " · " + Category + " · " + (!IsObserved || opportunity != MarketOpportunity.All ? OpportunityDetail : Item.PriceComparable ? "모든 거래를 포함한 수량 가중 평균 · 고가 거래의 영향을 받을 수 있습니다." : "옵션별 가격 차이로 단가 비교에서 제외합니다."); } }
-        public MarketStatisticsRow(MarketSnapshotItem item, bool isObserved = true) { Item = item; IsObserved = isObserved; SearchKey = KoreanNameSearch.Normalize(item.Name); }
-        internal void Update(bool isWatched, MarketOpportunity mode)
+        public string Detail { get { return Name + " · " + Category + " · " + (riskView || !IsObserved || opportunity != MarketOpportunity.All ? OpportunityDetail : Item.PriceComparable ? "모든 거래를 포함한 수량 가중 평균 · 고가 거래의 영향을 받을 수 있습니다." : "최저가는 옵션이 다른 매물을 포함한 참고값입니다. 평균 단가는 비교하지 않습니다."); } }
+        public MarketStatisticsRow(MarketSnapshotItem item, bool isObserved = true, decimal? referenceLowest = null, bool isNameQuote = false)
+        {
+            Item = item; IsObserved = isObserved; SearchKey = KoreanNameSearch.Normalize(item.Name);
+            this.referenceLowest = !isObserved || item.ListedQuantity == 0 || item.ListingCount == 0 ? null : referenceLowest > 0 ? referenceLowest : item.LowestListingPrice > 0 ? item.LowestListingPrice : null;
+            this.isNameQuote = isNameQuote;
+        }
+        internal void Update(bool isWatched, MarketOpportunity mode, bool showRisk = false)
         {
             if (watched != isWatched) { watched = isWatched; Changed("IsWatched"); Changed("WatchSymbol"); Changed("WatchAction"); }
-            if (opportunity != mode) { opportunity = mode; Changed("OpportunityDetail"); Changed("OpportunityMetricText"); Changed("Detail"); }
+            if (opportunity != mode || riskView != showRisk) { opportunity = mode; riskView = showRisk; Changed("OpportunityDetail"); Changed("OpportunityMetricText"); Changed("Detail"); }
         }
         void Changed(string property) { if (PropertyChanged != null) PropertyChanged(this, new PropertyChangedEventArgs(property)); }
         static string Count(long? value) { return value.HasValue ? value.Value.ToString("N0", CultureInfo.InvariantCulture) : "—"; }
@@ -83,8 +104,8 @@ namespace MabinogiBarter
         {
             public MarketSnapshotData Data;
             public List<MarketStatisticsRow> Day, Week;
-            public PreparedSnapshot(MarketSnapshotData data) { Data = data; Day = Rows(data.Items24h); Week = Rows(data.Items7d); }
-            static List<MarketStatisticsRow> Rows(List<MarketSnapshotItem> items) { return items == null ? new List<MarketStatisticsRow>() : items.Where(item => item != null && !String.IsNullOrEmpty(item.Name)).Select(item => new MarketStatisticsRow(item)).ToList(); }
+            public PreparedSnapshot(MarketSnapshotData data) { Data = data; Day = Rows(data.Items24h, data); Week = Rows(data.Items7d, data); }
+            static List<MarketStatisticsRow> Rows(List<MarketSnapshotItem> items, MarketSnapshotData data) { return items == null ? new List<MarketStatisticsRow>() : items.Where(item => item != null && !String.IsNullOrEmpty(item.Name)).Select(item => new MarketStatisticsRow(item, true, MarketPrices.LowestFor(item, data), !(item.LowestListingPrice > 0))).ToList(); }
         }
         readonly MarketSnapshotClient client;
         readonly string unavailable;
@@ -95,6 +116,8 @@ namespace MabinogiBarter
         DataGridTextColumn metricColumn;
         Style listingCellStyle, opportunityCellStyle, opportunityHeaderStyle;
         MarketOpportunity metricMode;
+        bool riskMetric;
+        int riskCount;
         PreparedSnapshot prepared;
         Task<PreparedSnapshot> building;
         MarketSnapshotData buildingData;
@@ -109,6 +132,7 @@ namespace MabinogiBarter
         public ComboBox CategoryInput { get; private set; }
         public ComboBox OpportunityInput { get; private set; }
         public CheckBox WatchlistOnlyInput { get; private set; }
+        public CheckBox RiskOnlyInput { get; private set; }
         public Button RefreshButton { get; private set; }
         public DataGrid Table { get; private set; }
         public TextBlock StatusText { get; private set; }
@@ -127,10 +151,11 @@ namespace MabinogiBarter
             root.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
             root.RowDefinitions.Add(new RowDefinition());
             root.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto }); Content = root;
-            var heading = new StackPanel { Margin = new Thickness(0, 0, 0, 12) };
+            var heading = new StackPanel { Margin = new Thickness(0, 0, 0, 8) };
             heading.Children.Add(Text("시장 통계", 25, "#202D35", true));
             heading.Children.Add(Text("판매량과 매물 현황 · 단가와 거래 금액은 G 기준", 12, "#728087", false)); root.Children.Add(heading);
             var filters = new Grid { Margin = new Thickness(0, 0, 0, 8) };
+            filters.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
             filters.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
             filters.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
             filters.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
@@ -160,10 +185,17 @@ namespace MabinogiBarter
             WatchlistOnlyInput = new CheckBox { Content = "관심 품목만 · 0", FontSize = 12, Foreground = Paint("#202D35"), VerticalAlignment = VerticalAlignment.Center, Cursor = Cursors.Hand };
             WatchlistOnlyInput.ToolTip = "별표로 저장한 품목만 표시합니다. 분류·판매 기회·검색 조건도 함께 적용됩니다.";
             Grid.SetColumn(WatchlistOnlyInput, 2); discovery.Children.Add(WatchlistOnlyInput); Grid.SetRow(discovery, 1); Grid.SetColumnSpan(discovery, 4); filters.Children.Add(discovery);
-            criteriaText = Text("", 11, "#728087", false); criteriaText.Margin = new Thickness(1, 6, 0, 0); Grid.SetRow(criteriaText, 2); Grid.SetColumnSpan(criteriaText, 4); filters.Children.Add(criteriaText);
+            var riskFilters = new Grid { Margin = new Thickness(1, 8, 0, 0) };
+            riskFilters.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto }); riskFilters.ColumnDefinitions.Add(new ColumnDefinition());
+            RiskOnlyInput = new CheckBox { Content = "제외된 위험군 보기 · 0종", FontSize = 12, FontWeight = FontWeights.SemiBold, Foreground = Paint("#AD790C"), VerticalAlignment = VerticalAlignment.Center, Cursor = Cursors.Hand, Margin = new Thickness(0, 0, 16, 0) };
+            RiskOnlyInput.ToolTip = "평균 거래가가 최저 단가의 5배 이상인 품목을 따로 봅니다. 분류·검색·관심 조건은 유지되며 판매 기회 조건은 잠시 해제됩니다."; riskFilters.Children.Add(RiskOnlyInput);
+            var riskCriteria = Text("평균이 최저가의 5배 이상이면 기본 목록에서 제외", 11, "#728087", false); riskCriteria.VerticalAlignment = VerticalAlignment.Center; Grid.SetColumn(riskCriteria, 1); riskFilters.Children.Add(riskCriteria);
+            Grid.SetRow(riskFilters, 2); Grid.SetColumnSpan(riskFilters, 4); filters.Children.Add(riskFilters);
+            criteriaText = Text("", 11, "#728087", false); criteriaText.Margin = new Thickness(1, 6, 0, 0); Grid.SetRow(criteriaText, 3); Grid.SetColumnSpan(criteriaText, 4); filters.Children.Add(criteriaText);
             AutomationProperties.SetName(SearchInput, "시장 통계 품목 검색"); AutomationProperties.SetName(PeriodInput, "시장 통계 기간");
             AutomationProperties.SetName(SortInput, "시장 통계 정렬"); AutomationProperties.SetName(RefreshButton, "시장 통계 갱신");
             AutomationProperties.SetName(CategoryInput, "시장 통계 분류"); AutomationProperties.SetName(OpportunityInput, "판매 기회 보기"); AutomationProperties.SetName(WatchlistOnlyInput, "관심 품목만 보기");
+            AutomationProperties.SetName(RiskOnlyInput, "제외된 위험군 보기");
             StatusText = Text("", 11, "#728087", false); StatusText.Margin = new Thickness(0, 0, 0, 8); Grid.SetRow(StatusText, 2); root.Children.Add(StatusText);
             var tableHost = new Grid(); Table = CreateTable(); tableHost.Children.Add(Table);
             emptyText = Text("", 14, "#728087", false); emptyText.Margin = new Thickness(20, 40, 20, 20);
@@ -171,12 +203,13 @@ namespace MabinogiBarter
             tableHost.Children.Add(emptyText); Grid.SetRow(tableHost, 3); root.Children.Add(tableHost);
             var footer = new StackPanel { Margin = new Thickness(0, 8, 0, 0) };
             selectionText = Text("품목을 선택하면 분류와 가격 비교 기준을 확인할 수 있습니다.", 11, "#728087", false); footer.Children.Add(selectionText);
-            footer.Children.Add(Text("완료된 수집 구간만 집계합니다. 수집 이전·장애 구간은 누락될 수 있으며 옵션이 있는 장비의 단가는 비교하지 않습니다.", 10, "#728087", false)); Grid.SetRow(footer, 4); root.Children.Add(footer);
+            footer.Children.Add(Text("완료된 수집 구간만 집계합니다. 최저가는 수집 시점의 참고값이며 옵션 차이가 있을 수 있습니다. 위험군 외 품목도 정상 가격을 보장하지 않습니다.", 10, "#728087", false)); Grid.SetRow(footer, 4); root.Children.Add(footer);
             searchDelay = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(150) }; searchDelay.Tick += SearchElapsed;
             SearchInput.TextChanged += delegate { if (disposed) return; hint.Visibility = SearchInput.Text.Length == 0 ? Visibility.Visible : Visibility.Collapsed; searchDelay.Stop(); searchDelay.Start(); };
             SearchInput.KeyDown += delegate(object sender, KeyEventArgs e) { if (e.Key == Key.Enter) { e.Handled = true; searchDelay.Stop(); Render(false); } };
             PeriodInput.SelectionChanged += FilterChanged; SortInput.SelectionChanged += FilterChanged; CategoryInput.SelectionChanged += FilterChanged; OpportunityInput.SelectionChanged += FilterChanged;
             WatchlistOnlyInput.Checked += WatchlistFilterChanged; WatchlistOnlyInput.Unchecked += WatchlistFilterChanged;
+            RiskOnlyInput.Checked += WatchlistFilterChanged; RiskOnlyInput.Unchecked += WatchlistFilterChanged;
             Table.SelectionChanged += delegate { var row = Table.SelectedItem as MarketStatisticsRow; selectionText.Text = row == null ? "품목을 선택하면 분류와 가격 비교 기준을 확인할 수 있습니다." : row.Detail; };
             RefreshButton.Click += RefreshClicked; Loaded += ViewLoaded;
             if (client != null) client.SnapshotPublished += SharedPublished;
@@ -249,7 +282,7 @@ namespace MabinogiBarter
             string error;
             if (!watchlist.TrySet(name, watched, out error)) { watchlistMessage = error; UpdateStatus(Table.Items.Count); return false; }
             watchlistMessage = "";
-            if (prepared != null) foreach (var row in prepared.Day.Concat(prepared.Week).Where(row => row.Name == name)) row.Update(watched, SelectedOpportunity);
+            if (prepared != null) foreach (var row in prepared.Day.Concat(prepared.Week).Where(row => row.Name == name)) row.Update(watched, SelectedOpportunity, RiskOnlyInput.IsChecked == true);
             WatchlistOnlyInput.Content = "관심 품목만 · " + watchlist.Count.ToString("N0");
             UpdateCategories();
             if (WatchlistOnlyInput.IsChecked == true) Render(true); else UpdateStatus(Table.Items.Count);
@@ -259,20 +292,25 @@ namespace MabinogiBarter
         void UpdateCriteria()
         {
             string period = PeriodInput.SelectedIndex == 1 ? "최근 7일" : "최근 24시간";
-            switch (SelectedOpportunity) {
+            bool showRisk = RiskOnlyInput.IsChecked == true;
+            if (showRisk) criteriaText.Text = period + " 평균 / 최저가 비율이 큰 순입니다. 가격 차이만으로 분류하며 비정상 거래를 확정하지 않습니다.";
+            else switch (SelectedOpportunity) {
                 case MarketOpportunity.ActiveTrading: criteriaText.Text = period + " 거래가 있는 품목 · 거래 건수가 많은 순입니다."; break;
                 case MarketOpportunity.LowSupply: criteriaText.Text = period + " 판매 수량이 현재 매물보다 많은 품목 · 매물 없음, 판매/매물 비율 순입니다. 판매를 보장하지 않습니다."; break;
                 case MarketOpportunity.BelowAverage: criteriaText.Text = period + " 평균보다 최저가가 낮은 품목 · 가격 차이 비율 순입니다. 평균에는 고가 거래도 포함되며, 가격 차이는 수익률이 아닙니다."; break;
                 default: criteriaText.Text = "분류와 조건을 골라 비교하세요. ☆를 누르면 관심 품목으로 저장합니다."; break;
             }
-            SortInput.IsEnabled = SelectedOpportunity == MarketOpportunity.All;
-            SortInput.ToolTip = SortInput.IsEnabled ? "품목 정렬 기준" : "판매 기회 보기에서는 설명에 표시된 기준으로 정렬합니다.";
+            OpportunityInput.IsEnabled = !showRisk;
+            SortInput.IsEnabled = !showRisk && SelectedOpportunity == MarketOpportunity.All;
+            SortInput.ToolTip = showRisk ? "위험군은 평균 / 최저가 비율이 큰 순서로 정렬합니다." : SortInput.IsEnabled ? "품목 정렬 기준" : "판매 기회 보기에서는 설명에 표시된 기준으로 정렬합니다.";
             OpportunityInput.ToolTip = criteriaText.Text;
             WatchlistOnlyInput.Content = "관심 품목만 · " + watchlist.Count.ToString("N0");
-            if (metricMode != SelectedOpportunity) {
+            RiskOnlyInput.Content = "제외된 위험군 보기 · " + riskCount.ToString("N0") + "종";
+            if (metricMode != SelectedOpportunity || riskMetric != showRisk) {
                 metricMode = SelectedOpportunity;
-                bool comparison = metricMode == MarketOpportunity.LowSupply || metricMode == MarketOpportunity.BelowAverage;
-                metricColumn.Header = metricMode == MarketOpportunity.LowSupply ? "판매/매물" : metricMode == MarketOpportunity.BelowAverage ? "가격 차이" : "등록 건수";
+                riskMetric = showRisk;
+                bool comparison = showRisk || metricMode == MarketOpportunity.LowSupply || metricMode == MarketOpportunity.BelowAverage;
+                metricColumn.Header = showRisk ? "평균/최저" : metricMode == MarketOpportunity.LowSupply ? "판매/매물" : metricMode == MarketOpportunity.BelowAverage ? "가격 차이" : "등록 건수";
                 metricColumn.Binding = new Binding(comparison ? "OpportunityMetricText" : "ListingCountText");
                 metricColumn.ElementStyle = comparison ? opportunityCellStyle : listingCellStyle;
                 metricColumn.HeaderStyle = comparison ? opportunityHeaderStyle : null;
@@ -284,22 +322,29 @@ namespace MabinogiBarter
             var selected = Table.SelectedItem as MarketStatisticsRow;
             var scroller = FindScroll(Table); double offset = preservePosition && scroller != null ? scroller.VerticalOffset : 0;
             var rows = prepared == null ? new List<MarketStatisticsRow>() : PeriodInput.SelectedIndex == 1 ? prepared.Week : prepared.Day;
+            bool showRisk = RiskOnlyInput.IsChecked == true;
+            riskCount = rows.Count(row => row.IsPriceRisk);
             var favorites = new HashSet<string>(watchlist.Entries, StringComparer.Ordinal);
             var mode = SelectedOpportunity; UpdateCriteria();
             if (WatchlistOnlyInput.IsChecked == true) {
                 var known = new HashSet<string>(rows.Select(row => row.Name), StringComparer.Ordinal);
                 var categories = prepared == null ? new Dictionary<string, string>() : prepared.Day.Concat(prepared.Week).GroupBy(row => row.Name, StringComparer.Ordinal).ToDictionary(group => group.Key, group => group.First().Category, StringComparer.Ordinal);
-                rows = rows.Concat(favorites.Where(name => !known.Contains(name)).Select(name => new MarketStatisticsRow(new MarketSnapshotItem { Name = name, Category = categories.ContainsKey(name) ? categories[name] : "분류 미확인" }, false))).ToList();
+                rows = rows.Concat(favorites.Where(name => !known.Contains(name)).Select(name => {
+                    var item = new MarketSnapshotItem { Name = name, Category = categories.ContainsKey(name) ? categories[name] : "분류 미확인" };
+                    return new MarketStatisticsRow(item, false, prepared == null ? null : MarketPrices.LowestFor(item, prepared.Data), true);
+                })).ToList();
             }
-            foreach (var row in rows) row.Update(favorites.Contains(row.Name), mode);
+            foreach (var row in rows) row.Update(favorites.Contains(row.Name), mode, showRisk);
             string query = KoreanNameSearch.Normalize(SearchInput.Text);
             string category = CategoryInput.SelectedItem as string;
             var filtered = rows.Where(row => KoreanNameSearch.Contains(row.SearchKey, query)
                 && (String.IsNullOrEmpty(category) || category == "전체 분류" || row.Category == category)
                 && (WatchlistOnlyInput.IsChecked != true || row.IsWatched)
-                && (mode == MarketOpportunity.All || row.IsObserved && MarketInsights.Matches(row.Item, mode)));
+                && (showRisk ? row.IsPriceRisk : !row.IsPriceRisk)
+                && (showRisk || mode == MarketOpportunity.All || row.IsObserved && MarketInsights.Matches(row.Item, mode)));
             IOrderedEnumerable<MarketStatisticsRow> ordered;
-            if (mode != MarketOpportunity.All) ordered = filtered.OrderByDescending(row => MarketInsights.Rank(row.Item, mode));
+            if (showRisk) ordered = filtered.OrderByDescending(row => MarketInsights.RiskMultiple(row.Item));
+            else if (mode != MarketOpportunity.All) ordered = filtered.OrderByDescending(row => MarketInsights.Rank(row.Item, mode));
             else switch (SortInput.SelectedIndex) {
                 case 1: ordered = filtered.OrderByDescending(row => row.Item.TradeCount); break;
                 case 2: ordered = filtered.OrderByDescending(row => row.Item.TradedGold); break;
@@ -308,7 +353,7 @@ namespace MabinogiBarter
             }
             var matching = ordered.ThenBy(row => row.Name, StringComparer.Ordinal).ThenBy(row => row.Category, StringComparer.Ordinal).ToList(); Table.ItemsSource = matching;
             if (selected != null) Table.SelectedItem = matching.FirstOrDefault(row => row.Name == selected.Name && row.Category == selected.Category);
-            emptyText.Text = WatchlistOnlyInput.IsChecked == true && favorites.Count == 0 ? "관심 품목이 없습니다. 전체 목록에서 ☆를 눌러 추가하세요." : prepared == null ? client == null ? unavailable : "저장된 공통 시세가 없습니다. 통계 갱신으로 데이터를 받으세요." : "현재 분류·판매 기회·검색 조건에 맞는 품목이 없습니다.";
+            emptyText.Text = WatchlistOnlyInput.IsChecked == true && favorites.Count == 0 ? "관심 품목이 없습니다. 전체 목록에서 ☆를 눌러 추가하세요." : prepared == null ? client == null ? unavailable : "저장된 공통 시세가 없습니다. 통계 갱신으로 데이터를 받으세요." : showRisk ? riskCount == 0 ? "선택 기간에 5배 이상 차이 나는 위험군이 없습니다." : "현재 분류·검색·관심 조건에 맞는 위험군이 없습니다." : "현재 분류·판매 기회·검색 조건에 맞는 품목이 없습니다.";
             emptyText.Visibility = matching.Count == 0 ? Visibility.Visible : Visibility.Collapsed; UpdateStatus(matching.Count);
             var current = Table.SelectedItem as MarketStatisticsRow; selectionText.Text = current == null ? "품목을 선택하면 분류와 가격 비교 기준을 확인할 수 있습니다." : current.Detail;
             Dispatcher.BeginInvoke(DispatcherPriority.Loaded, new Action(delegate { if (disposed || generation != renderGeneration) return; var scroll = FindScroll(Table); if (scroll != null) scroll.ScrollToVerticalOffset(offset); }));
@@ -318,7 +363,7 @@ namespace MabinogiBarter
             if (prepared == null) StatusText.Text = busy ? "저장된 공통 데이터를 확인하는 중…" : client == null ? unavailable : "아직 받은 시세가 없습니다.";
             else {
                 var history = Value(Snapshot.Status, "history") as IDictionary<string, object>; var listings = Value(Snapshot.Status, "listings") as IDictionary<string, object>;
-                StatusText.Text = "공통 데이터 " + Stamp(Snapshot.GeneratedUtc) + " · 거래 수집 " + Published(history) + " · 매물 수집 " + (Snapshot.ListingsFetchedUtc.HasValue ? Stamp(Snapshot.ListingsFetchedUtc.Value) : "미확인") + " · " + count.ToString("N0") + "종";
+                StatusText.Text = "공통 데이터 " + Stamp(Snapshot.GeneratedUtc) + " · 거래 수집 " + Published(history) + " · 매물 수집 " + (Snapshot.ListingsFetchedUtc.HasValue ? Stamp(Snapshot.ListingsFetchedUtc.Value) : "미확인") + " · " + (RiskOnlyInput.IsChecked == true ? "위험군 " + count.ToString("N0") + " / " + riskCount.ToString("N0") + "종" : count.ToString("N0") + "종 · 위험군 " + riskCount.ToString("N0") + "종 제외");
                 if (Snapshot.GeneratedUtc < DateTime.UtcNow.AddHours(-2) || Equals(Value(history, "stale"), true) || Equals(Value(listings, "stale"), true)) StatusText.Text += "\n일부 수집 기록이 오래되었거나 아직 없습니다. 수집 시각을 확인하세요.";
                 if (Count(Snapshot.Status, "failed_runs_7d") > 0) StatusText.Text += "\n최근 수집 실패 구간이 있어 통계에 누락이 있을 수 있습니다.";
                 if (Count(Snapshot.Status, "limited_runs_7d") > 0) StatusText.Text += "\n페이지를 제한한 시범 수집 기록입니다. 전체 시장 통계가 아닙니다.";
@@ -347,7 +392,9 @@ namespace MabinogiBarter
             var averageColumn = AddColumn(grid, "평균 단가", "AveragePriceText", 1.2, 82, true);
             var averageStyle = new Style(typeof(TextBlock), averageColumn.ElementStyle);
             averageStyle.Setters.Add(new Setter(FrameworkElement.ToolTipProperty, new Binding("AveragePriceDetail"))); averageColumn.ElementStyle = averageStyle;
-            AddColumn(grid, "최저 단가", "LowestPriceText", 1.2, 82, true);
+            var lowestColumn = AddColumn(grid, "최저 단가", "LowestPriceText", 1.2, 82, true);
+            var lowestStyle = new Style(typeof(TextBlock), lowestColumn.ElementStyle);
+            lowestStyle.Setters.Add(new Setter(FrameworkElement.ToolTipProperty, new Binding("LowestPriceDetail"))); lowestColumn.ElementStyle = lowestStyle;
             AddColumn(grid, "매물 수량", "ListedQuantityText", 1, 65, true); metricColumn = AddColumn(grid, "등록 건수", "ListingCountText", .9, 60, true);
             listingCellStyle = metricColumn.ElementStyle;
             opportunityCellStyle = new Style(typeof(TextBlock), listingCellStyle);
@@ -444,6 +491,7 @@ namespace MabinogiBarter
             if (client != null) client.SnapshotPublished -= SharedPublished;
             Loaded -= ViewLoaded; RefreshButton.Click -= RefreshClicked; PeriodInput.SelectionChanged -= FilterChanged; SortInput.SelectionChanged -= FilterChanged;
             CategoryInput.SelectionChanged -= FilterChanged; OpportunityInput.SelectionChanged -= FilterChanged; WatchlistOnlyInput.Checked -= WatchlistFilterChanged; WatchlistOnlyInput.Unchecked -= WatchlistFilterChanged;
+            RiskOnlyInput.Checked -= WatchlistFilterChanged; RiskOnlyInput.Unchecked -= WatchlistFilterChanged;
             searchDelay.Stop(); searchDelay.Tick -= SearchElapsed; try { lifetime.Cancel(); } catch (AggregateException) { } lifetime.Dispose(); building = null; buildingData = null;
         }
     }

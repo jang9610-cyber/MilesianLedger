@@ -80,7 +80,7 @@ public static class MarketUiVerificationRunner
             Check(requests == 2, "explicit initial refresh must obtain one manifest and snapshot");
             var sword = view.Table.Items.Cast<MarketStatisticsRow>().Single(row => row.Category == "검");
             var unknown = view.Table.Items.Cast<MarketStatisticsRow>().Single(row => row.Name == "미확인 재료");
-            Check(sword.AveragePriceText == "옵션 제외" && sword.LowestPriceText == "옵션 제외", "equipment metadata prices must stay excluded");
+            Check(sword.AveragePriceText == "옵션 제외" && sword.LowestPriceText == "999,999", "equipment average comparison must stay excluded while its actual minimum is visible");
             Check(unknown.SoldQuantityText == "—" && unknown.ListedQuantityText == "—" && unknown.AveragePriceText == "—", "unknown values must not become zero");
             Check(((MarketStatisticsRow)view.Table.Items[0]).AveragePriceText == "200", "fractional average display must truncate instead of round");
             Capture(window, Path.Combine(output, "market-default-light.png"));
@@ -117,6 +117,7 @@ public static class MarketUiVerificationRunner
             Check(view.Snapshot.Version == newer && requests == 8, "disposed view must stop observing shared publications");
             window.Close(); window = null; view = null;
             VerifyInsights(output);
+            VerifyRiskViews(output);
             Check(requests == 8, "insight filters, favorites and restart must not make network requests");
             var empty = new MarketStatisticsView(null, "오프라인 연결 미설정"); window = new Window { Content = empty, Width = 830, Height = 650, Left = -18000, Top = -18000, ShowActivated = false, ShowInTaskbar = false };
             window.Show(); Pump(); Check(!empty.RefreshButton.IsEnabled && empty.Table.Items.Count == 0, "unconfigured view must remain a local empty state"); empty.Dispose();
@@ -175,6 +176,65 @@ public static class MarketUiVerificationRunner
         Wait(() => task.IsCompleted); if (task.IsFaulted) throw task.Exception;
     }
     static List<MarketStatisticsRow> Rows(MarketStatisticsView view) { return view.Table.Items.Cast<MarketStatisticsRow>().ToList(); }
+    static void VerifyRiskViews(string output)
+    {
+        var data = InsightData(false);
+        var almond = InsightItem("아몬드", "음식", 2, 2, 349, 22350150, 190);
+        var boundary = InsightItem("경계 위험 품목", "음식", 10, 2, 10, 500, 100);
+        var ordinary = InsightItem("경계 아래 품목", "음식", 10, 2, 10, 499.999m, 100);
+        var gear = InsightItem("옵션 검증 장비", "검", 3, 3, 2, null, null, false);
+        var zero = InsightItem("매물 없는 장비", "검", 3, 3, 0, null, null, false);
+        var unknown = InsightItem("가격 미확인 장비", "검", 3, 3, 2, null, null, false);
+        data.Items24h.AddRange(new[] { almond, boundary, ordinary, gear, zero, unknown });
+        data.Quotes[gear.Name] = new MarketSnapshotQuote { Name = gear.Name, UnitPrice = 7654321, Quantity = 2, ListingCount = 2, FetchedUtc = data.ListingsFetchedUtc.Value };
+        data.Quotes[zero.Name] = new MarketSnapshotQuote { Name = zero.Name, UnitPrice = 5, Quantity = 2, ListingCount = 2, FetchedUtc = data.ListingsFetchedUtc.Value };
+        Check(MarketPrices.LowestFor(gear, data) == 7654321, "legacy option metadata must use the recorded same-name quote");
+        Check(MarketPrices.LowestFor(zero, data) == null && MarketPrices.LowestFor(unknown, data) == null, "empty or unknown availability invented a minimum");
+        var pricedGear = InsightItem("최저가 보유 장비", "검", 3, 3, 2, null, 1234, false);
+        Check(MarketPrices.LowestFor(pricedGear, data) == 1234, "option comparison flag hid an available category minimum");
+        var quote = data.Quotes[gear.Name]; quote.FetchedUtc = quote.FetchedUtc.AddMinutes(-5);
+        Check(MarketPrices.LowestFor(gear, data) == null, "fallback quote from another scan used the current collection timestamp");
+        quote.FetchedUtc = data.ListingsFetchedUtc.Value; quote.Name = "다른 장비";
+        Check(MarketPrices.LowestFor(gear, data) == null, "fallback name mismatch leaked another item's price"); quote.Name = gear.Name;
+        var view = new MarketStatisticsView(null, "테스트 공통 시세") { Margin = new Thickness(24) };
+        var window = new Window { Content = view, Width = 1130, Height = 820, Left = -18000, Top = -18000, ShowActivated = false, ShowInTaskbar = false, Background = AppTheme.Brush("#F4F6F5") };
+        try {
+            window.Show(); Publish(view, data);
+            Check(view.RiskOnlyInput.IsChecked != true && view.Table.Items.Count == 14, "default list must exclude the two observed >=5x risks");
+            Check(!Rows(view).Any(row => row.Name == almond.Name || row.Name == boundary.Name) && Rows(view).Any(row => row.Name == ordinary.Name), "risk boundary classification lost full decimal precision");
+            var displayedGear = Rows(view).Single(row => row.Name == gear.Name);
+            Check(displayedGear.LowestPriceText == "7,654,321" && displayedGear.AveragePriceText == "옵션 제외", "legacy option equipment minimum is still hidden");
+            Check(displayedGear.LowestPriceDetail.Contains("같은 이름") && displayedGear.LowestPriceDetail.Contains("옵션"), "fallback minimum does not explain its name/option scope");
+            Check(Rows(view).Single(row => row.Name == zero.Name).LowestPriceText.Contains("매물 없음")
+                && Rows(view).Single(row => row.Name == unknown.Name).LowestPriceText.Contains("미확인"), "no listings and no known price must remain distinct");
+            view.OpportunityInput.SelectedIndex = 2; view.SortInput.SelectedIndex = 2; Pump();
+            view.RiskOnlyInput.IsChecked = true; Pump();
+            Check(view.Table.Items.Count == 2 && Rows(view)[0].Name == almond.Name, "excluded list must reveal all risks regardless of the remembered opportunity filter");
+            Check(!view.OpportunityInput.IsEnabled && !view.SortInput.IsEnabled && (string)view.Table.Columns.Last().Header == "평균/최저", "excluded view must make its ranking and ratio clear");
+            Check(Rows(view).All(row => row.RiskReason.Contains("5배") && row.IsPriceRisk), "excluded rows must carry the threshold reason");
+            Search(view, "ㄱㄱ", 1); Check(Rows(view)[0].Name == boundary.Name, "initial search did not filter the excluded list");
+            Search(view, "", 2); Check(view.SetWatched(almond.Name, true), "risk item could not be added to favorites");
+            view.WatchlistOnlyInput.IsChecked = true; Pump(); Check(view.Table.Items.Count == 1 && Rows(view)[0].Name == almond.Name, "watchlist intersection failed in excluded view");
+            view.WatchlistOnlyInput.IsChecked = false;
+            foreach (bool dark in new[] { false, true }) {
+                AppTheme.SetDark(dark); window.Width = 830; window.Height = 650; Pump(); CheckLayout(view);
+                var bounds = view.RiskOnlyInput.TransformToAncestor(view).TransformBounds(new Rect(0, 0, view.RiskOnlyInput.ActualWidth, view.RiskOnlyInput.ActualHeight));
+                Check(bounds.Left >= -1 && bounds.Right <= view.ActualWidth + 1, "risk control overflows minimum view width");
+                Capture(window, Path.Combine(output, dark ? "market-risk-minimum-dark.png" : "market-risk-minimum-light.png"));
+            }
+            window.Content = null; Pump(); window.Content = view; Pump();
+            Check(view.RiskOnlyInput.IsChecked == true && view.Table.Items.Count == 2, "returning to the page lost excluded mode");
+            view.RiskOnlyInput.IsChecked = false; Pump();
+            Check(view.OpportunityInput.SelectedIndex == 2 && view.SortInput.SelectedIndex == 2 && view.OpportunityInput.IsEnabled, "returning to ordinary results lost remembered filters");
+            view.OpportunityInput.SelectedIndex = 0; view.CategoryInput.SelectedItem = "음식"; Pump();
+            Check(view.Table.Items.Count == 1 && Rows(view)[0].Name == ordinary.Name, "ordinary category view includes excluded items");
+            var next = InsightData(false); next.Items24h.Add(InsightItem(almond.Name, "음식", 2, 2, 349, 400, 190)); Publish(view, next);
+            Check(view.Table.Items.Count == 1 && Rows(view)[0].Name == almond.Name && Rows(view)[0].IsWatched, "fresh data did not reclassify a former risk without deleting its favorite");
+            Check(data.Items24h.Contains(almond) && almond.AverageSalePrice == 22350150 && data.Items24h.Count == 16, "exclusion mutated or deleted source trades");
+            Console.WriteLine("PASS exact 5x exclusion and separate risk list, mode/search/favorite intersections, reclassification on snapshots, retained raw data and recorded option minima, known-empty/unknown distinction; zero network.");
+        } catch { Capture(window, Path.Combine(output, "risk-failure.png")); throw; }
+        finally { view.Dispose(); window.Close(); }
+    }
     static void VerifyIntegerDisplay(MarketStatisticsView view)
     {
         decimal[] values = { 200.5m, 3022.39m, 3856600.67m, -200.9m, 0.9m };
@@ -182,7 +242,7 @@ public static class MarketUiVerificationRunner
         for (int i = 0; i < values.Length; i++) {
             var item = InsightItem("절삭 검증", "재료", 1, 1, 1, values[i], values[i]);
             var row = new MarketStatisticsRow(item);
-            Check(row.AveragePriceText == expected[i] && row.LowestPriceText == expected[i] && row.TradedGoldText == expected[i],
+            Check(row.AveragePriceText == expected[i] && row.LowestPriceText == (values[i] > 0 ? expected[i] : "미확인") && row.TradedGoldText == expected[i],
                 "market gold fields must truncate only display values toward zero");
             Check(item.AverageSalePrice == values[i] && item.LowestListingPrice == values[i] && item.TradedGold == values[i],
                 "display formatting modified the source prices");
@@ -199,8 +259,8 @@ public static class MarketUiVerificationRunner
         Check(!new MarketStatisticsRow(example).AveragePriceDetail.Contains("÷"), "equipment excluded from prices must not show a mean formula");
         Check(!new MarketStatisticsRow(example, false).AveragePriceDetail.Contains("÷"), "unobserved favorite must not show a mean formula");
         var items = new List<MarketSnapshotItem> {
-            InsightItem("가 작은 차이", "재료", 100, 5, 10, 100, 11.99m),
-            InsightItem("나 큰 차이", "재료", 100, 5, 10, 100, 11.17m),
+            InsightItem("가 작은 차이", "재료", 100, 5, 10, 100, 31.99m),
+            InsightItem("나 큰 차이", "재료", 100, 5, 10, 100, 31.17m),
             InsightItem("다 최대 근접 차이", "재료", 100, 5, 10, 100, 0.001m),
             InsightItem("라 미세 차이", "재료", 19, 5, 10, 100, 99.9m)
         };
@@ -208,10 +268,10 @@ public static class MarketUiVerificationRunner
             Items24h = items, Items7d = items, Quotes = new Dictionary<string, MarketSnapshotQuote>(), Status = new Dictionary<string, object>() });
         view.OpportunityInput.SelectedIndex = 3; Pump();
         var rows = Rows(view);
-        Check(rows[0].OpportunityMetricText == "-99%" && rows[0].OpportunityDetail.Contains("99% 낮음"), "a positive listing price must not display a rounded 100 percent discount");
-        Check(rows[1].Name == "나 큰 차이" && rows[2].Name == "가 작은 차이"
-            && rows[1].OpportunityMetricText == "-88%" && rows[2].OpportunityMetricText == "-88%", "integer percentage text must preserve fractional ranking");
-        Check(rows[3].OpportunityMetricText == "1% 미만" && rows[3].OpportunityDetail.Contains("1% 미만 낮음"), "a fractional percent must not display as negative zero");
+        Check(rows.Count == 3 && !rows.Any(row => row.Name == "다 최대 근접 차이"), "near-100 percent price gaps must move to the excluded risk view");
+        Check(rows[0].Name == "나 큰 차이" && rows[1].Name == "가 작은 차이"
+            && rows[0].OpportunityMetricText == "-68%" && rows[1].OpportunityMetricText == "-68%", "integer percentage text must preserve fractional ranking");
+        Check(rows[2].OpportunityMetricText == "1% 미만" && rows[2].OpportunityDetail.Contains("1% 미만 낮음"), "a fractional percent must not display as negative zero");
         view.OpportunityInput.SelectedIndex = 2; Pump();
         Check(Rows(view).Single(row => row.Name == "라 미세 차이").OpportunityMetricText == "1배", "supply ratio must truncate for display");
         var averageColumn = (DataGridTextColumn)view.Table.Columns.Single(column => (string)column.Header == "평균 단가");

@@ -195,6 +195,7 @@ MilesianLedger/
 - 아이템·획득 정보 및 이미지 참고: [라바뉴의 마비노기](https://mabi.labanyu.com/)
 - 교역 판매·운송 정보 참고: [마비 교역 도우미](https://mabitrade.kro.kr/main)
 - 경매장 데이터: [NEXON Open API](https://openapi.nexon.com/ko/game/mabinogi/?id=33)
+- 경매장 분류 순서·계층 참고: [mabi.zip 경매장](https://mabi.zip/auction-live)
 
 이 앱은 개인 제작 보조 도구이며 NEXON의 공식 프로그램이 아닙니다. 마비노기 관련 명칭·캐릭터·게임 이미지 등 제3자 자료의 권리는 각 권리자에게 있습니다. 생성형 이미지로 제작한 앱 아이콘과 로딩 이미지도 게임 캐릭터를 참고한 에셋입니다.
 

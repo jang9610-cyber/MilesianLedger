@@ -37,6 +37,7 @@ namespace MabinogiBarter
             credits.Children.Add(SourceCreditCard("수수료·쿠폰 기준", "넥슨 고객센터", "기본 수수료 5% · 프리미엄 혜택 4%\n쿠폰은 판매 수수료에 할인율을 적용합니다.", "https://cs.nexon.com/helpBoard/popuphelpview/20851"));
             credits.Children.Add(SourceCreditCard("아이콘", itemIcons.SourceName ?? "아이콘 자료", "게임 이미지의 권리는 원권리자에게 있습니다.\n개별 이미지 원문은 아래에서 확인할 수 있습니다.", itemIcons.SourceUrl));
             credits.Children.Add(SourceCreditCard("판매·운송 기준", "마비교역", "판매 평균가·적재량·교역 설정\n자료 확인 " + tradePlanningData.CheckedAt, tradePlanningData.SourceUrl));
+            credits.Children.Add(SourceCreditCard("경매장 분류 배치 참고", "mabi.zip", "경매장 대분류·세부 분류의 순서와 계층\n자료 확인 2026-09-14", "https://mabi.zip/auction-live"));
             body.Children.Add(credits);
             var sortingNote = T("재료 정렬은 아래 아이템별 설명과 제작 정보를 참고해 앱에서 정한 분류입니다. 장작·허브처럼 여러 제작에 쓰이는 재료도 한 분류에 모으며, 게임이나 경매장의 공식 분류와는 다를 수 있습니다.", 11, Muted, false);
             sortingNote.Margin = new Thickness(0, 4, 0, 16); body.Children.Add(sortingNote);

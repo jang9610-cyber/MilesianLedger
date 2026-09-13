@@ -111,7 +111,8 @@ namespace MabinogiBarter
         readonly string unavailable;
         readonly CancellationTokenSource lifetime = new CancellationTokenSource();
         readonly DispatcherTimer searchDelay;
-        readonly TextBlock emptyText, selectionText, criteriaText;
+        readonly TextBlock emptyText, selectionText, criteriaText, categoryPath;
+        readonly MarketCategoryPicker categoryPicker;
         readonly WatchlistStore watchlist;
         DataGridTextColumn metricColumn;
         Style listingCellStyle, opportunityCellStyle, opportunityHeaderStyle;
@@ -122,14 +123,16 @@ namespace MabinogiBarter
         Task<PreparedSnapshot> building;
         MarketSnapshotData buildingData;
         volatile bool disposed;
-        bool loadedOnce, busy, changingCategories;
+        bool loadedOnce, busy;
         int snapshotGeneration, renderGeneration;
         string refreshMessage = "";
         string watchlistMessage = "";
         public TextBox SearchInput { get; private set; }
         public ComboBox PeriodInput { get; private set; }
         public ComboBox SortInput { get; private set; }
-        public ComboBox CategoryInput { get; private set; }
+        public TreeView CategoryTree { get { return categoryPicker.Tree; } }
+        public string SelectedCategoryId { get { return categoryPicker.SelectedId; } }
+        public bool SelectCategory(string id) { return categoryPicker.Select(id); }
         public ComboBox OpportunityInput { get; private set; }
         public CheckBox WatchlistOnlyInput { get; private set; }
         public CheckBox RiskOnlyInput { get; private set; }
@@ -178,8 +181,8 @@ namespace MabinogiBarter
             discovery.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
             discovery.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1.35, GridUnitType.Star) });
             discovery.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
-            CategoryInput = Combo(new[] { "전체 분류" }, Double.NaN); CategoryInput.MinWidth = 120; CategoryInput.Margin = new Thickness(0, 0, 7, 0);
-            CategoryInput.ToolTip = "아이템 분류를 선택합니다. 분류와 판매 기회, 관심 품목 조건을 함께 적용합니다."; discovery.Children.Add(CategoryInput);
+            categoryPath = Text("전체", 12, "#226C54", true); categoryPath.MinWidth = 120; categoryPath.Margin = new Thickness(1, 0, 12, 0); categoryPath.VerticalAlignment = VerticalAlignment.Center;
+            categoryPath.ToolTip = "왼쪽에서 대분류나 세부 분류를 선택하세요."; discovery.Children.Add(categoryPath);
             OpportunityInput = Combo(new[] { "전체 품목", "거래 활발", "판매량 대비 매물 부족", "최근 거래가보다 저렴" }, Double.NaN);
             OpportunityInput.MinWidth = 205; OpportunityInput.Margin = new Thickness(0, 0, 14, 0); Grid.SetColumn(OpportunityInput, 1); discovery.Children.Add(OpportunityInput);
             WatchlistOnlyInput = new CheckBox { Content = "관심 품목만 · 0", FontSize = 12, Foreground = Paint("#202D35"), VerticalAlignment = VerticalAlignment.Center, Cursor = Cursors.Hand };
@@ -194,20 +197,22 @@ namespace MabinogiBarter
             criteriaText = Text("", 11, "#728087", false); criteriaText.Margin = new Thickness(1, 6, 0, 0); Grid.SetRow(criteriaText, 3); Grid.SetColumnSpan(criteriaText, 4); filters.Children.Add(criteriaText);
             AutomationProperties.SetName(SearchInput, "시장 통계 품목 검색"); AutomationProperties.SetName(PeriodInput, "시장 통계 기간");
             AutomationProperties.SetName(SortInput, "시장 통계 정렬"); AutomationProperties.SetName(RefreshButton, "시장 통계 갱신");
-            AutomationProperties.SetName(CategoryInput, "시장 통계 분류"); AutomationProperties.SetName(OpportunityInput, "판매 기회 보기"); AutomationProperties.SetName(WatchlistOnlyInput, "관심 품목만 보기");
+            AutomationProperties.SetName(categoryPath, "현재 시장 통계 분류"); AutomationProperties.SetName(OpportunityInput, "판매 기회 보기"); AutomationProperties.SetName(WatchlistOnlyInput, "관심 품목만 보기");
             AutomationProperties.SetName(RiskOnlyInput, "제외된 위험군 보기");
             StatusText = Text("", 11, "#728087", false); StatusText.Margin = new Thickness(0, 0, 0, 8); Grid.SetRow(StatusText, 2); root.Children.Add(StatusText);
-            var tableHost = new Grid(); Table = CreateTable(); tableHost.Children.Add(Table);
+            var results = new Grid(); results.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(195) }); results.ColumnDefinitions.Add(new ColumnDefinition());
+            categoryPicker = new MarketCategoryPicker { Margin = new Thickness(0, 0, 12, 0) }; results.Children.Add(categoryPicker);
+            var tableHost = new Grid(); Table = CreateTable(); tableHost.Children.Add(Table); Grid.SetColumn(tableHost, 1); results.Children.Add(tableHost);
             emptyText = Text("", 14, "#728087", false); emptyText.Margin = new Thickness(20, 40, 20, 20);
             emptyText.VerticalAlignment = VerticalAlignment.Center; emptyText.HorizontalAlignment = HorizontalAlignment.Center; emptyText.IsHitTestVisible = false;
-            tableHost.Children.Add(emptyText); Grid.SetRow(tableHost, 3); root.Children.Add(tableHost);
+            tableHost.Children.Add(emptyText); Grid.SetRow(results, 3); root.Children.Add(results);
             var footer = new StackPanel { Margin = new Thickness(0, 8, 0, 0) };
             selectionText = Text("품목을 선택하면 분류와 가격 비교 기준을 확인할 수 있습니다.", 11, "#728087", false); footer.Children.Add(selectionText);
             footer.Children.Add(Text("완료된 수집 구간만 집계합니다. 최저가는 수집 시점의 참고값이며 옵션 차이가 있을 수 있습니다. 위험군 외 품목도 정상 가격을 보장하지 않습니다.", 10, "#728087", false)); Grid.SetRow(footer, 4); root.Children.Add(footer);
             searchDelay = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(150) }; searchDelay.Tick += SearchElapsed;
             SearchInput.TextChanged += delegate { if (disposed) return; hint.Visibility = SearchInput.Text.Length == 0 ? Visibility.Visible : Visibility.Collapsed; searchDelay.Stop(); searchDelay.Start(); };
             SearchInput.KeyDown += delegate(object sender, KeyEventArgs e) { if (e.Key == Key.Enter) { e.Handled = true; searchDelay.Stop(); Render(false); } };
-            PeriodInput.SelectionChanged += FilterChanged; SortInput.SelectionChanged += FilterChanged; CategoryInput.SelectionChanged += FilterChanged; OpportunityInput.SelectionChanged += FilterChanged;
+            PeriodInput.SelectionChanged += FilterChanged; SortInput.SelectionChanged += FilterChanged; categoryPicker.SelectionChanged += CategoryChanged; OpportunityInput.SelectionChanged += FilterChanged;
             WatchlistOnlyInput.Checked += WatchlistFilterChanged; WatchlistOnlyInput.Unchecked += WatchlistFilterChanged;
             RiskOnlyInput.Checked += WatchlistFilterChanged; RiskOnlyInput.Unchecked += WatchlistFilterChanged;
             Table.SelectionChanged += delegate { var row = Table.SelectedItem as MarketStatisticsRow; selectionText.Text = row == null ? "품목을 선택하면 분류와 가격 비교 기준을 확인할 수 있습니다." : row.Detail; };
@@ -262,19 +267,15 @@ namespace MabinogiBarter
         }
         void SetBusy(bool value) { busy = value; RefreshButton.IsEnabled = !value && client != null; RefreshButton.Content = value ? "확인 중…" : "통계 갱신"; }
         void SearchElapsed(object sender, EventArgs e) { searchDelay.Stop(); Render(false); }
-        void FilterChanged(object sender, SelectionChangedEventArgs e) { if (changingCategories) return; searchDelay.Stop(); Render(false); }
+        void FilterChanged(object sender, SelectionChangedEventArgs e) { searchDelay.Stop(); Render(false); }
+        void CategoryChanged(object sender, EventArgs e) { searchDelay.Stop(); Render(false); }
         void WatchlistFilterChanged(object sender, RoutedEventArgs e) { searchDelay.Stop(); Render(false); }
         void UpdateCategories()
         {
-            string selected = CategoryInput.SelectedItem as string;
             var names = prepared == null ? new List<string>() : prepared.Day.Concat(prepared.Week).Select(row => row.Category).Distinct(StringComparer.Ordinal).ToList();
-            if (!String.IsNullOrEmpty(selected) && selected != "전체 분류" && !names.Contains(selected)) names.Add(selected);
             var observed = prepared == null ? new HashSet<string>(StringComparer.Ordinal) : new HashSet<string>(prepared.Day.Concat(prepared.Week).Select(row => row.Name), StringComparer.Ordinal);
             if (watchlist.Entries.Any(name => !observed.Contains(name)) && !names.Contains("분류 미확인")) names.Add("분류 미확인");
-            names.Sort(StringComparer.Ordinal); names.Insert(0, "전체 분류");
-            changingCategories = true;
-            try { CategoryInput.ItemsSource = names; CategoryInput.SelectedItem = names.Contains(selected) ? selected : "전체 분류"; }
-            finally { changingCategories = false; }
+            categoryPicker.UpdateCategories(names);
         }
         public bool SetWatched(string name, bool watched)
         {
@@ -292,6 +293,8 @@ namespace MabinogiBarter
         void UpdateCriteria()
         {
             string period = PeriodInput.SelectedIndex == 1 ? "최근 7일" : "최근 24시간";
+            var selectedCategory = CategoryTree.SelectedItem as TreeViewItem;
+            categoryPath.Text = selectedCategory == null ? "전체" : ((MarketCategoryNode)selectedCategory.Tag).Path;
             bool showRisk = RiskOnlyInput.IsChecked == true;
             if (showRisk) criteriaText.Text = period + " 평균 / 최저가 비율이 큰 순입니다. 가격 차이만으로 분류하며 비정상 거래를 확정하지 않습니다.";
             else switch (SelectedOpportunity) {
@@ -313,7 +316,7 @@ namespace MabinogiBarter
                 metricColumn.Header = showRisk ? "평균/최저" : metricMode == MarketOpportunity.LowSupply ? "판매/매물" : metricMode == MarketOpportunity.BelowAverage ? "가격 차이" : "등록 건수";
                 metricColumn.Binding = new Binding(comparison ? "OpportunityMetricText" : "ListingCountText");
                 metricColumn.ElementStyle = comparison ? opportunityCellStyle : listingCellStyle;
-                metricColumn.HeaderStyle = comparison ? opportunityHeaderStyle : null;
+                metricColumn.HeaderStyle = comparison ? opportunityHeaderStyle : Table.ColumnHeaderStyle;
             }
         }
         void Render(bool preservePosition)
@@ -336,9 +339,9 @@ namespace MabinogiBarter
             }
             foreach (var row in rows) row.Update(favorites.Contains(row.Name), mode, showRisk);
             string query = KoreanNameSearch.Normalize(SearchInput.Text);
-            string category = CategoryInput.SelectedItem as string;
+            string category = SelectedCategoryId;
             var filtered = rows.Where(row => KoreanNameSearch.Contains(row.SearchKey, query)
-                && (String.IsNullOrEmpty(category) || category == "전체 분류" || row.Category == category)
+                && MarketCategories.Matches(category, row.Category)
                 && (WatchlistOnlyInput.IsChecked != true || row.IsWatched)
                 && (showRisk ? row.IsPriceRisk : !row.IsPriceRisk)
                 && (showRisk || mode == MarketOpportunity.All || row.IsObserved && MarketInsights.Matches(row.Item, mode)));
@@ -490,7 +493,7 @@ namespace MabinogiBarter
             VerifyAccess(); if (disposed) return; disposed = true; ++snapshotGeneration; ++renderGeneration;
             if (client != null) client.SnapshotPublished -= SharedPublished;
             Loaded -= ViewLoaded; RefreshButton.Click -= RefreshClicked; PeriodInput.SelectionChanged -= FilterChanged; SortInput.SelectionChanged -= FilterChanged;
-            CategoryInput.SelectionChanged -= FilterChanged; OpportunityInput.SelectionChanged -= FilterChanged; WatchlistOnlyInput.Checked -= WatchlistFilterChanged; WatchlistOnlyInput.Unchecked -= WatchlistFilterChanged;
+            categoryPicker.SelectionChanged -= CategoryChanged; OpportunityInput.SelectionChanged -= FilterChanged; WatchlistOnlyInput.Checked -= WatchlistFilterChanged; WatchlistOnlyInput.Unchecked -= WatchlistFilterChanged;
             RiskOnlyInput.Checked -= WatchlistFilterChanged; RiskOnlyInput.Unchecked -= WatchlistFilterChanged;
             searchDelay.Stop(); searchDelay.Tick -= SearchElapsed; try { lifetime.Cancel(); } catch (AggregateException) { } lifetime.Dispose(); building = null; buildingData = null;
         }

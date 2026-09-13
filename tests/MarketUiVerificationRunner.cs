@@ -118,6 +118,7 @@ public static class MarketUiVerificationRunner
             window.Close(); window = null; view = null;
             VerifyInsights(output);
             VerifyRiskViews(output);
+            VerifyCategoryTree(output);
             Check(requests == 8, "insight filters, favorites and restart must not make network requests");
             var empty = new MarketStatisticsView(null, "오프라인 연결 미설정"); window = new Window { Content = empty, Width = 830, Height = 650, Left = -18000, Top = -18000, ShowActivated = false, ShowInTaskbar = false };
             window.Show(); Pump(); Check(!empty.RefreshButton.IsEnabled && empty.Table.Items.Count == 0, "unconfigured view must remain a local empty state"); empty.Dispose();
@@ -176,6 +177,114 @@ public static class MarketUiVerificationRunner
         Wait(() => task.IsCompleted); if (task.IsFaulted) throw task.Exception;
     }
     static List<MarketStatisticsRow> Rows(MarketStatisticsView view) { return view.Table.Items.Cast<MarketStatisticsRow>().ToList(); }
+    static IEnumerable<TreeViewItem> CategoryNodes(ItemsControl parent)
+    {
+        foreach (var node in parent.Items.OfType<TreeViewItem>()) {
+            yield return node;
+            foreach (var child in CategoryNodes(node)) yield return child;
+        }
+    }
+    static TreeViewItem CategoryNode(MarketStatisticsView view, string id)
+    {
+        return CategoryNodes(view.CategoryTree).SingleOrDefault(node => node.Tag is MarketCategoryNode && ((MarketCategoryNode)node.Tag).Id == id);
+    }
+    static void SelectCategory(MarketStatisticsView view, string id)
+    {
+        Check(view.SelectCategory(id), "unreachable category: " + id); Pump();
+        Check(view.SelectedCategoryId == id, "category selection does not expose its stable id: " + id);
+    }
+    static MarketSnapshotData CategoryData(string version)
+    {
+        var items = new List<MarketSnapshotItem> {
+            InsightItem("목걸이", "액세서리", 100, 10, 10, 100, 90),
+            InsightItem("안경", "얼굴 장식", 100, 10, 10, 100, 90),
+            InsightItem("위험 목걸이", "액세서리", 100, 10, 10, 600, 100),
+            InsightItem("새로운 장식", "아직 알려지지 않은 API 분류", 100, 10, 10, 100, 90)
+        };
+        items.AddRange(Enumerable.Range(0, 180).Select(i => InsightItem("검증용 검 " + i.ToString("000"), "검", 100 + i, 10, 10, 100, 90, false)));
+        return new MarketSnapshotData { Version = version, GeneratedUtc = DateTime.UtcNow, Items24h = items,
+            Items7d = items.Where(item => item.Category != "액세서리").ToList(), Quotes = new Dictionary<string, MarketSnapshotQuote>(), Status = new Dictionary<string, object>() };
+    }
+    static void VerifyCategoryTree(string output)
+    {
+        int before = requests;
+        var view = new MarketStatisticsView(null, "분류 트리 검증") { Margin = new Thickness(24) };
+        var window = new Window { Content = view, Width = 1130, Height = 820, Left = -18000, Top = -18000, ShowActivated = false, ShowInTaskbar = false, Background = AppTheme.Brush("#F4F6F5") };
+        try {
+            window.Show(); Publish(view, CategoryData("category-first"));
+            Check(view.SelectedCategoryId == MarketCategories.AllId && view.Table.Items.Count == 183, "tree must start with all ordinary observed items");
+            string groupId = MarketCategories.GroupId("액세서리"), leafId = MarketCategories.LeafId("액세서리");
+            var group = CategoryNode(view, groupId); var leaf = CategoryNode(view, leafId);
+            Check(group != null && leaf != null && !Object.ReferenceEquals(group, leaf)
+                && ((MarketCategoryNode)group.Tag).IsGroup && !((MarketCategoryNode)leaf.Tag).IsGroup, "equal parent and leaf names must retain distinct node identities");
+            group.IsExpanded = true; group.IsSelected = true; Pump();
+            Check(view.SelectedCategoryId == groupId && Rows(view).Select(row => row.Name).OrderBy(name => name).SequenceEqual(new[] { "목걸이", "안경" }), "selecting a parent must include all descendants and apply ordinary risk exclusion");
+            SelectCategory(view, leafId);
+            Check(view.Table.Items.Count == 1 && Rows(view)[0].Name == "목걸이", "same-name leaf must filter its exact API category instead of its parent's descendants");
+            SelectCategory(view, groupId); Search(view, "ㅇㄱ", 1);
+            Check(Rows(view)[0].Name == "안경", "initial search must intersect a category group"); Search(view, "", 2);
+            Check(view.SetWatched("목걸이", true) && view.SetWatched("위험 목걸이", true), "category favorites could not be set");
+            view.WatchlistOnlyInput.IsChecked = true; Pump();
+            Check(view.Table.Items.Count == 1 && Rows(view)[0].Name == "목걸이", "ordinary favorites must intersect the category group");
+            view.RiskOnlyInput.IsChecked = true; Pump();
+            Check(view.Table.Items.Count == 1 && Rows(view)[0].Name == "위험 목걸이", "risk, category and favorites must intersect without hiding excluded favorites");
+            SelectCategory(view, MarketCategories.LeafId("얼굴 장식")); Check(view.Table.Items.Count == 0, "risk list ignored the selected category");
+            view.RiskOnlyInput.IsChecked = false; view.WatchlistOnlyInput.IsChecked = false; Pump();
+            Check(Object.ReferenceEquals(view.Table.Columns.Last().HeaderStyle, view.Table.ColumnHeaderStyle),
+                "leaving excluded mode must restore the themed ordinary column header");
+            SelectCategory(view, leafId); CategoryNode(view, MarketCategories.GroupId("생활 재료")).IsExpanded = true;
+            view.PeriodInput.SelectedIndex = 1; Pump();
+            Check(view.SelectedCategoryId == leafId && view.Table.Items.Count == 0 && CategoryNode(view, groupId).IsExpanded,
+                "empty period must retain the selected game category and its expanded parent");
+            Publish(view, CategoryData("category-next"));
+            Check(view.SelectedCategoryId == leafId && view.Table.Items.Count == 0 && CategoryNode(view, MarketCategories.GroupId("생활 재료")).IsExpanded,
+                "a shared snapshot must preserve category and expansion even with no matches");
+            window.Content = null; Pump(); window.Content = view; Pump();
+            Check(view.SelectedCategoryId == leafId && CategoryNode(view, groupId).IsExpanded && CategoryNode(view, MarketCategories.GroupId("생활 재료")).IsExpanded,
+                "navigation lost category or expanded branches");
+            view.PeriodInput.SelectedIndex = 0; Pump(); Check(view.Table.Items.Count == 1, "returning to a period did not restore the selected leaf's results");
+            CategoryNode(view, groupId).IsExpanded = false; Pump();
+            Check(view.SelectedCategoryId == groupId && !CategoryNode(view, groupId).IsExpanded && view.Table.Items.Count == 2,
+                "collapsing a selected leaf's ancestor must retain the native parent selection without reopening the branch");
+            var expandedChange = CategoryData("category-rebuilt");
+            expandedChange.Items24h.Add(InsightItem("새 분류 검증 품목", "추가로 도착한 API 분류", 100, 10, 10, 100, 90));
+            Publish(view, expandedChange);
+            Check(CategoryNode(view, MarketCategories.LeafId("추가로 도착한 API 분류")) != null && view.SelectedCategoryId == groupId
+                && !CategoryNode(view, groupId).IsExpanded && view.Table.Items.Count == 2,
+                "tree rebuild must preserve the intentionally collapsed selected parent and its descendant results");
+            SelectCategory(view, leafId);
+            Check(CategoryNode(view, groupId).IsExpanded, "explicitly reselecting a hidden leaf must reveal its ancestor");
+            SelectCategory(view, MarketCategories.LeafId("아직 알려지지 않은 API 분류"));
+            Check(view.Table.Items.Count == 1 && Rows(view)[0].Name == "새로운 장식", "unmapped API categories must stay selectable without renaming source data");
+            string remembered = view.SelectedCategoryId;
+            Check(!view.SelectCategory("missing-test-category") && view.SelectedCategoryId == remembered, "invalid category selection must not reset a valid selection");
+            foreach (var node in CategoryNodes(view.CategoryTree).Where(node => ((MarketCategoryNode)node.Tag).IsGroup)) node.IsExpanded = true;
+            SelectCategory(view, MarketCategories.GroupId("근거리 장비"));
+            Check(view.Table.Items.Count == 180 && Rows(view).All(row => row.Category == "검"), "equipment group did not include descendant sword records");
+            foreach (bool dark in new[] { false, true }) {
+                AppTheme.SetDark(dark); window.Width = 830; window.Height = 650; Pump(); CheckLayout(view);
+                var treeScroll = Find<ScrollViewer>(view.CategoryTree); var tableScroll = Find<ScrollViewer>(view.Table);
+                Check(treeScroll != null && tableScroll != null && !Object.ReferenceEquals(treeScroll, tableScroll)
+                    && treeScroll.ScrollableHeight > 0 && tableScroll.ScrollableHeight > 0, "category tree and table must have independent vertical scrolling");
+                treeScroll.ScrollToVerticalOffset(Math.Min(40, treeScroll.ScrollableHeight)); Pump(); double treeOffset = treeScroll.VerticalOffset;
+                tableScroll.ScrollToVerticalOffset(80); Pump(); double tableOffset = tableScroll.VerticalOffset;
+                Check(treeOffset > 0 && tableOffset > 0 && Math.Abs(treeScroll.VerticalOffset - treeOffset) < 1, "table scrolling moved the category sidebar");
+                treeScroll.ScrollToVerticalOffset(Math.Min(70, treeScroll.ScrollableHeight)); Pump();
+                Check(Math.Abs(tableScroll.VerticalOffset - tableOffset) < 1, "category scrolling moved the table");
+                var treeBounds = view.CategoryTree.TransformToAncestor(view).TransformBounds(new Rect(0, 0, view.CategoryTree.ActualWidth, view.CategoryTree.ActualHeight));
+                var tableBounds = view.Table.TransformToAncestor(view).TransformBounds(new Rect(0, 0, view.Table.ActualWidth, view.Table.ActualHeight));
+                Check(treeBounds.Right <= tableBounds.Left && treeBounds.Top >= 0 && treeBounds.Bottom <= view.ActualHeight + 1,
+                    "category sidebar must remain to the left of the table and within the available page");
+                Check(tableScroll.ScrollableWidth > 0, "minimum-width table must allow access to numeric columns through its own horizontal scroll");
+                Capture(window, Path.Combine(output, dark ? "market-category-minimum-dark.png" : "market-category-minimum-light.png"));
+            }
+            window.Width = 1130; window.Height = 820; Pump();
+            SelectCategory(view, groupId); Capture(window, Path.Combine(output, "market-category-group-dark.png"));
+            Check(requests == before, "category browsing, expansion, filters, periods or publications requested the network");
+            Console.WriteLine("PASS game category tree: parent descendants, same-name leaf identity, unknown API categories, risk/favorite/initial intersections, empty-period/publication/navigation state and independent tree/table scrolling at minimum light/dark size; no network.");
+        } catch { Capture(window, Path.Combine(output, "category-failure.png")); throw; }
+        finally { view.Dispose(); window.Close(); }
+    }
     static void VerifyRiskViews(string output)
     {
         var data = InsightData(false);
@@ -226,7 +335,7 @@ public static class MarketUiVerificationRunner
             Check(view.RiskOnlyInput.IsChecked == true && view.Table.Items.Count == 2, "returning to the page lost excluded mode");
             view.RiskOnlyInput.IsChecked = false; Pump();
             Check(view.OpportunityInput.SelectedIndex == 2 && view.SortInput.SelectedIndex == 2 && view.OpportunityInput.IsEnabled, "returning to ordinary results lost remembered filters");
-            view.OpportunityInput.SelectedIndex = 0; view.CategoryInput.SelectedItem = "음식"; Pump();
+            view.OpportunityInput.SelectedIndex = 0; SelectCategory(view, MarketCategories.LeafId("음식"));
             Check(view.Table.Items.Count == 1 && Rows(view)[0].Name == ordinary.Name, "ordinary category view includes excluded items");
             var next = InsightData(false); next.Items24h.Add(InsightItem(almond.Name, "음식", 2, 2, 349, 400, 190)); Publish(view, next);
             Check(view.Table.Items.Count == 1 && Rows(view)[0].Name == almond.Name && Rows(view)[0].IsWatched, "fresh data did not reclassify a former risk without deleting its favorite");
@@ -286,8 +395,8 @@ public static class MarketUiVerificationRunner
         var window = new Window { Content = view, Width = 1130, Height = 820, Left = -18000, Top = -18000, ShowActivated = false, ShowInTaskbar = false, Background = AppTheme.Brush("#F4F6F5") };
         try {
             window.Show(); VerifyIntegerDisplay(view); Publish(view, InsightData(false));
-            Check(view.CategoryInput.Items.Contains("천옷/방직") && view.CategoryInput.Items.Contains("인챈트 스크롤"), "categories must come from snapshot data");
-            view.CategoryInput.SelectedItem = "천옷/방직"; Pump(); Check(view.Table.Items.Count == 4, "category filter failed");
+            Check(CategoryNode(view, MarketCategories.LeafId("천옷/방직")) != null && CategoryNode(view, MarketCategories.LeafId("인챈트 스크롤")) != null, "observed categories must be reachable in the tree");
+            SelectCategory(view, MarketCategories.LeafId("천옷/방직")); Check(view.Table.Items.Count == 4, "category filter failed");
             Search(view, "ㅅㅁㅊ", 2);
             view.OpportunityInput.SelectedIndex = 1; Pump();
             Check(Rows(view)[0].Name == "가는 실뭉치", "active trading must rank by observed trade count");
@@ -296,14 +405,14 @@ public static class MarketUiVerificationRunner
             Search(view, "", 3);
             Check(Rows(view)[0].Name == "굵은 실뭉치", "confirmed zero listings must rank first without division by zero");
             Check(Rows(view)[0].OpportunityMetricText == "매물 없음" && (string)view.Table.Columns.Last().Header == "판매/매물", "low-supply metric must show no listings rather than its sort sentinel");
-            view.CategoryInput.SelectedIndex = 0; view.OpportunityInput.SelectedIndex = 3; Pump();
+            SelectCategory(view, MarketCategories.AllId); view.OpportunityInput.SelectedIndex = 3; Pump();
             Check(Rows(view)[0].Name == "양털", "below-average results must rank by percentage gap");
             Check(Rows(view)[0].OpportunityMetricText == "-75%" && (string)view.Table.Columns.Last().Header == "가격 차이", "price-gap percentage is missing from the table");
             Check(Rows(view).All(row => row.Item.PriceComparable && row.Item.LowestListingPrice > 0 && row.Item.ListedQuantity > 0 && row.Item.TradeCount > 0), "unknown, unavailable and option-sensitive prices entered price comparison");
             Check(!Rows(view).Any(row => row.Name == "가는 실뭉치" || row.Name == "튼튼한 고리" || row.Name == "검"), "equal price, unknown supply or equipment passed comparison");
             foreach (bool dark in new[] { false, true }) {
                 AppTheme.SetDark(dark); window.Width = 830; window.Height = 650; Pump(); CheckLayout(view);
-                foreach (var control in new FrameworkElement[] { view.CategoryInput, view.OpportunityInput, view.WatchlistOnlyInput }) {
+                foreach (var control in new FrameworkElement[] { view.CategoryTree, view.OpportunityInput, view.WatchlistOnlyInput }) {
                     var bounds = control.TransformToAncestor(view).TransformBounds(new Rect(0, 0, control.ActualWidth, control.ActualHeight));
                     Check(bounds.Left >= -1 && bounds.Right <= view.ActualWidth + 1, "insight controls overflow minimum width");
                 }
@@ -311,15 +420,17 @@ public static class MarketUiVerificationRunner
             }
             view.OpportunityInput.SelectedIndex = 0; Pump();
             Check((string)view.Table.Columns.Last().Header == "등록 건수", "leaving a preset did not restore listing counts");
+            Check(Object.ReferenceEquals(view.Table.Columns.Last().HeaderStyle, view.Table.ColumnHeaderStyle),
+                "leaving a preset must restore the themed ordinary column header");
             Check(view.SetWatched("거미줄", true), "adding a favorite failed");
             string enchant = "템포 (접미 / 랭크 6) · 전용 인챈트 스크롤";
             Check(view.SetWatched(enchant, true), "adding named enchant favorite failed");
             Check(Rows(view).Single(row => row.Name == "거미줄").IsWatched, "row star did not update");
             view.WatchlistOnlyInput.IsChecked = true; Pump(); Check(view.Table.Items.Count == 2, "watchlist filter failed");
             Check(!Rows(view).Any(row => row.Name.EndsWith("· 인챈트 스크롤")), "normal and dedicated enchant favorites were conflated");
-            view.CategoryInput.SelectedItem = "천옷/방직"; view.PeriodInput.SelectedIndex = 1; Pump();
+            SelectCategory(view, MarketCategories.LeafId("천옷/방직")); view.PeriodInput.SelectedIndex = 1; Pump();
             Check(view.Table.Items.Count == 1 && Rows(view)[0].Name == "거미줄" && !Rows(view)[0].IsObserved && Rows(view)[0].SoldQuantityText == "—", "missing-period favorite must stay visible with unknown values");
-            view.CategoryInput.SelectedIndex = 0; view.PeriodInput.SelectedIndex = 0; Publish(view, InsightData(true));
+            SelectCategory(view, MarketCategories.AllId); view.PeriodInput.SelectedIndex = 0; Publish(view, InsightData(true));
             Check(view.Table.Items.Count == 2 && !Rows(view).Single(row => row.Name == "거미줄").IsObserved, "new snapshot silently removed a missing favorite");
             window.Width = 1130; window.Height = 820; Capture(window, Path.Combine(output, "market-watchlist-dark.png"));
             view.Dispose(); window.Content = null;
@@ -335,7 +446,7 @@ public static class MarketUiVerificationRunner
                 1000 + i, 100 + i % 300, 10 + i % 100, 100 + i % 10, 50 + i % 10)).ToList();
             bulk.Items7d = bulk.Items24h; view.WatchlistOnlyInput.IsChecked = false; Publish(view, bulk);
             Check(view.Table.Items.Count == 25000 && view.Table.EnableRowVirtualization, "large snapshot lost rows or row virtualization");
-            var elapsed = System.Diagnostics.Stopwatch.StartNew(); view.CategoryInput.SelectedItem = "분류 0"; view.OpportunityInput.SelectedIndex = 3; Pump(); elapsed.Stop();
+            var elapsed = System.Diagnostics.Stopwatch.StartNew(); SelectCategory(view, MarketCategories.LeafId("분류 0")); view.OpportunityInput.SelectedIndex = 3; Pump(); elapsed.Stop();
             Check(view.Table.Items.Count == 2500, "large snapshot category and opportunity intersection failed");
             var sourceBeforeStar = view.Table.ItemsSource;
             Check(view.SetWatched("대량 검증 재료 100", true) && Object.ReferenceEquals(sourceBeforeStar, view.Table.ItemsSource), "large-list favorite toggle rebuilt the grid");

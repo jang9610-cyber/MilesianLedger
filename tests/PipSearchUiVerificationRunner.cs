@@ -126,7 +126,7 @@ public static class PipSearchUiVerificationRunner
         VerifyPrimaryTabs(window, primaryBounds, true);
         Query(window, "오프라인신규거미줄", ExactName);
         Assert(Blocks(Cards(window).First()).Any(t => t.Text == ExactName), "Exact match did not rank first");
-        Assert(Text(Cards(window).First()).Contains("187.25 G"), "Fractional unit price was rounded away");
+        Assert(Text(Cards(window).First()).Contains("187 G") && !Text(Cards(window).First()).Contains("187.25 G"), "Fractional unit price was not truncated for display");
         Assert(Text(window.SearchResultsPanel).Contains("600개"), "Cached listing quantity not rendered");
         Query(window, "시세에만존재하는신규이름", "시세에만 존재하는 신규 이름");
         Query(window, "주간에만존재하는신규이름", "주간에만 존재하는 신규 이름");
@@ -195,7 +195,7 @@ public static class PipSearchUiVerificationRunner
         Wait(delegate { return !window.SearchBusy; }, "return to cached search");
         Assert(refreshCalls == 0, "Typing or tab switching fetched data");
         Assert(!window.SearchStatusText.Text.Contains("읽지 못"), "Returning to the cache failed");
-        passed.Add("cached exact/space-insensitive/full-universe search; fractional prices and unknown quantity; empty/option/no-result states; 30-result cap; zero implicit fetches");
+        passed.Add("cached exact/space-insensitive/full-universe search; integer price display and unknown quantity; empty/option/no-result states; 30-result cap; zero implicit fetches");
         passed.Add("fixed trade/search primary tabs; hidden trade progress and subtabs while searching; remembered craft subtab; both checklist callbacks, checks, scrolls, search query and cards preserved through synchronization");
 
         Query(window, LongName, LongName);
@@ -269,28 +269,29 @@ public static class PipSearchUiVerificationRunner
         }, "");
         window.SelectedTab = 3;
         Query(window, "거미줄", "거미줄");
-        Assert(Blocks(Cards(window).First()).Any(t => t.Text == "거미줄") && Text(Cards(window).First()).Contains("187.25 G"),
-            "Literal spider-web search lost its exact-first result or authoritative fractional quote");
+        Assert(Blocks(Cards(window).First()).Any(t => t.Text == "거미줄") && Text(Cards(window).First()).Contains("187 G"),
+            "Literal spider-web search lost its exact-first result or truncated authoritative quote display");
         Query(window, "ㄱㅁㅈ", "거미줄");
         var initialCards = Cards(window);
         Assert(initialCards.Count == 3 && Blocks(initialCards[0]).Any(t => t.Text == "거미줄")
             && Blocks(initialCards[1]).Any(t => t.Text == "거미줄 조각") && Blocks(initialCards[2]).Any(t => t.Text == "가는 거미줄"),
             "Initial-only search did not render full, prefix and contained matches in order");
-        Assert(Text(initialCards[0]).Contains("187.25 G") && Text(initialCards[0]).Contains("600개")
+        Assert(Text(initialCards[0]).Contains("187 G") && Text(initialCards[0]).Contains("600개")
             && !Text(initialCards[0]).Contains("190 G"), "Initial-only search changed the spider-web quote or used the metadata minimum");
         Query(window, "ㅅㄹㅇ", "실리엔");
-        Assert(Cards(window).Count == 1 && Text(Cards(window).First()).Contains("321.75 G"), "Silien initials did not retain the single item and its price");
+        Assert(Cards(window).Count == 1 && Text(Cards(window).First()).Contains("321 G") && !Text(Cards(window).First()).Contains("322 G"), "Silien initials did not truncate the displayed price without rounding");
         Query(window, "가는 ㅅㅁㅊ", "가는 실뭉치");
-        Assert(Cards(window).Count == 1 && Text(Cards(window).First()).Contains("456.5 G"), "Mixed syllable/initial search did not find the fine thread item");
+        Assert(Cards(window).Count == 1 && Text(Cards(window).First()).Contains("456 G") && !Text(Cards(window).First()).Contains("457 G"), "Mixed syllable/initial search did not find the fine thread item or rounded its displayed price");
         Query(window, "ㄱㅁㅈ", "거미줄");
         window.Width = 320; window.Height = 540; PumpFor(100); VerifyWidth(window);
         Capture(window, "search-initials-minimum-light.png");
-        Assert(Text(Cards(window).First()).Contains("187.25 G") && snapshot.Quotes["거미줄"].UnitPrice == 187.25m
+        Assert(Text(Cards(window).First()).Contains("187 G") && snapshot.Quotes["거미줄"].UnitPrice == 187.25m
+            && snapshot.Quotes["실리엔"].UnitPrice == 321.75m && snapshot.Quotes["가는 실뭉치"].UnitPrice == 456.5m
             && snapshot.Items24h.First(item => item.Name == "거미줄").LowestListingPrice == 190m,
             "Changing between literal, initial-only and mixed queries mutated the spider-web market data");
         Assert(reads == 1 && requests == 0 && refreshCalls == beforeRefresh, "Initial-only or mixed typing fetched data or reloaded its cache");
         window.Close(); Pump(); current = null;
-        passed.Add("PIP initial-only ㄱㅁㅈ/ㅅㄹㅇ and mixed 가는 ㅅㅁㅊ searches; full/prefix/contains ordering, unchanged authoritative spider-web fractional price and quantity, one cached load and zero implicit refreshes");
+        passed.Add("PIP initial-only ㄱㅁㅈ/ㅅㄹㅇ and mixed 가는 ㅅㅁㅊ searches; full/prefix/contains ordering, truncated display without changing cached fractional prices or quantity, one cached load and zero implicit refreshes");
     }
 
     static void VerifyEnchantScrolls()

@@ -366,7 +366,7 @@ namespace MabinogiBarter
         {
             decimal? value; return values.TryGetValue(name, out value) && value.HasValue ? Gold(value.Value) : "미확인";
         }
-        static string Gold(decimal value) { return value.ToString("#,0.##", CultureInfo.CurrentCulture) + " G"; }
+        static string Gold(decimal value) { return Decimal.Truncate(value).ToString("#,0", CultureInfo.CurrentCulture) + " G"; }
         static string Stamp(DateTime? value)
         {
             return value.HasValue && value.Value != DateTime.MinValue ? value.Value.ToLocalTime().ToString("yyyy/MM/dd HH:mm") : "미확인";

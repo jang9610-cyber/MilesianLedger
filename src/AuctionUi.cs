@@ -177,7 +177,7 @@ namespace MabinogiBarter
                 .Distinct(StringComparer.Ordinal).ToArray();
         }
 
-        static string Gold(decimal value) { return value.ToString("#,0.##", CultureInfo.InvariantCulture) + " G"; }
+        static string Gold(decimal value) { return Decimal.Truncate(value).ToString("#,0", CultureInfo.InvariantCulture) + " G"; }
         void UpdateAuctionRefreshButtons()
         {
             foreach (var button in new[] { auctionRefreshButton, auctionAllRefreshButton, procurementDetailRefreshButton, procurementDetailAllRefreshButton })

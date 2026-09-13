@@ -225,7 +225,7 @@ namespace MabinogiBarter
             Grid.SetColumn(name, 1); title.Children.Add(name); body.Children.Add(title);
             bool priced = entry.HasListing && entry.UnitPrice.HasValue;
             bool unidentifiedEnchant = entry.IsEnchantScroll && !entry.EnchantNameKnown;
-            var price = Label(unidentifiedEnchant ? "인챈트 이름 미확인" : priced ? entry.UnitPrice.Value.ToString("#,0.##", CultureInfo.CurrentCulture) + " G" : entry.ListingCount > 0 ? "가격 미확인" : entry.FetchedUtc.HasValue ? "수집 당시 매물 없음" : "매물 미확인", 17, priced ? Green : Muted, true);
+            var price = Label(unidentifiedEnchant ? "인챈트 이름 미확인" : priced ? Decimal.Truncate(entry.UnitPrice.Value).ToString("#,0", CultureInfo.CurrentCulture) + " G" : entry.ListingCount > 0 ? "가격 미확인" : entry.FetchedUtc.HasValue ? "수집 당시 매물 없음" : "매물 미확인", 17, priced ? Green : Muted, true);
             price.Margin = new Thickness(0, 9, 0, 2); price.TextWrapping = TextWrapping.Wrap; body.Children.Add(price);
             if (unidentifiedEnchant) {
                 var unidentified = Label("시세 갱신 후 이름으로 검색하세요.", 11, Muted, false);

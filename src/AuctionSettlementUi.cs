@@ -291,7 +291,7 @@ namespace MabinogiBarter
             disposed = true; MarketPanel.Dispose(); ImageCopier = null;
         }
         static string CouponName(int discount) { return discount == 0 ? "쿠폰 없음" : "수수료 " + discount + "% 할인 쿠폰"; }
-        static string Money(decimal value) { return value.ToString("#,0.########", CultureInfo.InvariantCulture) + " G"; }
+        static string Money(decimal value) { return Decimal.Truncate(value).ToString("#,0", CultureInfo.InvariantCulture) + " G"; }
 
         static TextBlock Text(string value, double size, Brush color, bool bold)
         {

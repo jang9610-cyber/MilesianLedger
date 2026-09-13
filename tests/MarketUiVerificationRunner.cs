@@ -82,7 +82,7 @@ public static class MarketUiVerificationRunner
             var unknown = view.Table.Items.Cast<MarketStatisticsRow>().Single(row => row.Name == "미확인 재료");
             Check(sword.AveragePriceText == "옵션 제외" && sword.LowestPriceText == "옵션 제외", "equipment metadata prices must stay excluded");
             Check(unknown.SoldQuantityText == "—" && unknown.ListedQuantityText == "—" && unknown.AveragePriceText == "—", "unknown values must not become zero");
-            Check(((MarketStatisticsRow)view.Table.Items[0]).AveragePriceText == "200.5", "fractional average must remain visible");
+            Check(((MarketStatisticsRow)view.Table.Items[0]).AveragePriceText == "200", "fractional average display must truncate instead of round");
             Capture(window, Path.Combine(output, "market-default-light.png"));
             foreach (bool dark in new[] { false, true }) {
                 AppTheme.SetDark(dark); window.Width = 830; window.Height = 650; Pump(); CheckLayout(view);
@@ -175,13 +175,57 @@ public static class MarketUiVerificationRunner
         Wait(() => task.IsCompleted); if (task.IsFaulted) throw task.Exception;
     }
     static List<MarketStatisticsRow> Rows(MarketStatisticsView view) { return view.Table.Items.Cast<MarketStatisticsRow>().ToList(); }
+    static void VerifyIntegerDisplay(MarketStatisticsView view)
+    {
+        decimal[] values = { 200.5m, 3022.39m, 3856600.67m, -200.9m, 0.9m };
+        string[] expected = { "200", "3,022", "3,856,600", "-200", "0" };
+        for (int i = 0; i < values.Length; i++) {
+            var item = InsightItem("절삭 검증", "재료", 1, 1, 1, values[i], values[i]);
+            var row = new MarketStatisticsRow(item);
+            Check(row.AveragePriceText == expected[i] && row.LowestPriceText == expected[i] && row.TradedGoldText == expected[i],
+                "market gold fields must truncate only display values toward zero");
+            Check(item.AverageSalePrice == values[i] && item.LowestListingPrice == values[i] && item.TradedGold == values[i],
+                "display formatting modified the source prices");
+        }
+        var example = InsightItem("거미줄", "재료", 967, 103, 224, 2922649m / 967m, 149);
+        example.TradedGold = 2922649;
+        var exampleRow = new MarketStatisticsRow(example);
+        Check(exampleRow.AveragePriceDetail.Contains("2,922,649 G ÷ 판매 수량 967개 ≈ 평균 3,022 G")
+            && exampleRow.AveragePriceDetail.Contains("103건") && exampleRow.AveragePriceDetail.Contains("고가·저가 거래"),
+            "average tooltip must explain the observed weighted mean and its high-price sensitivity");
+        var unknown = new MarketStatisticsRow(InsightItem("정보 없음", "재료", null, null, null, null, null));
+        Check(!unknown.AveragePriceDetail.Contains("÷") && !unknown.AveragePriceDetail.Contains("0 G"), "unknown average must not invent a formula");
+        example.PriceComparable = false;
+        Check(!new MarketStatisticsRow(example).AveragePriceDetail.Contains("÷"), "equipment excluded from prices must not show a mean formula");
+        Check(!new MarketStatisticsRow(example, false).AveragePriceDetail.Contains("÷"), "unobserved favorite must not show a mean formula");
+        var items = new List<MarketSnapshotItem> {
+            InsightItem("가 작은 차이", "재료", 100, 5, 10, 100, 11.99m),
+            InsightItem("나 큰 차이", "재료", 100, 5, 10, 100, 11.17m),
+            InsightItem("다 최대 근접 차이", "재료", 100, 5, 10, 100, 0.001m),
+            InsightItem("라 미세 차이", "재료", 19, 5, 10, 100, 99.9m)
+        };
+        Publish(view, new MarketSnapshotData { Version = "integer-display", GeneratedUtc = DateTime.UtcNow,
+            Items24h = items, Items7d = items, Quotes = new Dictionary<string, MarketSnapshotQuote>(), Status = new Dictionary<string, object>() });
+        view.OpportunityInput.SelectedIndex = 3; Pump();
+        var rows = Rows(view);
+        Check(rows[0].OpportunityMetricText == "-99%" && rows[0].OpportunityDetail.Contains("99% 낮음"), "a positive listing price must not display a rounded 100 percent discount");
+        Check(rows[1].Name == "나 큰 차이" && rows[2].Name == "가 작은 차이"
+            && rows[1].OpportunityMetricText == "-88%" && rows[2].OpportunityMetricText == "-88%", "integer percentage text must preserve fractional ranking");
+        Check(rows[3].OpportunityMetricText == "1% 미만" && rows[3].OpportunityDetail.Contains("1% 미만 낮음"), "a fractional percent must not display as negative zero");
+        view.OpportunityInput.SelectedIndex = 2; Pump();
+        Check(Rows(view).Single(row => row.Name == "라 미세 차이").OpportunityMetricText == "1배", "supply ratio must truncate for display");
+        var averageColumn = (DataGridTextColumn)view.Table.Columns.Single(column => (string)column.Header == "평균 단가");
+        var tooltipSetter = averageColumn.ElementStyle.Setters.OfType<Setter>().Single(setter => setter.Property == FrameworkElement.ToolTipProperty);
+        Check(((System.Windows.Data.Binding)tooltipSetter.Value).Path.Path == "AveragePriceDetail", "average cells must expose calculation details on hover");
+        view.OpportunityInput.SelectedIndex = 0; Pump();
+    }
     static void VerifyInsights(string output)
     {
         string file = Path.Combine(output, "insights-watchlist.json");
         var view = new MarketStatisticsView(null, "테스트 공통 시세", file) { Margin = new Thickness(24) };
         var window = new Window { Content = view, Width = 1130, Height = 820, Left = -18000, Top = -18000, ShowActivated = false, ShowInTaskbar = false, Background = AppTheme.Brush("#F4F6F5") };
         try {
-            window.Show(); Publish(view, InsightData(false));
+            window.Show(); VerifyIntegerDisplay(view); Publish(view, InsightData(false));
             Check(view.CategoryInput.Items.Contains("천옷/방직") && view.CategoryInput.Items.Contains("인챈트 스크롤"), "categories must come from snapshot data");
             view.CategoryInput.SelectedItem = "천옷/방직"; Pump(); Check(view.Table.Items.Count == 4, "category filter failed");
             Search(view, "ㅅㅁㅊ", 2);

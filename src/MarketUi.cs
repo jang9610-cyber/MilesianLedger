@@ -35,6 +35,18 @@ namespace MabinogiBarter
         public string TradeCountText { get { return Count(Item.TradeCount); } }
         public string TradedGoldText { get { return Price(Item.TradedGold); } }
         public string AveragePriceText { get { return !IsObserved ? "—" : Item.PriceComparable ? Price(Item.AverageSalePrice) : "옵션 제외"; } }
+        public string AveragePriceDetail
+        {
+            get {
+                if (!IsObserved) return "선택 기간에 관측된 거래가 없습니다.";
+                if (!Item.PriceComparable) return "옵션별 가격 차이로 단가 비교에서 제외합니다.";
+                if (!Item.AverageSalePrice.HasValue || !Item.TradedGold.HasValue || !(Item.SoldQuantity > 0))
+                    return "평균 거래 단가를 계산할 정보가 없습니다.";
+                return "거래 금액 " + Price(Item.TradedGold) + " G ÷ 판매 수량 " + Count(Item.SoldQuantity)
+                    + "개 ≈ 평균 " + AveragePriceText + " G\n거래 " + Count(Item.TradeCount) + "건 · 소수점 버림\n"
+                    + "고가·저가 거래를 모두 포함한 수량 가중 평균입니다. 일반적인 판매 가격과 다를 수 있습니다.";
+            }
+        }
         public string LowestPriceText { get { return !IsObserved ? "—" : Item.PriceComparable ? Price(Item.LowestListingPrice) : "옵션 제외"; } }
         public string ListedQuantityText { get { return Count(Item.ListedQuantity); } }
         public string ListingCountText { get { return Count(Item.ListingCount); } }
@@ -43,12 +55,15 @@ namespace MabinogiBarter
         {
             get {
                 if (!IsObserved || !MarketInsights.Matches(Item, opportunity)) return "—";
-                if (opportunity == MarketOpportunity.LowSupply) return Item.ListedQuantity == 0 ? "매물 없음" : MarketInsights.Rank(Item, opportunity).Value.ToString("0.##", CultureInfo.InvariantCulture) + "배";
-                if (opportunity == MarketOpportunity.BelowAverage) return "-" + MarketInsights.Rank(Item, opportunity).Value.ToString("0.##", CultureInfo.InvariantCulture) + "%";
+                if (opportunity == MarketOpportunity.LowSupply) return Item.ListedQuantity == 0 ? "매물 없음" : MarketInsights.RatioText(MarketInsights.Rank(Item, opportunity).Value) + "배";
+                if (opportunity == MarketOpportunity.BelowAverage) {
+                    decimal difference = MarketInsights.Rank(Item, opportunity).Value;
+                    return (difference < 1 ? "" : "-") + MarketInsights.PercentageText(difference);
+                }
                 return "—";
             }
         }
-        public string Detail { get { return Name + " · " + Category + " · " + (!IsObserved || opportunity != MarketOpportunity.All ? OpportunityDetail : Item.PriceComparable ? "평균은 수량 가중 단가입니다." : "옵션별 가격 차이로 단가 비교에서 제외합니다."); } }
+        public string Detail { get { return Name + " · " + Category + " · " + (!IsObserved || opportunity != MarketOpportunity.All ? OpportunityDetail : Item.PriceComparable ? "모든 거래를 포함한 수량 가중 평균 · 고가 거래의 영향을 받을 수 있습니다." : "옵션별 가격 차이로 단가 비교에서 제외합니다."); } }
         public MarketStatisticsRow(MarketSnapshotItem item, bool isObserved = true) { Item = item; IsObserved = isObserved; SearchKey = KoreanNameSearch.Normalize(item.Name); }
         internal void Update(bool isWatched, MarketOpportunity mode)
         {
@@ -57,7 +72,7 @@ namespace MabinogiBarter
         }
         void Changed(string property) { if (PropertyChanged != null) PropertyChanged(this, new PropertyChangedEventArgs(property)); }
         static string Count(long? value) { return value.HasValue ? value.Value.ToString("N0", CultureInfo.InvariantCulture) : "—"; }
-        static string Price(decimal? value) { return value.HasValue ? value.Value.ToString("#,0.##", CultureInfo.InvariantCulture) : "—"; }
+        static string Price(decimal? value) { return value.HasValue ? Decimal.Truncate(value.Value).ToString("#,0", CultureInfo.InvariantCulture) : "—"; }
     }
 
     // Detaching a workspace page preserves its filters, selection and scroll.
@@ -247,7 +262,7 @@ namespace MabinogiBarter
             switch (SelectedOpportunity) {
                 case MarketOpportunity.ActiveTrading: criteriaText.Text = period + " 거래가 있는 품목 · 거래 건수가 많은 순입니다."; break;
                 case MarketOpportunity.LowSupply: criteriaText.Text = period + " 판매 수량이 현재 매물보다 많은 품목 · 매물 없음, 판매/매물 비율 순입니다. 판매를 보장하지 않습니다."; break;
-                case MarketOpportunity.BelowAverage: criteriaText.Text = period + " 평균 거래 단가보다 현재 최저 단가가 낮은 품목 · 가격 차이 비율 순입니다. 옵션 장비는 제외합니다."; break;
+                case MarketOpportunity.BelowAverage: criteriaText.Text = period + " 평균보다 최저가가 낮은 품목 · 가격 차이 비율 순입니다. 평균에는 고가 거래도 포함되며, 가격 차이는 수익률이 아닙니다."; break;
                 default: criteriaText.Text = "분류와 조건을 골라 비교하세요. ☆를 누르면 관심 품목으로 저장합니다."; break;
             }
             SortInput.IsEnabled = SelectedOpportunity == MarketOpportunity.All;
@@ -329,7 +344,10 @@ namespace MabinogiBarter
             AddWatchColumn(grid);
             AddColumn(grid, "품목", "NameText", 2.8, 160, false); AddColumn(grid, "판매 수량", "SoldQuantityText", 1, 65, true);
             AddColumn(grid, "거래 건수", "TradeCountText", .9, 60, true); AddColumn(grid, "거래 금액", "TradedGoldText", 1.4, 90, true);
-            AddColumn(grid, "평균 단가", "AveragePriceText", 1.2, 82, true); AddColumn(grid, "최저 단가", "LowestPriceText", 1.2, 82, true);
+            var averageColumn = AddColumn(grid, "평균 단가", "AveragePriceText", 1.2, 82, true);
+            var averageStyle = new Style(typeof(TextBlock), averageColumn.ElementStyle);
+            averageStyle.Setters.Add(new Setter(FrameworkElement.ToolTipProperty, new Binding("AveragePriceDetail"))); averageColumn.ElementStyle = averageStyle;
+            AddColumn(grid, "최저 단가", "LowestPriceText", 1.2, 82, true);
             AddColumn(grid, "매물 수량", "ListedQuantityText", 1, 65, true); metricColumn = AddColumn(grid, "등록 건수", "ListingCountText", .9, 60, true);
             listingCellStyle = metricColumn.ElementStyle;
             opportunityCellStyle = new Style(typeof(TextBlock), listingCellStyle);

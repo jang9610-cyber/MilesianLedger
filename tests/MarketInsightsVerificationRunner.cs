@@ -62,6 +62,25 @@ public static class MarketInsightsVerificationRunner
         Check(MarketInsights.Rank(item, MarketOpportunity.BelowAverage) <= 100, "large price math cannot overflow");
         Pass("below-average view rejects unknown prices, option-sensitive items, and absent trades/listings");
 
+        item = Item(19, 10, 5);
+        Check(MarketInsights.Rank(item, MarketOpportunity.LowSupply) == 1.9m, "supply ratio keeps calculation precision");
+        Check(MarketInsights.Detail(item, MarketOpportunity.LowSupply).Contains("1배"), "supply ratio display truncates instead of rounding");
+        item.AverageSalePrice = 100; item.LowestListingPrice = 0.001m;
+        Check(MarketInsights.Rank(item, MarketOpportunity.BelowAverage) == 99.999m, "price gap keeps calculation precision");
+        Check(MarketInsights.Detail(item, MarketOpportunity.BelowAverage).Contains("99% 낮음"), "positive listing price must not round to a 100 percent discount");
+        item.LowestListingPrice = 99.9m;
+        Check(MarketInsights.Detail(item, MarketOpportunity.BelowAverage).Contains("1% 미만 낮음"), "small gap is not presented as zero");
+        var preciseGap = Item(100, 20, 5); preciseGap.LowestListingPrice = 11.17m;
+        var smallerGap = Item(100, 20, 5); smallerGap.LowestListingPrice = 11.99m;
+        Check(MarketInsights.Rank(preciseGap, MarketOpportunity.BelowAverage) == 88.83m
+            && MarketInsights.Rank(smallerGap, MarketOpportunity.BelowAverage) == 88.01m,
+            "display precision must not alter comparison ranks");
+        Check(MarketInsights.Rank(preciseGap, MarketOpportunity.BelowAverage) > MarketInsights.Rank(smallerGap, MarketOpportunity.BelowAverage)
+            && MarketInsights.PercentageText(MarketInsights.Rank(preciseGap, MarketOpportunity.BelowAverage).Value) == "88%"
+            && MarketInsights.PercentageText(MarketInsights.Rank(smallerGap, MarketOpportunity.BelowAverage).Value) == "88%",
+            "identically displayed integer percentages retain precise ranking");
+        Pass("ratios and percentages truncate for display while eligibility and ranks keep precision");
+
         string path = Path.Combine(directory, "personal", "market-watchlist.json"), error;
         var store = new WatchlistStore(path);
         Check(store.Count == 0 && store.Notice == null, "missing file starts clean");

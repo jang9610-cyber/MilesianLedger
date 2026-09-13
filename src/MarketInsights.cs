@@ -57,14 +57,21 @@ namespace MabinogiBarter
                 case MarketOpportunity.LowSupply:
                     if (item.ListedQuantity.Value == 0)
                         return "선택 기간 " + item.SoldQuantity.Value.ToString("N0", Korean) + "개 판매 · 현재 매물 없음";
-                    return "선택 기간 판매 / 현재 매물 " + Rank(item, mode).Value.ToString("0.##", Korean)
+                    return "선택 기간 판매 / 현재 매물 " + RatioText(Rank(item, mode).Value)
                         + "배 · " + item.SoldQuantity.Value.ToString("N0", Korean) + " / "
                         + item.ListedQuantity.Value.ToString("N0", Korean) + "개";
                 case MarketOpportunity.BelowAverage:
                     return "현재 최저 단가가 선택 기간 평균 거래 단가보다 "
-                        + Rank(item, mode).Value.ToString("0.##", Korean) + "% 낮음";
+                        + PercentageText(Rank(item, mode).Value) + " 낮음 · 전체 거래 평균과의 차이이며 수익률은 아닙니다.";
                 default: return "";
             }
+        }
+
+        // Keep fractional measurements for filtering and ranking; only their text is truncated.
+        public static string RatioText(decimal value) { return Decimal.Truncate(value).ToString("0", Korean); }
+        public static string PercentageText(decimal value)
+        {
+            return value > 0 && value < 1 ? "1% 미만" : Decimal.Truncate(value).ToString("0", Korean) + "%";
         }
     }
 

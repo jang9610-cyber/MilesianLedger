@@ -108,7 +108,11 @@ public static class AuctionSettlementUiVerificationRunner
     {
         Query(window, Material, Material);
         string reference = Text(window.MarketPanel.ReferencePanel);
-        Check(window.MarketPanel.SelectedItemName == Material && reference.Contains("187.25 G") && reference.Contains("222.22 G") && reference.Contains("333.33 G"), "Exact name did not show quote minimum and distinct 24h/7d sale averages");
+        Check(window.MarketPanel.SelectedItemName == Material && reference.Contains("187 G") && reference.Contains("222 G") && reference.Contains("333 G")
+            && !reference.Contains("187.25 G") && !reference.Contains("222.22 G") && !reference.Contains("333.33 G"), "Exact name did not truncate displayed quote minimum and distinct 24h/7d sale averages");
+        Check(window.MarketPanel.Snapshot.Quotes[Material].UnitPrice == 187.25m
+            && window.MarketPanel.Snapshot.Items24h.Single(item => item.Name == Material).AverageSalePrice == 222.22m,
+            "Integer reference display changed the cached raw price values");
         Check(!reference.Contains("100,221.22"), "Metadata listing minimum replaced the quote minimum");
         Query(window, "템포", Enchant);
         Check(window.MarketPanel.ResultsPanel.Children.OfType<Button>().Count() == 2, "Enchant search did not distinguish both scroll forms");
@@ -120,15 +124,15 @@ public static class AuctionSettlementUiVerificationRunner
         SameSale(window, "Suggestion selection");
         Query(window, Equipment, Equipment);
         reference = Text(window.MarketPanel.ReferencePanel);
-        Check(reference.Contains("7,654,321 G") && reference.Contains("옵션별 가격 차이") && !reference.Contains("888,888.5") && !reference.Contains("999,999.5"), "Option-bearing equipment exposed an unsafe sale average");
+        Check(reference.Contains("7,654,321 G") && reference.Contains("옵션별 가격 차이") && !reference.Contains("888,888") && !reference.Contains("999,999"), "Option-bearing equipment exposed an unsafe sale average");
         Query(window, Duplicate, Duplicate);
         reference = Text(window.MarketPanel.ReferencePanel);
-        Check(reference.Contains("19.75 G") && reference.Contains("미확인") && !reference.Contains("901.25") && !reference.Contains("902.5") && !reference.Contains("903.75") && !reference.Contains("904.25"), "Same-name category averages were mixed");
+        Check(reference.Contains("19 G") && !reference.Contains("20 G") && reference.Contains("미확인") && !reference.Contains("901 G") && !reference.Contains("902 G") && !reference.Contains("903 G") && !reference.Contains("904 G"), "Same-name category averages were mixed or quote display was rounded instead of truncated");
         Query(window, "인챈트 스크롤", "인챈트 이름 미확인");
         Check(!Text(window.MarketPanel.ReferencePanel).Contains("99 G"), "Generic enchant exposed a mixed coupon-independent price");
         Query(window, Material, Material);
         window.MarketPanel.ItemNameInput.Text = "수집되지 않은 자유 입력 아이템";
-        Check(window.MarketPanel.SelectedItemName == null && !Text(window.MarketPanel.ReferencePanel).Contains("187.25 G") && !Text(window.MarketPanel.ReferencePanel).Contains(Material), "Editing a selected name left stale market references before debounce");
+        Check(window.MarketPanel.SelectedItemName == null && !Text(window.MarketPanel.ReferencePanel).Contains("187 G") && !Text(window.MarketPanel.ReferencePanel).Contains(Material), "Editing a selected name left stale market references before debounce");
         PumpFor(180);
         Check(window.MarketPanel.ItemNameInput.Text == "수집되지 않은 자유 입력 아이템" && window.CurrentReport != null && window.CopyImageButton.IsEnabled, "Unknown free-form names cannot be used for a manual settlement");
         SameSale(window, "Unknown free-form name");
@@ -165,7 +169,7 @@ public static class AuctionSettlementUiVerificationRunner
         decimal? selectedNet = Row(window, 20).NetAmount;
         string[] queries = { "ㄱㅁㅈ", "ㅅㄹㅇ", "가는 ㅅㅁㅊ", "\u1100\u1106\u110c", "거미줄".Normalize(NormalizationForm.FormD) };
         string[] names = { "거미줄", "실리엔", "가는 실뭉치", "거미줄", "거미줄" };
-        string[] prices = { "187.25 G", "456.5 G", "987.75 G", "187.25 G", "187.25 G" };
+        string[] prices = { "187 G", "456 G", "987 G", "187 G", "187 G" };
         for (int i = 0; i < queries.Length; i++) {
             Query(window, queries[i], names[i]);
             var choices = window.MarketPanel.ResultsPanel.Children.OfType<Button>().ToArray();
@@ -255,7 +259,7 @@ public static class AuctionSettlementUiVerificationRunner
     {
         foreach (int discount in Coupons) {
             var quote = snapshot.Quotes["경매장 수수료 " + discount + "% 할인 쿠폰"];
-            string expectedPrice = quote.UnitPrice.Value.ToString("#,0.########", CultureInfo.InvariantCulture) + " G";
+            string expectedPrice = Decimal.Truncate(quote.UnitPrice.Value).ToString("#,0", CultureInfo.InvariantCulture) + " G";
             var market = window.CouponMarketText(discount);
             Check(market.IsVisible && market.Text.Contains(expectedPrice) && market.Text.Contains("최저"), "Coupon card does not retain its current market minimum: " + discount + " / " + market.Text);
             Check(market.Text.Contains("수집") && market.Text.Contains(quote.FetchedUtc.ToLocalTime().ToString("HH:mm")), "Coupon card lacks its market collection time: " + discount);
@@ -364,7 +368,13 @@ public static class AuctionSettlementUiVerificationRunner
     {
         Click(window.CouponSelectButton(0)); SetSale(window, "101");
         var row = Row(window, 0);
-        Check(row.Fee == 5.05m && row.PerPerson == 23m && row.Remainder == 3.95m && Text(window).Contains("3.95 G"), "Four-person fractional remainder was rounded away in the UI");
+        Check(row.Fee == 5.05m && row.PerPerson == 23m && row.Remainder == 3.95m
+            && Text(window).Contains("분배 후 남는 금액 3 G") && !Text(window).Contains("3.95 G") && !Text(window).Contains("5.05 G"),
+            "Four-person fees/remainder did not truncate only their displayed amounts while retaining precise calculations");
+        window.CouponPriceInput(20).Text = "123456.75"; Pump();
+        Check(window.CouponPriceInput(20).Text == "123456.75" && Row(window, 20).CouponPrice == 123456.75m,
+            "Integer money display altered a manually entered coupon price");
+        window.CouponPriceInput(20).Text = "123456"; Pump();
         CopyImage(window, "settlement-four-person-remainder.png");
         foreach (string invalid in new[] { "", "-1", "abc", "1e8", "1000000000000001", "79228162514264337593543950335" }) {
             window.GrossInput.Text = invalid; InvalidReport(window, "gross " + invalid); window.GrossInput.Text = "101";
@@ -384,7 +394,7 @@ public static class AuctionSettlementUiVerificationRunner
         window.ExtraCostInput.Text = "0";
         window.MarketPanel.ItemNameInput.Text = "자유 입력한 긴 이름의 거래 아이템과 분배 조건을 확인하는 오프라인 검증 " + new string('가', 100); PumpFor(180);
         CopyImage(window, "settlement-long-freeform-name.png");
-        Pass("invalid amounts/people clear the report and disable guarded copying; unknown selected coupon stays unresolved; fractional remainder, loss and long free-form-name report images");
+        Pass("invalid amounts/people clear the report and disable guarded copying; unknown selected coupon stays unresolved; integer money display preserves raw fractional fees/remainder and manual coupon input; loss and long free-form-name report images");
     }
     static void InvalidReport(AuctionSettlementView window, string reason)
     {

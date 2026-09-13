@@ -16,6 +16,7 @@
 **/auction-key.dat*
 **/auction-settings.json*
 **/auction-cache.json*
+**/market-snapshots/
 **/progress.json*
 **/progress-history.json*
 **/pip-settings.json*

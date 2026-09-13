@@ -9,7 +9,10 @@
     "AUCTION_ENABLED": "true",
     "UPSTREAM_REQUESTS_PER_24H": "10000",
     "MARKET_ENABLED": "true",
-    "MARKET_SCHEDULE_ENABLED": "false"
+    "MARKET_SCHEDULE_ENABLED": "true",
+    "MARKET_LIST_INTERVAL_MINUTES": "180",
+    "MARKET_PAGES_PER_ALARM": "40",
+    "SHARED_MARKET_QUOTES_ENABLED": "true"
   },
   "durable_objects": {
     "bindings": [

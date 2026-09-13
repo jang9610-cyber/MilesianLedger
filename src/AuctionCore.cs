@@ -257,16 +257,24 @@ namespace MabinogiBarter
         private readonly AuctionSettings settings;
         private readonly IAuctionTransport transport;
         private readonly IAuctionDelay delay;
+        private readonly AuctionProxyConfig snapshotConfiguration;
+        private readonly MarketSnapshotClient snapshotClient;
         private readonly object sync = new object();
         private AuctionCache cache;
         private int refreshing;
         private bool sentRequest;
         public bool IsRefreshing { get { return Interlocked.CompareExchange(ref refreshing, 0, 0) != 0; } }
         public string Notice { get; private set; }
-        public bool IsConfigured { get { var proxy = transport as ProxyAuctionTransport; return proxy == null || proxy.IsConfigured; } }
-        public string ConfigurationMessage { get { var proxy = transport as ProxyAuctionTransport; return proxy == null ? "" : proxy.ConfigurationMessage; } }
+        public bool IsConfigured { get { if (snapshotConfiguration != null) return snapshotConfiguration.IsConfigured; var proxy = transport as ProxyAuctionTransport; return proxy == null || proxy.IsConfigured; } }
+        public string ConfigurationMessage { get { if (snapshotConfiguration != null) return snapshotConfiguration.StatusMessage; var proxy = transport as ProxyAuctionTransport; return proxy == null ? "" : proxy.ConfigurationMessage; } }
         public AuctionService(string directory, AuctionSettings settings)
-            : this(directory, settings, new ProxyAuctionTransport(AuctionProxyConfig.Load(Path.Combine(directory, "auction-proxy.json"))), new AuctionDelay()) { }
+            : this(directory, settings, (IAuctionTransport)null, new AuctionDelay())
+        {
+            snapshotConfiguration = AuctionProxyConfig.Load(Path.Combine(directory, "auction-proxy.json"));
+            if (snapshotConfiguration.IsConfigured) snapshotClient = MarketSnapshotClient.ForBaseUri(snapshotConfiguration.BaseUri);
+        }
+        internal AuctionService(string directory, AuctionSettings settings, MarketSnapshotClient client)
+            : this(directory, settings, (IAuctionTransport)null, new AuctionDelay()) { snapshotClient = client; }
         public AuctionService(string directory, AuctionSettings settings, IAuctionTransport transport, IAuctionDelay delay)
         {
             this.settings = settings ?? new AuctionSettings();
@@ -348,6 +356,8 @@ namespace MabinogiBarter
                 // Freeze selection, aliases and budgets once per explicit click.
                 var queries = names.Select(delegate(string n) { return new KeyValuePair<string, string>(n, settings.ResolveName(n)); }).ToArray();
                 result.RequestedMaterials = queries.Length;
+                if (snapshotClient != null)
+                    return await RefreshFromSnapshotAsync(queries, result, progress, cancellationToken).ConfigureAwait(false);
                 int maxPages = Math.Max(1, Math.Min(10, settings.MaxPagesPerItem));
                 int maxRequests = Math.Max(1, Math.Min(AuctionSettings.RequestLimit, settings.MaxRequestsPerRefresh));
                 var searched = new Dictionary<string, AuctionQuote>(StringComparer.Ordinal);
@@ -458,6 +468,60 @@ namespace MabinogiBarter
             {
                 SaveCache();
                 Interlocked.Exchange(ref refreshing, 0);
+            }
+        }
+        private async Task<AuctionRefreshResult> RefreshFromSnapshotAsync(KeyValuePair<string, string>[] queries,
+            AuctionRefreshResult result, IProgress<AuctionRefreshProgress> progress, CancellationToken token)
+        {
+            if (queries.Length == 0) return result;
+            try {
+                Report(progress, 0, queries.Length, 0, "공통 시세 데이터 확인");
+                var snapshot = await snapshotClient.RefreshAsync(token).ConfigureAwait(false);
+                result.Requests = snapshot.Requests;
+                token.ThrowIfCancellationRequested();
+                if (snapshot.Data == null) {
+                    result.StoppedReason = snapshot.ErrorMessage ?? "아직 완성된 공통 시세 데이터가 없습니다.";
+                    result.FailedMaterials = queries.Length;
+                    foreach (var query in queries) result.FailedItems.Add(new AuctionRefreshFailure { Material = query.Key, Message = result.StoppedReason });
+                    return result;
+                }
+                var staged = new List<AuctionQuote>();
+                foreach (var query in queries) {
+                    token.ThrowIfCancellationRequested();
+                    MarketSnapshotQuote source;
+                    if (!snapshot.Data.Quotes.TryGetValue(query.Value, out source)) {
+                        if (snapshot.Data.ListingsFetchedUtc.HasValue)
+                            source = new MarketSnapshotQuote { Name = query.Value, FetchedUtc = snapshot.Data.ListingsFetchedUtc.Value };
+                        else {
+                            result.FailedMaterials++;
+                            result.FailedItems.Add(new AuctionRefreshFailure { Material = query.Key, Message = "공통 시세에 이 품목의 수집 결과가 없습니다. 이전 가격을 유지합니다." });
+                            continue;
+                        }
+                    }
+                    string message = "공통 시세 · " + source.FetchedUtc.ToLocalTime().ToString("MM/dd HH:mm") + " 수집";
+                    if (!source.QuantityKnown) message += " · 매물 수량 확인 불가";
+                    if (source.FetchedUtc < DateTime.UtcNow.AddHours(-2)) message += " · 오래된 수집 기록입니다.";
+                    if (!source.UnitPrice.HasValue) message += " · 수집 당시 유효한 매물이 없습니다.";
+                    bool failed = !String.IsNullOrEmpty(snapshot.ErrorMessage);
+                    if (failed) message += " · 최신 확인 실패, 저장된 공통 시세입니다.";
+                    staged.Add(new AuctionQuote { Material = query.Key, SearchName = query.Value, UnitPrice = source.UnitPrice,
+                        AvailableQuantity = source.Quantity, ListingCount = source.ListingCount, Complete = true, Pages = 0,
+                        PriceUtc = source.FetchedUtc, AttemptUtc = DateTime.UtcNow,
+                        Status = failed ? "error" : source.UnitPrice.HasValue ? "ok" : "empty", Message = message });
+                    if (failed) {
+                        result.FailedMaterials++;
+                        result.FailedItems.Add(new AuctionRefreshFailure { Material = query.Key, Message = snapshot.ErrorMessage });
+                    } else result.UpdatedMaterials++;
+                }
+                token.ThrowIfCancellationRequested();
+                lock (sync) { foreach (var quote in staged) cache.Quotes[quote.Material] = quote; }
+                if (!String.IsNullOrEmpty(snapshot.ErrorMessage)) result.StoppedReason = snapshot.ErrorMessage;
+                Report(progress, queries.Length, queries.Length, result.Requests, "공통 시세 적용 완료");
+                return result;
+            } catch (OperationCanceledException) {
+                result.Cancelled = true; result.UpdatedMaterials = 0;
+                result.StoppedReason = "사용자가 갱신을 중단했습니다. 이전 시세를 유지합니다.";
+                return result;
             }
         }
         private static void Report(IProgress<AuctionRefreshProgress> progress, int completed, int total, int requests, string material)

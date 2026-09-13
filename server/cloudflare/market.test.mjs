@@ -27,6 +27,20 @@ function storage() {
 }
 function storeFixture(fn) { const state = storage(); try { return fn(new MarketStore(state), state); } finally { state.db.close(); } }
 
+test('daily storage guard stops collection before any upstream request', async () => {
+  const state = storage(), now = Date.now(); let calls = 0;
+  const env = { MARKET_ENABLED: 'true', AUCTION_COORDINATOR: { idFromName: x => x, get: () => ({ fetch: async () => { calls++; throw Error('must not fetch'); } }) } };
+  try {
+    const collector = new MarketCollector({ storage: state }, env);
+    collector.store.start('history', now);
+    collector.store.setMeta('sql_budget:' + new Date(now).toISOString().slice(0, 10), JSON.stringify({ charged_writes: 60000, charged_reads: 0 }));
+    await collector.alarm();
+    assert.equal(calls, 0); assert.equal(collector.store.latest('history').error, 'MARKET_STORAGE_BUDGET');
+    const restarted = new MarketCollector({ storage: state }, env);
+    restarted.store.start('list', now + 1); await restarted.alarm(); assert.equal(calls, 0);
+  } finally { state.db.close(); }
+});
+
 test('overlapping history and redelivered pages count a trade only once', () => storeFixture(s => {
   const r1 = s.start('history', NOW); const p = page('history', [sale()]);
   s.commitPage(r1, p, NOW); s.commitPage(r1, p, NOW);
@@ -56,7 +70,7 @@ test('listing pages add once and publish only when all pages finish', () => stor
 test('repeating cursor rolls back the entire bad page', () => storeFixture(s => {
   const run = s.start('history', NOW); s.commitPage(run, page('history', [sale()], 'x'), NOW);
   assert.throws(() => s.commitPage(s.active('history'), page('history', [sale('b')], 'x'), NOW), /REPEAT_CURSOR/);
-  assert.equal(s.rankings(query({}), NOW).items[0].trade_count, 1);
+  assert.equal(s.rankings(query({}), NOW).items.length, 0);
 }));
 test('equipment and option variants do not expose misleading name-level prices', () => storeFixture(s => {
   const run = s.start('history', NOW);
@@ -93,7 +107,7 @@ test('public reads cannot initiate collection or access private upstream routes'
 test('scheduler resumes persisted cursors after recreation and respects stop switch', async () => {
   const state = storage(); const savedNow = Date.now; let time = NOW; Date.now = () => time;
   const calls = [];
-  const env = { MARKET_ENABLED:'true', MARKET_SCHEDULE_ENABLED:'true', AUCTION_COORDINATOR: { idFromName:n=>n, get:()=>({fetch:async req=>{
+  const env = { MARKET_ENABLED:'true', MARKET_PAGES_PER_ALARM:'1', MARKET_SCHEDULE_ENABLED:'true', AUCTION_COORDINATOR: { idFromName:n=>n, get:()=>({fetch:async req=>{
     const u = new URL(req.url); calls.push(u.search);
     const kind = u.searchParams.get('kind');
     return Response.json(page(kind, [sale()], kind==='history' && !u.searchParams.has('cursor') ? 'next' : null));
@@ -103,7 +117,8 @@ test('scheduler resumes persisted cursors after recreation and respects stop swi
     await c.fetch(new Request('https://test/tick', {method:'POST'})); await c.alarm();
     assert.equal(c.store.active('history').cursor,'next');
     c = new MarketCollector({storage:state},env); time+=2000; await c.alarm();
-    assert.equal(c.store.active('history'),null); assert.equal(calls.length,3);
+    assert.equal(c.store.active('history'),null);
+    time+=2000; await c.alarm(); assert.equal(calls.length,3);
     assert.equal(c.store.rankings(query({}),time).items[0].trade_count,1);
     time+=20*60_000; await c.fetch(new Request('https://test/tick', {method:'POST'}));
     env.MARKET_ENABLED='false'; await c.alarm(); assert.equal(calls.length,3); assert.equal(state.alarm,null);
@@ -116,7 +131,7 @@ test('429 retry persists backoff; authentication failure terminates run', async 
   try {
     const c=new MarketCollector({storage:state},env); c.store.start('history',NOW); await c.alarm();
     assert.equal(c.store.active('history').next_attempt,NOW+60_000); await c.alarm(); assert.equal(calls,1);
-    c.store.sql.exec('UPDATE market_runs SET next_attempt=0'); code='PROXY_UPSTREAM_AUTH'; await c.alarm();
+    c.store.sql.exec('UPDATE market_v2_runs SET next_attempt=0'); code='PROXY_UPSTREAM_AUTH'; await c.alarm();
     assert.equal(c.store.latest('history').state,'failed'); assert.equal(c.store.meta('history_published'),null);
   } finally {Date.now=savedNow;state.db.close();}
 });
@@ -150,10 +165,10 @@ test('shared coordinator fetches all-category history, projects schema and omits
 });
 test('page storage failure rolls back both rows and cursor', () => storeFixture((s,state) => {
   const run=s.start('history',NOW);
-  state.db.exec("CREATE TRIGGER fail_second BEFORE INSERT ON market_sales WHEN NEW.id='b' BEGIN SELECT RAISE(ABORT,'disk failure fixture'); END");
+  state.db.exec("CREATE TRIGGER fail_second BEFORE INSERT ON market_v2_pages BEGIN SELECT RAISE(ABORT,'disk failure fixture'); END");
   assert.throws(()=>s.commitPage(run,page('history',[sale('a'),sale('b')],'next'),NOW),/disk failure/);
   assert.equal(s.active('history').pages,0);assert.equal(s.rankings(query({}),NOW).items.length,0);
-  assert.equal(s.rows('SELECT * FROM market_pages').length,0);
+  assert.equal(s.rows('SELECT * FROM market_v2_pages').length,0);
 }));
 test('admin pilot requires secret authentication; public reads and cron cannot start disabled scheduling', async () => {
   let calls=0;
@@ -166,7 +181,7 @@ test('admin pilot requires secret authentication; public reads and cron cannot s
   await worker.scheduled({},env);assert.equal(calls,0);
   const response=await worker.fetch(new Request(url,{method:'POST',headers:{Authorization:'Bearer '+env.MARKET_ADMIN_TOKEN}}),env);
   assert.equal(response.status,200);assert.equal(calls,1);
-  const excessive=await worker.fetch(new Request(url.replace('pages=4','pages=101'),{method:'POST',headers:{Authorization:'Bearer '+env.MARKET_ADMIN_TOKEN}}),env);
+  const excessive=await worker.fetch(new Request(url.replace('pages=4','pages=2001'),{method:'POST',headers:{Authorization:'Bearer '+env.MARKET_ADMIN_TOKEN}}),env);
   assert.equal(excessive.status,400);assert.equal(calls,1);
 });
 test('pilot page cap and request id survive restarts without publishing a partial listing', async () => {

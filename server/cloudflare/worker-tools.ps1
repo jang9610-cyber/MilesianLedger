@@ -41,11 +41,11 @@ try {
     try {
         Write-Output ('실행: ' + $Command + ' · npm/npx 없이 Node.js를 직접 사용합니다.')
         switch ($Command) {
-            'check' { & $taskNode $wranglerPath deploy --dry-run --config wrangler.jsonc --outdir .dry-run }
+            'check' { & $taskNode $wranglerPath deploy --dry-run --config wrangler.market.jsonc --outdir .dry-run-market }
             'login' { & $taskNode $wranglerPath login }
-            'deploy' { & $taskNode $wranglerPath deploy --config wrangler.jsonc }
-            'test' { & $taskNode --test worker.test.mjs market.test.mjs }
-            'dev' { & $taskNode $wranglerPath dev --config wrangler.jsonc }
+            'deploy' { & $taskNode $wranglerPath deploy --config wrangler.market.jsonc }
+            'test' { & $taskNode --test '*.test.mjs' }
+            'dev' { & $taskNode $wranglerPath dev --config wrangler.market.jsonc }
         }
         $taskExitCode = $LASTEXITCODE
     } finally { Pop-Location }

@@ -1,4 +1,4 @@
-param([switch]$SkipBuild)
+﻿param([switch]$SkipBuild)
 $ErrorActionPreference = 'Stop'
 . (Join-Path $PSScriptRoot 'common.ps1')
 $taskRepo = Split-Path -Parent $PSScriptRoot
@@ -7,7 +7,7 @@ $taskFramework = Get-LedgerFramework
 $taskApp = Join-Path $taskRepo 'dist/MilesianLedger'
 $taskRunner = Join-Path $taskApp 'MarketUiVerificationRunner.exe'
 $taskArgs = @('/nologo', '/target:exe', '/codepage:65001', ('/out:' + $taskRunner), ('/reference:' + (Join-Path $taskApp 'MilesianLedger.exe')))
-foreach ($taskReference in @('System.dll','System.Core.dll','System.Xaml.dll','WPF/WindowsBase.dll','WPF/PresentationCore.dll','WPF/PresentationFramework.dll')) {
+foreach ($taskReference in @('System.dll','System.Core.dll','System.Web.Extensions.dll','System.Xaml.dll','WPF/WindowsBase.dll','WPF/PresentationCore.dll','WPF/PresentationFramework.dll')) {
     $taskArgs += '/reference:' + (Join-Path $taskFramework $taskReference)
 }
 $taskArgs += Join-Path $taskRepo 'tests/MarketUiVerificationRunner.cs'

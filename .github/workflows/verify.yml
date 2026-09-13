@@ -41,11 +41,14 @@ jobs:
         # UI and focus tests need an interactive desktop and are run locally.
         run: ./scripts/test.ps1
 
+      - name: Test shared snapshot download and auction integration
+        run: ./scripts/test-market-snapshot.ps1
+
       - name: Test Node proxy with mock upstream
         run: node --test "server/test/*.test.mjs"
 
       - name: Test Cloudflare Worker with mock bindings and upstream
-        run: node --test server/cloudflare/worker.test.mjs server/cloudflare/market.test.mjs
+        run: node --test "server/cloudflare/*.test.mjs"
 
       - name: Check proxy item allowlists
         run: ./scripts/update-proxy-items.ps1 -Check

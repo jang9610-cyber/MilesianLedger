@@ -1,7 +1,7 @@
 # 밀레시안 장부 · Milesian Ledger
 
 
-이 개발 브랜치에는 **시장 통계**의 서버 수집 기반과 앱 조회 화면이 포함됩니다. 운영 Worker에 반영하여 제한 시범 수집을 검증했습니다. 정기 수집과 새 릴리스는 아직 활성화하지 않았습니다. [구조·설정·검증 안내](docs/MARKET_STATISTICS.md)를 참고하세요.
+이 개발 브랜치에는 **시장 통계와 공통 시세 다운로드**가 포함됩니다. 서버가 경매장을 수집·집계하고, 앱은 새 버전의 압축 파일만 내려받아 검색·정렬·교역 계산에 사용합니다. 정기 수집과 구버전 시세 경로 전환은 Worker 배포 변수로 제어합니다. 아래 공개 베타 링크와 개발 브랜치의 추가 기능은 구분하며, 구조·설정·검증 방법은 [시장 통계 안내](docs/MARKET_STATISTICS.md)에서 확인할 수 있습니다.
 
 마비노기 물물교환 교역을 준비하는 Windows 데스크톱 앱입니다. 교역할 품목과 수량을 고르면 필요한 재료를 계산하고, **경매장 구매와 직접 제작·확보를 섞은 준비 계획**을 체크리스트로 관리합니다.
 
@@ -26,6 +26,8 @@
 - **자동 저장과 복원**: 계획·준비 방식·구비 상태를 로컬에 저장하고, 진행 상태 복원과 주간 체크 초기화를 지원합니다.
 - **아이템 안내와 화면 설정**: 아이템별 아이콘·획득 안내, 통합 출처 창, 다크 모드, 화면 전환 애니메이션을 제공합니다. 제작자 표기는 `made by 하프_알베도`입니다.
 
+개발 브랜치의 **시장 통계**는 최근 24시간·7일 판매 수량·거래 건수·거래 금액·매물 수량을 제공합니다. 새 시장 품목의 이미지는 대체 아이콘을 사용합니다. 서버가 게시한 완료본을 내려받은 뒤 검색·정렬·페이지 이동은 로컬에서 처리합니다. 일별 추이 그래프·관심 품목·제작 수익 분석은 포함하지 않습니다.
+
 ## 화면 예시
 
 재료 준비 목록과 PIP 체크리스트 화면입니다.
@@ -49,17 +51,23 @@
 
 ## 시세 서버와 가격 표시
 
-시세 요청은 **앱 → Cloudflare Worker → NEXON Open API** 순서로 전달됩니다. 넥슨 API 키는 Cloudflare Secret `NEXON_API_KEY`에만 설정하며 앱·배포 ZIP·공개 저장소에 넣지 않습니다. 앱에는 API 키 입력·저장 메뉴가 없습니다.
+개발 브랜치의 시세는 **서버 정기 수집 → 공통 집계·압축 → 앱 다운로드** 흐름입니다. 넥슨 API 키는 Cloudflare Secret `NEXON_API_KEY`에만 설정하며 앱·배포 ZIP·공개 저장소에 넣지 않습니다. 앱에는 API 키 입력·저장 메뉴가 없습니다.
 
-**배포본에는 시세 서버 주소가 포함되어 있습니다.** 별도 서버 설정 없이 갱신 버튼으로 조회할 수 있습니다. 서버 또는 넥슨의 인증·호출 한도에 따라 조회가 중단될 수 있으며, 계획·체크리스트·저장된 시세는 계속 사용할 수 있습니다.
+**배포본에는 시세 서버 주소가 포함되어 있습니다.** 별도 서버 설정 없이 갱신 버튼으로 조회할 수 있습니다. 서버 수집이나 다운로드가 중단돼도 계획·체크리스트·이전에 검증한 데이터는 유지합니다. 아직 완료된 공통 게시본이 없으면 준비 중으로 안내하며, 이를 사용자별 넥슨 조회로 대체하지 않습니다.
 
 공개 접속 주소는 `https://restless-bread-9002milesianledger-api.jang9610.workers.dev`입니다. 앱은 넥슨으로 직접 연결하지 않습니다.
 
 운영자가 서버 주소를 변경할 때는 `data/auction-proxy.json`의 `BaseUrl`을 수정하고 빌드합니다. HTTPS를 사용하며 로컬 개발용 HTTP는 루프백 주소만 허용합니다. 이 주소는 공개 접속 주소이며 비밀 키가 아닙니다. 운영 방법은 [Cloudflare 서버 안내](server/cloudflare/README.md), 구조와 연결 절차는 [프록시 설계](docs/PROXY_ARCHITECTURE.md)를 참고하세요. [Node.js 서버](server/README.md)는 자체 호스팅을 위한 참고 구현입니다.
 
-사용자가 **전체 시세 갱신** 또는 **구매품목만 갱신**을 눌렀을 때만 조회합니다. 앱 실행, 검색, 체크, 수량 변경, 프리셋 선택으로 자동 조회하지 않습니다. 앱의 갱신당 상한은 500요청이며 대상 조회가 끝나면 종료합니다. 서버 캐시로 넥슨 호출을 재사용하고, 서버의 호출 예산은 모든 사용자가 공유합니다. 이 예산과 실제 넥슨 계정에 적용되는 한도는 별개입니다.
+교역 시세는 **전체 시세 갱신** 또는 **구매품목만 갱신**을 눌렀을 때 공통 버전 manifest를 확인합니다. 같은 버전이면 재다운로드하지 않고, 새 버전이면 gzip 파일 하나의 크기·SHA-256·내용을 검증한 뒤 대상 재료에 반영합니다. 품목 수만큼 넥슨을 호출하지 않습니다. 앱 실행·체크·수량 변경·프리셋 선택으로 교역 시세를 자동 갱신하지 않습니다.
 
-가격은 확인된 매물의 최저 개당 가격을 저장한 값입니다. 서버 캐시를 받은 경우에도 원래 넥슨에서 확인한 시각을 유지합니다. 필요한 수량 전부를 그 가격에 구매할 수 있다는 뜻은 아니며, 이후 시세 변동과 API 반영 지연에 따라 실제 구매액이 달라질 수 있습니다. 조회 실패·매물 없음·호출 제한은 화면에 표시됩니다. 갱신 결과에서 실제 조회 실패와 미갱신을 구분하며, 결과 안내에 마우스를 올리면 실패 품목과 사유를 확인할 수 있습니다. 특정 품목의 검색 조건 오류는 다음 품목으로 넘어가고, 인증·호출 한도·서비스 장애 시에는 전체 갱신을 중단합니다.
+시장 통계는 창을 열거나 **통계 갱신**을 눌렀을 때 같은 다운로드 기능을 사용합니다. 검색·기간·정렬·페이지 변경은 로컬에서 처리합니다. 공통 데이터는 `%LOCALAPPDATA%/MilesianLedger/market-snapshots/`에 서버별로 저장하고, 손상되거나 다운로드에 실패한 새 파일이 이전 검증본을 덮어쓰지 않게 합니다. 버전이 바뀐 경우에는 전체 압축 집계본을 받으며 바이트 단위 차분 파일을 적용하는 방식은 아닙니다.
+
+기존 공개 베타는 품목별 조회 경로를 사용합니다. Worker에서 `SHARED_MARKET_QUOTES_ENABLED=true`로 전환하면 이 경로도 완료한 공통 게시본을 읽고 추가 넥슨 요청을 하지 않습니다. 전환 전의 기존 프록시 동작과 새 앱의 공통 다운로드 동작은 구분합니다. [서버 운영 변수](server/cloudflare/README.md#운영-변수)를 참고하세요.
+
+가격은 최근 완료한 매물 수집본의 최저 개당 가격입니다. 다운로드 시각으로 원래 수집 시각을 바꾸지 않습니다. 필요한 수량 전부를 그 가격에 살 수 있다는 뜻은 아니며, 수집 중 매물 변동과 API 반영 지연에 따라 실제 구매액은 달라질 수 있습니다. 부분 수집·오류가 이전 정상 시세를 대체하지 않으며, 매물 없음·미확인·오래된 데이터는 구분합니다. 통계의 24시간·7일 범위는 표시된 공통 게시 시각을 기준으로 합니다.
+
+서버는 거래 내역 20분, 매물 기본 60분 간격의 수집 구조를 갖추고 있습니다. 실제 운영 간격과 활성화는 전체 조회량을 확인한 뒤 배포 설정으로 정합니다. 무료 플랜의 읽기·쓰기·저장·요청 한도와 넥슨 공용 예산을 따르며, 사용자 수가 늘어도 넥슨 수집 횟수를 그대로 유지하는 대신 공통 파일 다운로드 요청은 늘어납니다. [구조와 무료 플랜 운영 기준](docs/MARKET_STATISTICS.md#무료-플랜의-예산)을 참고하세요.
 
 Data based on NEXON Open API.
 
@@ -92,8 +100,12 @@ powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\test.ps1
 # 메인·PIP 화면 검증까지 포함 (대화형 Windows 데스크톱 필요)
 powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\test.ps1 -IncludeUi
 
-# 현재 Cloudflare Worker의 오프라인 검증 (Node.js 22 이상, Wrangler 설치 불필요)
-powershell -NoProfile -ExecutionPolicy Bypass -File .\server\cloudflare\worker-tools.ps1 test
+# Cloudflare Worker·SQLite·공통 게시본 오프라인 검증 (Node.js 24 권장)
+node --test "server/cloudflare/*.test.mjs"
+
+# 공통 다운로드·로컬 재사용과 시장 화면 검증
+powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\test-market-snapshot.ps1
+powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\test-market-ui.ps1
 
 # Node.js 참고 구현의 오프라인 검증
 powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\test-server.ps1
@@ -142,7 +154,7 @@ MilesianLedger/
 └─ dist/                     # 실행 빌드와 배포 ZIP · Git 제외
 ```
 
-계산과 저장의 중심은 `src/BarterCore.cs`, `src/ProcurementCore.cs`, `src/ProcurementReadiness.cs`이며, 경매장 연동은 `src/AuctionCore.cs`와 `src/AuctionProxyConfig.cs`, 분류 정렬은 `src/ItemCategories.cs`에서 관리합니다. 정적 JSON과 로컬 아이콘은 실행 파일과 함께 배포됩니다.
+계산과 저장의 중심은 `src/BarterCore.cs`, `src/ProcurementCore.cs`, `src/ProcurementReadiness.cs`이며, 경매장 연동은 `src/AuctionCore.cs`와 `src/AuctionProxyConfig.cs`, 공통 다운로드는 `src/MarketSnapshot.cs`, 시장 화면은 `src/MarketUi.cs`, 분류 정렬은 `src/ItemCategories.cs`에서 관리합니다. 정적 JSON과 로컬 아이콘은 실행 파일과 함께 배포됩니다. 시장 Worker의 배포에는 `server/cloudflare/wrangler.market.jsonc`를 사용하며 이전 교역 전용 설정과 번갈아 배포하지 않습니다.
 
 ## 브랜치 운영
 

@@ -224,12 +224,18 @@ function configuration(env) {
 // The public Worker accepts no client key, shared client secret, or upstream URL.
 export default {
   scheduled: marketScheduled,
-  async fetch(request, env) {
+  async fetch(request, env, context) {
     try {
-      const market = await marketFetch(request, env);
+      const market = await marketFetch(request, env, context);
       if (market) return market;
       const parsed = validateRequest(request);
       if (parsed.response) return parsed.response;
+      if (env.SHARED_MARKET_QUOTES_ENABLED === 'true') {
+        if (!env.MARKET_COLLECTOR || env.MARKET_ENABLED !== 'true') return error(503, 'PROXY_NOT_CONFIGURED');
+        const query = new URLSearchParams({ item_name: parsed.itemName, canonical_name: parsed.canonicalName });
+        if (parsed.cursor) query.set('cursor', parsed.cursor);
+        return env.MARKET_COLLECTOR.get(env.MARKET_COLLECTOR.idFromName('market-v1')).fetch(new Request('https://market.internal/quote?' + query));
+      }
       if (!configuration(env) || !env.AUCTION_COORDINATOR ||
           typeof env.AUCTION_COORDINATOR.idFromName !== 'function' || typeof env.AUCTION_COORDINATOR.get !== 'function') {
         return error(503, 'PROXY_NOT_CONFIGURED');
@@ -319,6 +325,13 @@ export class AuctionCoordinator {
 
   async fetch(request) {
     try {
+      const url = new URL(request.url);
+      if (url.pathname === '/internal/usage' && request.method === 'GET' && !url.search) {
+        const budget = await this.state.storage.get(BUDGET_KEY);
+        const timestamps = Array.isArray(budget?.timestamps) ? budget.timestamps.filter(t => t > Date.now() - DAY_MS) : [];
+        return json({ requests_24h: timestamps.length, configured_limit: Number(this.env.UPSTREAM_REQUESTS_PER_24H || 500),
+          oldest_request_at: timestamps.length ? new Date(timestamps[0]).toISOString() : null });
+      }
       const parsed = parseInternalMarket(request, this.env) || validateRequest(request);
       if (parsed.response) return parsed.response;
       const config = configuration(this.env);

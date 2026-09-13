@@ -43,13 +43,13 @@ namespace MabinogiBarter
             var panel = new StackPanel();
             var actions = new StackPanel { Orientation = Orientation.Horizontal, HorizontalAlignment = HorizontalAlignment.Right };
             auctionAllRefreshButton = Btn("전체 시세 갱신", delegate { auctionRefreshTask = RefreshAuctionFromButtonAsync(true); }, false);
-            auctionAllRefreshButton.ToolTip = "교역품 선택이나 구매·제작·직접 확보 설정과 관계없이 모든 교환재료와 지원하는 제작법의 하위재료를 조회합니다. NPC 구매품은 제외합니다.";
+            auctionAllRefreshButton.ToolTip = "서버가 모아둔 공통 시세에서 모든 교환재료와 제작법의 하위재료 가격을 적용합니다. NPC 구매품은 제외합니다. 서버의 경매장 수집을 새로 실행하지 않습니다.";
             actions.Children.Add(auctionAllRefreshButton);
             auctionRefreshButton = Btn("구매품목만 갱신", delegate { auctionRefreshTask = RefreshAuctionFromButtonAsync(false); }, true);
-            auctionRefreshButton.ToolTip = "현재 선택한 교역 계획의 경매장 구매 목록만 조회합니다. 제작 완성품·직접 확보품·상세창 미리보기 재료·NPC 구매품은 제외합니다.";
+            auctionRefreshButton.ToolTip = "서버가 모아둔 공통 시세에서 현재 경매장 구매 목록의 가격만 적용합니다. 새 데이터가 있을 때만 내려받습니다.";
             actions.Children.Add(auctionRefreshButton);
             actions.Children.Add(Btn("주간 리셋", ResetWeek, false)); panel.Children.Add(actions);
-            auctionStatus = T(auction.IsConfigured ? "버튼으로만 조회 · 자동 갱신 없음" : auction.ConfigurationMessage, 10, Muted, false);
+            auctionStatus = T(auction.IsConfigured ? "공통 시세 사용 · 버튼으로 최신 버전 확인" : auction.ConfigurationMessage, 10, Muted, false);
             if (!String.IsNullOrEmpty(auction.Notice)) auctionStatus.Text = auction.Notice;
             auctionStatus.HorizontalAlignment = HorizontalAlignment.Right; auctionStatus.MaxWidth = 285; auctionStatus.Margin = new Thickness(0, 8, 8, 0); panel.Children.Add(auctionStatus);
             return panel;

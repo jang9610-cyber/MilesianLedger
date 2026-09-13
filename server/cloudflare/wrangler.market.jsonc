@@ -8,7 +8,8 @@
   "vars": {
     "AUCTION_ENABLED": "true",
     "UPSTREAM_REQUESTS_PER_24H": "10000",
-    "MARKET_ENABLED": "false"
+    "MARKET_ENABLED": "true",
+    "MARKET_SCHEDULE_ENABLED": "false"
   },
   "durable_objects": {
     "bindings": [

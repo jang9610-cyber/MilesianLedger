@@ -2,7 +2,11 @@ import { SCHEMA } from './market-schema.mjs';
 import { RETENTION } from './market-core.mjs';
 
 export class MarketStore {
-  constructor(storage) { this.storage = storage; this.sql = storage.sql; this.sql.exec(SCHEMA); }
+  constructor(storage) {
+    this.storage = storage; this.sql = storage.sql; this.sql.exec(SCHEMA);
+    // Planned pilot limits are incomplete scans, not provider or storage failures.
+    this.sql.exec("UPDATE market_runs SET state='limited' WHERE state='failed' AND error='MARKET_PILOT_LIMIT'");
+  }
   rows(sql, ...args) { return [...this.sql.exec(sql, ...args)]; }
   one(sql, ...args) { return this.rows(sql, ...args)[0] ?? null; }
   meta(key) { return this.one('SELECT value FROM market_meta WHERE key=?', key)?.value ?? null; }
@@ -16,7 +20,7 @@ export class MarketStore {
     return this.active(kind);
   }
   fail(run, code, now) {
-    this.sql.exec("UPDATE market_runs SET state='failed', error=?, finished=? WHERE id=? AND state='running'", code, now, run.id);
+    this.sql.exec("UPDATE market_runs SET state=?, error=?, finished=? WHERE id=? AND state='running'", code === 'MARKET_PILOT_LIMIT' ? 'limited' : 'failed', code, now, run.id);
   }
   retry(run, code, now, delay) {
     this.sql.exec('UPDATE market_runs SET attempts=attempts+1,error=?,next_attempt=? WHERE id=?', code, now + delay, run.id);
@@ -60,10 +64,11 @@ export class MarketStore {
     const history = published('history'), list = published('list');
     const start = this.meta('collection_started');
     const failed = this.one("SELECT COUNT(*) AS n FROM market_runs WHERE state='failed' AND started>?", now - 7 * 86400_000).n;
+    const limited = this.one("SELECT COUNT(*) AS n FROM market_runs WHERE state='limited' AND started>?", now - 7 * 86400_000).n;
     return { collection_started_at: start ? new Date(+start).toISOString() : null,
       history: { latest_run: clean(this.latest('history')), published: clean(history), stale: !history || now - history.finished > 40 * 60_000 },
       listings: { latest_run: clean(this.latest('list')), published: clean(list), stale: !list || now - list.finished > 90 * 60_000 },
-      failed_runs_7d: failed, history_window_hours: 1, api_delay_minutes: 10,
+      failed_runs_7d: failed, limited_runs_7d: limited, history_window_hours: 1, api_delay_minutes: 10,
       scope: 'all_categories', coverage: 'observed_api_records', image_support: 'placeholder',
       notice: '공식 API에서 관측한 통계입니다. 수집 시작 전·장애 구간은 소급 복원되지 않으며, 매물은 수집 구간 중 변동될 수 있습니다.' };
   }

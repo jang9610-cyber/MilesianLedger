@@ -2,7 +2,7 @@
 
 시장 통계는 공식 경매장 API의 판매 완료 내역과 현재 매물을 수집해 품목별 판매량·거래 건수·거래 금액·매물 수량을 제공합니다. 이미지와 제작법 DB 없이 동작하며, 이미지 필드는 `null`로 유지합니다. 수집 작업과 공개 조회를 분리하므로 앱의 통계 갱신은 넥슨 API를 호출하지 않습니다.
 
-현재 단계는 **로컬 구현·검증 완료, 운영 수집 미활성**입니다. 베타 Release를 교체하지 않으며 `feature/market-statistics`에서 개발합니다. 일별 추이 그래프, 관심 품목, 제작 수익 계산은 후속 범위입니다.
+현재 단계는 **운영 Worker 반영 및 제한 시범 수집 검증 단계**입니다. 정기 수집은 `MARKET_SCHEDULE_ENABLED=false`로 유지합니다. 베타 Release를 교체하지 않으며 `feature/market-statistics`에서 개발합니다. 일별 추이 그래프, 관심 품목, 제작 수익 계산은 후속 범위입니다.
 
 ## 구성
 
@@ -27,7 +27,7 @@ Cron (20분) → MarketCollector의 영속 작업 큐 / Alarm
 | `server/cloudflare/market-schema.mjs` | SQLite 테이블·색인 |
 | `server/cloudflare/market-store.mjs` | 거래 중복 제거, 페이지 원자 저장, 통계 SQL |
 | `server/cloudflare/market-worker.mjs` | 예약 작업·Alarm·공개 읽기 API |
-| `server/cloudflare/wrangler.market.jsonc` | 시장 기능용 binding·예약 설정, 기본 비활성 |
+| `server/cloudflare/wrangler.market.jsonc` | 시장 기능용 binding·예약 설정, 정기 수집 비활성 |
 | `src/MarketUi.cs` | 개발용 시장 통계 창, 조회·검색·정렬·페이지 이동 |
 
 ## 수집 규칙
@@ -38,7 +38,7 @@ Cron (20분) → MarketCollector의 영속 작업 큐 / Alarm
 - 매물은 완료한 수집본만 공개합니다. 중간 실패·반복 커서·시간 제한으로 끝난 작업은 이전 성공본을 대체하지 않습니다. 판매 내역은 정상 저장한 페이지까지 계속 누적하며, 완료 상태와 수집 오류를 별도로 표시합니다.
 - 전체 매물 조회에는 시간이 걸리므로 한 시점의 원자적인 시장 스냅샷을 보장하지 않습니다. 수집 중 매물 변동에 따른 차이가 있을 수 있습니다. `listing_count`는 수집 결과의 매물 행 수입니다.
 - 거래 수집 15분, 매물 수집 50분 또는 10,000페이지를 넘으면 해당 작업을 미완료로 기록합니다. 잘못된 응답은 저장하지 않습니다. 일시 오류는 최대 3회 재시도하고, 인증·예산 오류는 해당 작업을 종료합니다.
-- 예약 및 Alarm은 `MARKET_ENABLED=false`에서 넥슨을 호출하지 않습니다. 공개 API에는 수집 시작·재시도·원본 프록시 경로가 없습니다.
+- 예약 및 Alarm은 `MARKET_ENABLED=false`에서 넥슨을 호출하지 않습니다. 예약 시작에는 별도로 `MARKET_SCHEDULE_ENABLED=true`가 필요합니다. 일반 공개 조회에는 수집 시작·재시도·원본 프록시 경로가 없습니다. 별도 관리자 Secret으로 인증한 시범 수집 경로만 제한된 실행을 시작할 수 있습니다.
 
 ## 호출 예산과 보관
 
@@ -82,13 +82,13 @@ GET /v1/market/rankings?window=7d&sort=gold&q=거미줄
    npm run check:market
    ```
 
-2. `wrangler.market.jsonc`의 Worker 이름과 기존 `AuctionCoordinator` 설정이 운영 서버와 일치하는지 확인합니다. `MARKET_ENABLED=false`를 유지한 상태로 아래 명령을 실행하면 새 SQLite binding과 예약 설정을 함께 배포합니다. 기존 `NEXON_API_KEY` Secret을 사용하며 새 키를 코드나 앱에 넣지 않습니다.
+2. `wrangler.market.jsonc`의 Worker 이름과 기존 `AuctionCoordinator` 설정이 운영 서버와 일치하는지 확인합니다. `MARKET_ENABLED=false`, `MARKET_SCHEDULE_ENABLED=false`를 유지한 상태로 아래 명령을 실행하면 새 SQLite binding과 예약 설정을 함께 배포합니다. 기존 `NEXON_API_KEY` Secret을 사용하며 새 키를 코드나 앱에 넣지 않습니다.
 
    ```powershell
    npx wrangler deploy --config wrangler.market.jsonc
    ```
 
-3. 운영 시범 수집을 시작할 때 `wrangler.market.jsonc`의 `MARKET_ENABLED`를 `true`로 바꾸고 같은 명령으로 배포합니다. 이후 예약 시점부터 서버가 수집하므로 PC를 켜둘 필요가 없습니다. 이 단계부터 Cloudflare 자원과 공용 넥슨 호출 예산을 사용합니다.
+3. 정기 수집을 시작할 때 `wrangler.market.jsonc`의 `MARKET_ENABLED`와 `MARKET_SCHEDULE_ENABLED`를 모두 `true`로 바꾸고 같은 명령으로 배포합니다. 이후 예약 시점부터 서버가 수집하므로 PC를 켜둘 필요가 없습니다. 이 단계부터 Cloudflare 자원과 공용 넥슨 호출 예산을 사용합니다.
 4. `/v1/market/status`에서 완료 여부·페이지 수·실패 코드를 확인합니다. 인증·한도 오류나 시간 초과가 발생하면 전체 수집이 된 것으로 판단하지 않습니다. `MARKET_ENABLED=false`로 되돌려 재배포하면 신규 수집을 중지합니다.
 5. 한 번의 수집량과 비용·저장량을 확인하고, 예산·저장 방식·수집 범위를 확정한 뒤 다음 앱 릴리스에 포함합니다.
 
@@ -112,3 +112,28 @@ UI 검증은 빌드의 공개 주소를 일시적으로 로컬 모의 서버로 
 - [Cloudflare Cron Triggers](https://developers.cloudflare.com/workers/configuration/cron-triggers/), [Durable Objects Alarms](https://developers.cloudflare.com/durable-objects/api/alarms/): 예약 실행, 영속 작업 재시도.
 
 게임 정보의 권리는 해당 권리자에게 있습니다. 이 기능은 공식 API 응답을 사용하며 라바뉴·위키의 이미지나 제작법을 추가 수집하지 않습니다.
+
+## 제한 시범 수집 관리
+
+`MARKET_ENABLED=true`, `MARKET_SCHEDULE_ENABLED=false`이면 통계를 읽을 수 있지만 Cron은 새 작업을 시작하지 않습니다. 관리자만 아래 경로로 한 번의 시범 실행을 시작할 수 있습니다. 인증되지 않은 요청은 401로 거부하며 넥슨을 호출하지 않습니다.
+
+```text
+POST /v1/market/admin/pilot?id=<unique-operation-id>&pages=4
+GET /v1/market/admin/metrics
+Authorization: Bearer <MARKET_ADMIN_TOKEN>
+```
+
+`MARKET_ADMIN_TOKEN`은 무작위 32바이트를 64자리 소문자 16진수로 만든 별도 Cloudflare Secret입니다. 넥슨 API 키와 다르며 앱·Git·URL에 넣지 않습니다. 이 PC에서는 Git에서 제외된 배포에 사용한 작업 폴더의 `server/cloudflare/.wrangler/market-admin-token`에 보관합니다. 이 파일은 Git 프로젝트로 복사되지 않습니다. 값은 화면이나 로그로 출력하지 않습니다.
+
+`pages`는 스트림별 1~100페이지로 제한합니다. 같은 `id` 재요청은 기존 실행만 확인하며 새 수집을 만들지 않습니다. 완료 전 페이지 상한에 닿으면 `MARKET_PILOT_LIMIT`으로 종료합니다. 부분 매물을 전체 현황으로 공개하지 않으며, 정상 저장한 거래 내역만 관측 통계에 남습니다. 시범 모드에도 기존 API 예산·오류 재시도 제한이 적용됩니다.
+
+관리자 metrics는 SQLite 파일 크기와 보관 거래 수, 매물 집계 행 수, 최근 실행 상태를 반환합니다. 일반 사용자의 조회 경로에는 원본 거래나 인증 값을 노출하지 않습니다.
+
+## 무료 플랜 운영 상태
+
+2026-09-13 현재 운영은 `MARKET_ENABLED=true`, `MARKET_SCHEDULE_ENABLED=false`입니다. 관리자 시범 수집과 통계 읽기는 가능하지만 정기 전체 수집은 실행하지 않습니다. 무료 플랜임이 확인되어 새 결제나 요금제 변경 없이 이 상태를 유지합니다.
+
+Cloudflare SQLite Durable Objects의 무료 일일 쓰기 한도는 100,000행입니다. 테이블 외에 색인 갱신·삭제 등도 쓰기량에 영향을 주므로 넥슨 API 요청 횟수만으로 운영 가능 여부를 판단할 수 없습니다. 다음 단계는 전체 거래를 개별 SQL 행으로 계속 저장하는 방식을 대신할 묶음 저장·집계 구조를 검증하는 것입니다. 집계만 저장하더라도 최근 거래 ID의 중복 제거와 지연 도착 처리를 유지해야 합니다.
+
+- [Cloudflare 공식 Durable Objects 가격·무료 한도](https://developers.cloudflare.com/durable-objects/platform/pricing/)
+- [실제 배포·시범 실행 기록](releases/market-pilot-2026-09-13.md)

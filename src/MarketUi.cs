@@ -25,6 +25,7 @@ namespace MabinogiBarter
             var cancel = new CancellationTokenSource();
             var client = new HttpClient(new HttpClientHandler { AllowAutoRedirect = false }) {
                 Timeout = TimeSpan.FromSeconds(20), MaxResponseContentBufferSize = 2 * 1024 * 1024 };
+            client.DefaultRequestHeaders.UserAgent.ParseAdd("MilesianLedger/1.1.0-dev.1");
             var root = new Grid { Margin = new Thickness(24), Background = AppTheme.Brush("#F4F6F5") };
             root.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
             root.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
@@ -102,6 +103,7 @@ namespace MabinogiBarter
                             + "  ·  " + (offset / 50 + 1) + "페이지";
                         if (Equals(MarketValue(history, "stale"), true) || Equals(MarketValue(listings, "stale"), true)) status.Text += "\n일부 수집 기록이 오래되었거나 아직 없습니다.";
                         if (MarketValue(meta, "failed_runs_7d") != null && Convert.ToInt64(MarketValue(meta, "failed_runs_7d")) > 0) status.Text += "\n최근 수집 실패 구간이 있어 통계에 누락이 있을 수 있습니다.";
+                        if (MarketValue(meta, "limited_runs_7d") != null && Convert.ToInt64(MarketValue(meta, "limited_runs_7d")) > 0) status.Text += "\n페이지를 제한한 시범 수집 기록이 포함되어 있습니다. 전체 시장 통계가 아닙니다.";
                         scroller.ScrollToTop(); displayedOffset = offset; loaded = true;
                     }
                 } catch (OperationCanceledException) { if (!cancel.IsCancellationRequested) status.Text = "응답 시간이 초과되었습니다. 다시 갱신해 주세요."; }

@@ -1,9 +1,30 @@
 import { MarketStore } from './market-store.mjs';
 import { HISTORY_INTERVAL, LIST_INTERVAL, json, marketError, parseMarketQuery, validateMarketPage } from './market-core.mjs';
 
+async function adminAuthorized(request, env) {
+  const token = /^Bearer ([a-f0-9]{64})$/.exec(request.headers.get('Authorization') || '')?.[1] || '';
+  if (!/^[a-f0-9]{64}$/.test(env.MARKET_ADMIN_TOKEN || '') || !/^[a-f0-9]{64}$/.test(token)) return false;
+  const encoder = new TextEncoder(), algorithm = { name: 'HMAC', hash: 'SHA-256' };
+  const key = await crypto.subtle.importKey('raw', encoder.encode(env.MARKET_ADMIN_TOKEN), algorithm, false, ['sign']);
+  const candidate = await crypto.subtle.importKey('raw', encoder.encode(token), algorithm, false, ['verify']);
+  const message = encoder.encode('MilesianLedger market administration');
+  return crypto.subtle.verify('HMAC', candidate, await crypto.subtle.sign('HMAC', key, message), message);
+}
+
 export async function marketFetch(request, env) {
   const url = new URL(request.url);
   if (!url.pathname.startsWith('/v1/market/')) return null;
+  if (url.pathname.startsWith('/v1/market/admin/')) {
+    if (!await adminAuthorized(request, env)) return marketError(401, 'MARKET_ADMIN_UNAUTHORIZED');
+    if (env.MARKET_ENABLED !== 'true' || !env.MARKET_COLLECTOR) return marketError(503, 'MARKET_NOT_ENABLED');
+    const stub = env.MARKET_COLLECTOR.get(env.MARKET_COLLECTOR.idFromName('market-v1'));
+    if (url.pathname === '/v1/market/admin/metrics' && request.method === 'GET' && !url.search) return stub.fetch(new Request('https://market.internal/metrics'));
+    if (url.pathname !== '/v1/market/admin/pilot' || request.method !== 'POST') return marketError(405, 'MARKET_INVALID_ADMIN_REQUEST');
+    const id = url.searchParams.get('id'), pages = url.searchParams.get('pages');
+    if (!/^[a-zA-Z0-9-]{1,64}$/.test(id || '') || !/^[0-9]{1,3}$/.test(pages || '') || +pages < 1 || +pages > 100 ||
+        [...url.searchParams.keys()].some(k => !['id', 'pages'].includes(k) || url.searchParams.getAll(k).length !== 1)) return marketError(400, 'MARKET_INVALID_QUERY');
+    return stub.fetch(new Request('https://market.internal/pilot?' + new URLSearchParams({ id, pages }), { method: 'POST' }));
+  }
   if (request.method !== 'GET') return marketError(405, 'MARKET_READ_ONLY');
   if (!['/v1/market/status', '/v1/market/rankings'].includes(url.pathname)) return marketError(404, 'MARKET_NOT_FOUND');
   if (env.MARKET_ENABLED !== 'true' || !env.MARKET_COLLECTOR) return marketError(503, 'MARKET_NOT_ENABLED');
@@ -13,7 +34,7 @@ export async function marketFetch(request, env) {
   return env.MARKET_COLLECTOR.get(env.MARKET_COLLECTOR.idFromName('market-v1')).fetch(new Request('https://market.internal' + url.pathname + url.search));
 }
 export async function marketScheduled(event, env) {
-  if (env.MARKET_ENABLED !== 'true' || !env.MARKET_COLLECTOR) return;
+  if (env.MARKET_ENABLED !== 'true' || env.MARKET_SCHEDULE_ENABLED !== 'true' || !env.MARKET_COLLECTOR) return;
   const response = await env.MARKET_COLLECTOR.get(env.MARKET_COLLECTOR.idFromName('market-v1'))
     .fetch(new Request('https://market.internal/tick', { method: 'POST' }));
   if (!response.ok) throw Error('Market scheduler failed');
@@ -27,7 +48,30 @@ export class MarketCollector {
   async handle(request) {
     if (this.env.MARKET_ENABLED !== 'true') return marketError(503, 'MARKET_NOT_ENABLED');
     const url = new URL(request.url), now = Date.now();
+    if (url.pathname === '/pilot' && request.method === 'POST') {
+      const id = url.searchParams.get('id'), limit = Number(url.searchParams.get('pages'));
+      if (!/^[a-zA-Z0-9-]{1,64}$/.test(id || '') || !Number.isInteger(limit) || limit < 1 || limit > 100) return marketError(400, 'MARKET_INVALID_QUERY');
+      if (this.store.meta('pilot-request:' + id)) {
+        if (this.store.active('history') || this.store.active('list')) await this.state.storage.setAlarm(now + 1000);
+        return json({ accepted: true, duplicate: true });
+      }
+      if (this.store.active('history') || this.store.active('list')) return marketError(409, 'MARKET_ALREADY_RUNNING');
+      this.state.storage.transactionSync(() => {
+        for (const kind of ['history', 'list']) { const run = this.store.start(kind, now); this.store.setMeta('pilot-limit:' + run.id, limit); }
+        this.store.setMeta('pilot-request:' + id, now);
+      });
+      await this.state.storage.setAlarm(now + 1000);
+      return json({ accepted: true, duplicate: false, max_pages_per_stream: limit });
+    }
+    if (url.pathname === '/metrics' && request.method === 'GET') return json({
+      database_bytes: this.state.storage.sql.databaseSize ?? null,
+      stored_trades: this.store.one('SELECT COUNT(*) AS n FROM market_sales').n,
+      stored_listing_groups: this.store.one('SELECT COUNT(*) AS n FROM market_listings').n,
+      trade_time_range: this.store.one('SELECT MIN(time) AS oldest_ms,MAX(time) AS newest_ms FROM market_sales'),
+      status: this.store.status(now), schedule_enabled: this.env.MARKET_SCHEDULE_ENABLED === 'true',
+    });
     if (url.pathname === '/tick' && request.method === 'POST') {
+      if (this.env.MARKET_SCHEDULE_ENABLED !== 'true') return json({ accepted: false, reason: 'schedule_disabled' });
       for (const kind of ['history', 'list']) {
         const latest = this.store.latest(kind);
         if (!this.store.active(kind) && (!latest || now - latest.started >= (kind === 'history' ? HISTORY_INTERVAL : LIST_INTERVAL))) this.store.start(kind, now);
@@ -36,7 +80,7 @@ export class MarketCollector {
       return json({ accepted: true });
     }
     if (request.method !== 'GET') return marketError(405, 'MARKET_READ_ONLY');
-    if (url.pathname === '/v1/market/status') return json(this.store.status(now));
+    if (url.pathname === '/v1/market/status') return json({ ...this.store.status(now), schedule_enabled: this.env.MARKET_SCHEDULE_ENABLED === 'true' });
     if (url.pathname === '/v1/market/rankings') {
       let query;
       try { query = parseMarketQuery(url); } catch { return marketError(400, 'MARKET_INVALID_QUERY'); }
@@ -58,6 +102,8 @@ export class MarketCollector {
       const run = this.store.active(kind);
       if (!run) continue;
       const now = Date.now();
+      const pilotLimit = Number(this.store.meta('pilot-limit:' + run.id));
+      if (pilotLimit && run.pages >= pilotLimit) { this.store.fail(run, 'MARKET_PILOT_LIMIT', now); continue; }
       if (now - run.started > (kind === 'history' ? 15 : 50) * 60_000 || run.pages >= 10000) {
         this.store.fail(run, 'MARKET_INCOMPLETE_SCAN', now); continue;
       }

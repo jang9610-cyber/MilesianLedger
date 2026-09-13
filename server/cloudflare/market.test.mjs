@@ -93,7 +93,7 @@ test('public reads cannot initiate collection or access private upstream routes'
 test('scheduler resumes persisted cursors after recreation and respects stop switch', async () => {
   const state = storage(); const savedNow = Date.now; let time = NOW; Date.now = () => time;
   const calls = [];
-  const env = { MARKET_ENABLED:'true', AUCTION_COORDINATOR: { idFromName:n=>n, get:()=>({fetch:async req=>{
+  const env = { MARKET_ENABLED:'true', MARKET_SCHEDULE_ENABLED:'true', AUCTION_COORDINATOR: { idFromName:n=>n, get:()=>({fetch:async req=>{
     const u = new URL(req.url); calls.push(u.search);
     const kind = u.searchParams.get('kind');
     return Response.json(page(kind, [sale()], kind==='history' && !u.searchParams.has('cursor') ? 'next' : null));
@@ -155,3 +155,33 @@ test('page storage failure rolls back both rows and cursor', () => storeFixture(
   assert.equal(s.active('history').pages,0);assert.equal(s.rankings(query({}),NOW).items.length,0);
   assert.equal(s.rows('SELECT * FROM market_pages').length,0);
 }));
+test('admin pilot requires secret authentication; public reads and cron cannot start disabled scheduling', async () => {
+  let calls=0;
+  const env={MARKET_ENABLED:'true',MARKET_ADMIN_TOKEN:'a'.repeat(64),MARKET_COLLECTOR:{idFromName:n=>n,get:()=>({fetch:async()=>{calls++;return Response.json({accepted:true});}})}};
+  const url='https://test/v1/market/admin/pilot?id=offline-test&pages=4';
+  for (const authorization of ['', 'Bearer '+ 'b'.repeat(64), 'a'.repeat(64)]) {
+    const response=await worker.fetch(new Request(url,{method:'POST',headers:{Authorization:authorization}}),env);
+    assert.equal(response.status,401);
+  }
+  await worker.scheduled({},env);assert.equal(calls,0);
+  const response=await worker.fetch(new Request(url,{method:'POST',headers:{Authorization:'Bearer '+env.MARKET_ADMIN_TOKEN}}),env);
+  assert.equal(response.status,200);assert.equal(calls,1);
+  const excessive=await worker.fetch(new Request(url.replace('pages=4','pages=101'),{method:'POST',headers:{Authorization:'Bearer '+env.MARKET_ADMIN_TOKEN}}),env);
+  assert.equal(excessive.status,400);assert.equal(calls,1);
+});
+test('pilot page cap and request id survive restarts without publishing a partial listing', async () => {
+  const state=storage(),savedNow=Date.now;let time=NOW,calls=0;Date.now=()=>time;
+  const env={MARKET_ENABLED:'true',MARKET_SCHEDULE_ENABLED:'false',AUCTION_COORDINATOR:{idFromName:n=>n,get:()=>({fetch:async req=>{
+    calls++; const kind=new URL(req.url).searchParams.get('kind');return Response.json(page(kind,[sale()],String(calls)));
+  }})}};
+  try {
+    let c=new MarketCollector({storage:state},env);
+    assert.equal((await (await c.fetch(new Request('https://internal/tick',{method:'POST'}))).json()).accepted,false);
+    const pilot=()=>new Request('https://internal/pilot?id=test-1&pages=1',{method:'POST'});
+    await c.fetch(pilot());await c.alarm();time+=2000;
+    c=new MarketCollector({storage:state},env);await c.alarm();
+    assert.equal(calls,2);assert.equal(c.store.latest('list').error,'MARKET_PILOT_LIMIT');assert.equal(c.store.meta('list_published'),null);
+    assert.equal(c.store.latest('list').state,'limited');assert.equal(c.store.status(time).failed_runs_7d,0);assert.equal(c.store.status(time).limited_runs_7d,2);
+    assert.equal((await (await c.fetch(pilot())).json()).duplicate,true);await c.alarm();assert.equal(calls,2);
+  } finally {Date.now=savedNow;state.db.close();}
+});

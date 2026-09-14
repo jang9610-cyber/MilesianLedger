@@ -23,6 +23,18 @@ foreach ($number in 1..4) {
 foreach ($reference in @('System.dll', 'System.Core.dll', 'System.Web.Extensions.dll', 'System.Net.Http.dll', 'System.Security.dll', 'System.Xaml.dll', 'WPF/WindowsBase.dll', 'WPF/PresentationCore.dll', 'WPF/PresentationFramework.dll', 'WPF/UIAutomationProvider.dll', 'WPF/UIAutomationTypes.dll')) {
     $compilerArgs += '/reference:' + (Join-Path $framework $reference)
 }
+# Windows supplies the OCR implementation and metadata; no screenshot helper or OCR models are shipped.
+$windowsSdkMetadataRoot = Join-Path ${env:ProgramFiles(x86)} 'Windows Kits/10/UnionMetadata'
+$windowsMetadata = @(Get-ChildItem -LiteralPath $windowsSdkMetadataRoot -Directory -ErrorAction SilentlyContinue |
+    Where-Object { $_.Name -match '^\d+\.\d+\.\d+\.\d+$' -and (Test-Path -LiteralPath (Join-Path $_.FullName 'Windows.winmd')) } |
+    Sort-Object { [version]$_.Name } -Descending | Select-Object -First 1)
+if ($windowsMetadata.Count -eq 0) { throw 'Windows 10/11 SDK UnionMetadata is required to compile Windows OCR support. The SDK is not required to run the app.' }
+$runtimeFacade = Join-Path $env:WINDIR 'Microsoft.NET/assembly/GAC_MSIL/System.Runtime/v4.0_4.0.0.0__b03f5f7f11d50a3a/System.Runtime.dll'
+foreach ($reference in @((Join-Path $framework 'System.Runtime.WindowsRuntime.dll'), $runtimeFacade)) {
+    if (-not (Test-Path -LiteralPath $reference)) { throw ('Windows OCR build reference is missing: ' + $reference) }
+    $compilerArgs += '/reference:' + $reference
+}
+$compilerArgs += '/reference:' + (Join-Path $windowsMetadata[0].FullName 'Windows.winmd')
 $sources = @(Get-ChildItem -LiteralPath $sourceRoot -File -Filter '*.cs' | Sort-Object Name)
 if ($sources.Count -eq 0) { throw 'No C# sources found.' }
 $compilerArgs += $sources.FullName

@@ -44,6 +44,12 @@ jobs:
       - name: Test shared snapshot download and auction integration
         run: ./scripts/test-market-snapshot.ps1
 
+      - name: Test OCR matching and synthetic capture geometry
+        # No live screenshot or installed Korean OCR model is used in these tests.
+        run: |
+          ./scripts/test-ocr-market-matcher.ps1
+          ./scripts/test-screen-region-capture.ps1
+
       - name: Test Node proxy with mock upstream
         run: node --test "server/test/*.test.mjs"
 

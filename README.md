@@ -89,9 +89,11 @@ Data based on NEXON Open API.
 - 구비 체크는 해당 항목의 **필요 수량 전체를 준비했다는 표시**입니다. 부분 보유 수량을 기록하는 재고 관리 기능은 제공하지 않습니다.
 - PIP는 별도의 Windows 창입니다. 게임 환경에 따라 PIP 조작 후 클릭 상태가 게임에 남을 수 있습니다. 앱은 게임 메모리 접근·입력 자동화·게임 조작을 수행하지 않습니다.
 
+개발 빌드의 PIP **영역 촬영**은 마우스로 지정한 영역에서 여러 아이템 이름을 읽어 개당 최저가를 표시합니다. Windows의 한국어 OCR로 이 PC에서 처리하며, 촬영 이미지와 인식 문장은 파일로 저장하거나 서버에 전송하지 않습니다. 정확하지 않은 이름은 후보 선택이나 직접 수정으로 확인하고, 시세가 없는 이름은 거래 불가로 단정하지 않습니다. 사용 순서와 요구 사항은 [PIP 사용 안내](docs/USER_GUIDE.md#영역-촬영으로-여러-아이템-찾기-개발-빌드)를 참고하세요.
+
 ## 개발 환경과 빌드
 
-Windows와 Windows PowerShell을 사용합니다. **.NET Framework 4.8을 권장**하며, 빌드 스크립트는 Windows의 .NET Framework C# 컴파일러(`v4.0.30319\csc.exe`)와 WPF 어셈블리를 사용합니다. .NET SDK와 별도의 NuGet 패키지는 기본 빌드에 필요하지 않습니다.
+Windows 10/11과 Windows PowerShell, **.NET Framework 4.8**, **Windows 10/11 SDK**를 사용합니다. 빌드 스크립트는 Windows의 .NET Framework C# 컴파일러(`v4.0.30319\csc.exe`)와 WPF 어셈블리, SDK의 `UnionMetadata/Windows.winmd`를 사용합니다. .NET SDK와 별도의 NuGet 패키지는 필요하지 않습니다. 실행하는 PC에는 Windows SDK가 필요 없으며, 영역 촬영의 글자 인식에는 Windows 한국어 OCR 언어 기능이 필요합니다.
 
 저장소 루트에서 다음 명령을 실행합니다.
 
@@ -119,6 +121,14 @@ powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\test-market-insigh
 # 앱 내 페이지 전환·정산 입력 유지·기본 및 최소 창 크기 검증
 powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\test-workspace-ui.ps1
 powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\test-auction-settlement-ui.ps1
+
+# OCR 다중 품목 매칭·영역 좌표·PIP 화면 검증 (실제 화면 촬영 없음)
+powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\test-ocr-market-matcher.ps1
+powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\test-screen-region-capture.ps1
+powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\test-pip-search-ui.ps1
+
+# 합성 한국어 이미지 → 실제 Windows OCR → 캐시 가격 연결 (한국어 OCR 필요)
+powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\test-local-ocr.ps1
 
 # Node.js 참고 구현의 오프라인 검증
 powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\test-server.ps1

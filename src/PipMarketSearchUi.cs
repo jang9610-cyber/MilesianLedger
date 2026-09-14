@@ -45,7 +45,6 @@ namespace MabinogiBarter
             readSearchCache = readCache; refreshSearchData = refresh;
             searchUnavailable = String.IsNullOrWhiteSpace(unavailableMessage) ? "시세 서버 연결이 설정되지 않았습니다." : unavailableMessage;
             searchSnapshot = null; searchIndex = null;
-            InvalidateOcrMatches();
             UpdateSearchDataLabel(); RenderMarketSearch(true);
             SearchRefreshButton.IsEnabled = !searchBusy && refresh != null;
             if (selectedTab == 3 && !searchBusy) EnterMarketSearch();
@@ -84,8 +83,7 @@ namespace MabinogiBarter
             SearchRefreshButton.ToolTip = "서버가 수집한 최신 공통 시세를 받습니다. 새 버전만 내려받으며 실시간 조회를 요청하지 않습니다.";
             AutomationProperties.SetName(SearchRefreshButton, "PIP 공통 시세 갱신");
             var sourceActions = new StackPanel { Orientation = Orientation.Horizontal };
-            BuildOcrControls(); CaptureButton.Margin = new Thickness(0, 0, 5, 0);
-            sourceActions.Children.Add(CaptureButton); sourceActions.Children.Add(SearchRefreshButton);
+            sourceActions.Children.Add(SearchRefreshButton);
             source.Children.Add(SearchDataText); Grid.SetColumn(sourceActions, 1); source.Children.Add(sourceActions); top.Children.Add(source);
             SearchStatusText = Label("", 11, Muted, false); SearchStatusText.TextWrapping = TextWrapping.Wrap;
             SearchStatusText.Margin = new Thickness(1, 6, 1, 0); SearchStatusText.Visibility = Visibility.Collapsed;
@@ -103,7 +101,6 @@ namespace MabinogiBarter
             searchDelay = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(150) };
             searchDelay.Tick += delegate { searchDelay.Stop(); RenderMarketSearch(true); };
             SearchInput.TextChanged += delegate {
-                if (ocrMode) LeaveOcrResults();
                 placeholder.Visibility = SearchInput.Text.Length == 0 ? Visibility.Visible : Visibility.Collapsed;
                 clear.Visibility = SearchInput.Text.Length == 0 ? Visibility.Collapsed : Visibility.Visible;
                 searchDelay.Stop(); searchDelay.Start();
@@ -138,7 +135,6 @@ namespace MabinogiBarter
             var index = await Task.Run(() => new MarketSearchIndex(data));
             if (closed || revision != searchSourceRevision) return;
             searchSnapshot = data; searchIndex = index;
-            if (ocrMode) await ResolveOcrTextAsync(false);
             UpdateSearchDataLabel(); RenderMarketSearch(true);
         }
 
@@ -172,7 +168,6 @@ namespace MabinogiBarter
             searchBusy = value;
             SearchRefreshButton.IsEnabled = !value && refreshSearchData != null;
             SearchRefreshButton.Content = value ? "확인 중…" : searchIndex == null ? "시세 받기" : "시세 갱신";
-            UpdateOcrControls();
         }
 
         void SearchMessage(string text, bool error)
@@ -197,8 +192,6 @@ namespace MabinogiBarter
             if (closed || SearchResultsPanel == null) return;
             SearchResultsPanel.Children.Clear();
             if (resetScroll) { searchOffset = 0; SearchResultsScroll.ScrollToTop(); }
-            SearchResultsPanel.Children.Add(CaptureHotkeyPanel);
-            if (RenderOcrResults()) return;
             if (searchIndex == null) {
                 AddSearchNote(refreshSearchData == null ? searchUnavailable : "시세 받기를 누르면 전체 품목을 검색할 수 있습니다. 받은 시세는 오프라인에서도 볼 수 있어요.");
                 return;
@@ -277,7 +270,6 @@ namespace MabinogiBarter
 
         void CloseMarketSearch()
         {
-            CloseOcr();
             searchDelay.Stop(); searchLifetime.Cancel(); searchLifetime.Dispose();
         }
     }

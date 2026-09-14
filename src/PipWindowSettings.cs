@@ -23,9 +23,7 @@ namespace MabinogiBarter
         public double? Left { get; set; }
         public double? Top { get; set; }
         public int Tab { get; set; }
-        public bool CaptureHotkeyEnabled { get; set; }
-        public int CaptureHotkeyKey { get; set; }
-        public PipWindowSettings() { Width = 360; Height = 540; Tab = 1; CaptureHotkeyKey = 0x24; }
+        public PipWindowSettings() { Width = 360; Height = 540; Tab = 1; }
         static bool Finite(double value) { return !Double.IsNaN(value) && !Double.IsInfinity(value); }
         public void Normalize()
         {
@@ -34,7 +32,6 @@ namespace MabinogiBarter
             if (Left.HasValue && !Finite(Left.Value)) Left = null;
             if (Top.HasValue && !Finite(Top.Value)) Top = null;
             Tab = Tab == 3 ? 3 : Tab == 2 ? 2 : 1;
-            if (CaptureHotkeyKey != 0x24 && CaptureHotkeyKey != 0x23 && CaptureHotkeyKey != 0x2D) CaptureHotkeyKey = 0x24;
         }
         public static PipWindowSettings Load(string path)
         {

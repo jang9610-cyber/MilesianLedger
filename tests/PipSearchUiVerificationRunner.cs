@@ -43,9 +43,6 @@ public static class PipSearchUiVerificationRunner
             VerifyMissingConfiguration();
             VerifyCloseCancellation();
             VerifySettings();
-            VerifyOcrBatch();
-            VerifyFullScreenOcr();
-            VerifyOcrWithoutCache();
             File.WriteAllLines(Path.Combine(output, "report.txt"), passed.Concat(new[] { "Refresh delegate calls: " + refreshCalls, "No network client or production files used." }), Encoding.UTF8);
             Console.WriteLine("PASS: " + String.Join("; ", passed));
             return 0;
@@ -384,14 +381,14 @@ public static class PipSearchUiVerificationRunner
         Assert(PipWindowSettings.Load(path).Tab == 3, "Search tab selection was not persisted");
         settings.Tab = 99; settings.Save(path);
         Assert(PipWindowSettings.Load(path).Tab == 1, "Invalid saved tab was not normalized");
-        settings.CaptureHotkeyEnabled = true; settings.CaptureHotkeyKey = 0x23; settings.Save(path);
-        Assert(PipWindowSettings.Load(path).CaptureHotkeyEnabled && PipWindowSettings.Load(path).CaptureHotkeyKey == 0x23,
-            "Hotkey preference was not persisted");
-        settings.CaptureHotkeyKey = 0x77; settings.Save(path);
-        Assert(PipWindowSettings.Load(path).CaptureHotkeyKey == 0x24, "Skill function key was not normalized to Home");
-        File.WriteAllText(path, "{\"Tab\":3}");
-        Assert(!PipWindowSettings.Load(path).CaptureHotkeyEnabled && PipWindowSettings.Load(path).CaptureHotkeyKey == 0x24,
-            "Existing profiles must default to disabled Alt+Home");
+        File.WriteAllText(path, "{\"Tab\":3,\"Width\":410,\"CaptureHotkeyEnabled\":true,\"CaptureHotkeyKey\":36}");
+        var legacy = PipWindowSettings.Load(path);
+        Assert(legacy.Tab == 3 && legacy.Width == 410, "Removed capture settings broke existing PIP preferences");
+        legacy.Save(path);
+        Assert(!File.ReadAllText(path).Contains("CaptureHotkey"), "Obsolete capture settings were persisted again");
+        var assembly = typeof(PipChecklistWindow).Assembly;
+        foreach (var name in new[] { "PipCaptureHotkey", "ScreenRegionCapture", "LocalOcrEngine", "OcrMarketMatcher" })
+            Assert(assembly.GetType("MabinogiBarter." + name) == null, "Removed capture implementation remains in the executable");
         passed.Add("tab 3 settings round-trip and invalid-tab fallback");
     }
 
@@ -483,213 +480,12 @@ public static class PipSearchUiVerificationRunner
     {
         window.UpdateLayout();
         var root = (FrameworkElement)window.Content;
-        foreach (var control in new FrameworkElement[] { window.TradeTabButton, window.SearchTabButton, window.SearchInput, window.CaptureButton, window.SearchRefreshButton, window.SearchResultsScroll }) {
+        foreach (var control in new FrameworkElement[] { window.TradeTabButton, window.SearchTabButton, window.SearchInput, window.SearchRefreshButton, window.SearchResultsScroll }) {
             Assert(control.ActualWidth > 0, "Search control collapsed at minimum width");
             var bounds = control.TransformToAncestor(root).TransformBounds(new Rect(0, 0, control.ActualWidth, control.ActualHeight));
             Assert(bounds.Left >= -1 && bounds.Right <= root.ActualWidth + 1, "Search control clips horizontally at minimum width");
         }
     }
-    static void VerifyOcrBatch()
-    {
-        var window = NewWindow(delegate { checkCalls++; });
-        var snapshot = Fixture("ocr-original");
-        int network = 0, captures = 0, recognitions = 0, ready = checkCalls;
-        window.ConfigureMarketSearch(() => snapshot, delegate {
-            network++; snapshot = Fixture("ocr-refreshed"); snapshot.Quotes[ExactName].UnitPrice = 219m;
-            return Task.FromResult(new MarketSnapshotResult { Data = snapshot, Downloaded = true });
-        }, "");
-        window.SelectedTab = 3;
-        Wait(() => !window.SearchBusy, "OCR cache");
-        var pendingCapture = new TaskCompletionSource<BitmapSource>();
-        var pendingOcr = new TaskCompletionSource<LocalOcrResult>();
-        window.CaptureRegionAsync = delegate { captures++; return pendingCapture.Task; };
-        window.RecognizeImageAsync = delegate { recognitions++; return pendingOcr.Task; };
-        Click(window.CaptureButton);
-        Assert(window.OcrBusy && captures == 1 && !window.CaptureButton.IsEnabled && !window.SearchRefreshButton.IsEnabled && !window.SearchInput.IsEnabled,
-            "Capture does not guard concurrent screenshot/refresh/typing");
-        var bitmap = BitmapSource.Create(16, 16, 96, 96, PixelFormats.Bgra32, null, new byte[16 * 16 * 4], 16 * 4); bitmap.Freeze();
-        pendingCapture.SetResult(bitmap); Wait(() => recognitions == 1, "injected OCR called");
-        var recognized = new LocalOcrResult { Language = "ko" };
-        recognized.Lines.AddRange(new[] { ExactName.Replace(" ", "") + " x3", ExactName.Replace(" ", ""), "시세에만 존재하는 신규 이름", "확인된 빈 매물 재료", "인식 실패 품목", "오프라인 신규 거미" });
-        pendingOcr.SetResult(recognized); Wait(() => !window.OcrBusy && window.OcrMode, "OCR batch search");
-        Assert(window.OcrItemCount == 4 && Text(window).Contains("187 G") && Text(window).Contains("321 G"), "OCR exact names lost minima or duplicate names were not merged");
-        Assert(Text(window).Contains("수집 당시 매물 없음") && Text(window).Contains("이름 확인 필요")
-            && Text(window).Contains("거래 불가 판정이 아닙니다"), "OCR lost known absent listings or ambiguous identity");
-        Assert(!Text(window).Contains("인식 실패 품목") && !window.OcrLinesInput.Text.Contains("인식 실패 품목"),
-            "Unmatched OCR text leaked into results or the editable names");
-        Assert(network == 0 && checkCalls == ready, "OCR capture or matching fetched the market or changed readiness");
-        var exactCard = Cards(window).Single(card => System.Windows.Automation.AutomationProperties.GetName(card) == ExactName + " 촬영 검색 결과");
-        Click(OcrElements<Button>(exactCard).Single());
-        Assert(window.OcrEditor.IsExpanded && window.OcrLinesInput.SelectedText == ExactName,
-            "Edit did not select the matched item in the filtered names");
-        window.OcrEditor.IsExpanded = false;
-        foreach (bool dark in new[] { false, true }) {
-            AppTheme.SetDark(dark); window.Width = 360; window.Height = 540; Pump(); VerifyWidth(window);
-            Capture(window, "pip-ocr-" + (dark ? "dark" : "light") + ".png");
-            window.Width = 320; window.Height = 300; Pump(); VerifyWidth(window);
-            Assert(window.SearchResultsScroll.ViewportHeight >= 50, "OCR controls consume the entire minimum-height PIP");
-            Capture(window, "pip-ocr-minimum-" + (dark ? "dark" : "light") + ".png");
-        }
-        window.Width = 360; window.Height = 540;
-        var candidateCard = Cards(window).Single(card => System.Windows.Automation.AutomationProperties.GetName(card) == "오프라인 신규 거미 촬영 검색 결과");
-        var candidates = OcrElements<Expander>(candidateCard).Single(); candidates.IsExpanded = true; Pump();
-        var choose = OcrElements<Button>(candidateCard).Single(button => System.Windows.Automation.AutomationProperties.GetName(button) == ExactName + " OCR 후보 선택");
-        Click(choose);
-        Assert(window.OcrItemCount == 3, "Confirming an existing item's OCR candidate duplicated its market row");
-        window.SelectedTab = 1; Pump(); window.SelectedTab = 3;
-        Wait(() => !window.SearchBusy, "OCR after checklist visit");
-        Assert(window.OcrMode && window.OcrItemCount == 3 && network == 0, "Tab changes lost OCR batch/choice or made a request");
-        Click(window.SearchRefreshButton); Wait(() => !window.SearchBusy && !window.OcrBusy, "OCR manual market refresh");
-        Assert(network == 1 && window.OcrItemCount == 3 && Text(window).Contains("219 G") && !Text(window).Contains("187 G"), "OCR results did not update from the explicitly refreshed shared snapshot");
-        window.OcrEditor.IsExpanded = true; window.OcrLinesInput.Text = "시세에만 존재하는 신규 이름\n이름을 확인할 수 없는 아이템";
-        Click(window.OcrApplyButton); Wait(() => !window.OcrBusy, "edited OCR names");
-        Assert(window.OcrItemCount == 1 && Text(window).Contains("321 G") && !Text(window).Contains("219 G") && network == 1
-            && !window.OcrLinesInput.Text.Contains("이름을 확인할 수 없는 아이템"),
-            "OCR corrections kept old prices or initiated a request");
-        window.CaptureRegionAsync = delegate { captures++; return Task.FromResult<BitmapSource>(null); };
-        Click(window.CaptureButton); Wait(() => !window.OcrBusy, "cancel region selection");
-        Assert(window.OcrMode && window.OcrItemCount == 1 && recognitions == 1, "Canceling a region selection erased results or ran OCR");
-        window.CaptureRegionAsync = delegate { return Task.FromResult(bitmap); };
-        window.RecognizeImageAsync = delegate { return Task.FromResult(new LocalOcrResult()); };
-        Click(window.CaptureButton); Wait(() => !window.OcrBusy, "empty recognition");
-        Assert(window.OcrItemCount == 1 && window.SearchStatusText.Text.Contains("글자를 읽지 못"), "Empty recognition erased the last usable OCR result");
-        Click(window.OcrClearButton);
-        Assert(!window.OcrMode && window.OcrItemCount == 0 && window.OcrLinesInput.Text == "" && network == 1, "Returning to normal search retained OCR text or fetched data");
-        Query(window, ExactName, ExactName);
-        var late = new TaskCompletionSource<LocalOcrResult>(); CancellationToken token = CancellationToken.None;
-        window.RecognizeImageAsync = delegate(BitmapSource image, CancellationToken pending) { token = pending; return late.Task; };
-        Click(window.CaptureButton); Wait(() => token.CanBeCanceled, "pending OCR close");
-        window.Close(); Pump(); Assert(token.IsCancellationRequested, "Closing PIP did not cancel pending OCR");
-        late.SetResult(recognized); Pump(); Pump();
-        Assert(!window.OcrMode && window.OcrItemCount == 0 && network == 1 && checkCalls == ready, "Late OCR completion after close changed the app or fetched data");
-        current = null;
-        passed.Add("OCR batch market-only results/editor, known no-listing/ambiguous states, explicit candidate choice, duplicate collapse, local correction, refresh, cancellation, empty capture and late close guards; light/dark/minimum layout; injected bitmap only, no screen capture/clipboard/game input");
-    }
-    static void VerifyFullScreenOcr()
-    {
-        var window = NewWindow(delegate { checkCalls++; });
-        int captures = 0, recognitions = 0, network = 0, activations = 0, changed = 0;
-        window.ConfigureMarketSearch(() => Fixture("monitor-cache"), delegate { network++; return Task.FromResult(new MarketSnapshotResult()); }, "");
-        Assert(!window.CaptureHotkeyEnabled && window.CaptureHotkeyKey == 0x24, "Global capture must initially be disabled Alt+Home");
-        window.CaptureHotkeyChanged = delegate { changed++; };
-        window.ConfigureCaptureHotkey(false, 0x23);
-        Assert(window.CaptureHotkeyKey == 0x23 && changed == 1, "Hotkey UI change did not reach preference callback");
-        window.ConfigureCaptureHotkey(false, 0x77);
-        Assert(window.CaptureHotkeyKey == 0x24 && !window.CaptureHotkeyEnabled, "Invalid hotkey UI value did not fall back to Home");
-        // Feed fake WM_INPUT data into the real helper and capture UI, without
-        // registering for the user's keyboard or generating OS input.
-        var hotkeyField = typeof(PipChecklistWindow).GetField("captureHotkey", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic);
-        ((PipCaptureHotkey)hotkeyField.GetValue(window)).Dispose();
-        var inputBackend = new OcrRawInputBackend();
-        var hotkey = new PipCaptureHotkey(window, window.CaptureMonitorForOcr, message => window.CaptureHotkeyStatus.Text = message, inputBackend);
-        hotkeyField.SetValue(window, hotkey); window.ConfigureCaptureHotkey(true, 0x24);
-        Assert(hotkey.IsRegistered && window.CaptureHotkeyStatus.Text.Contains("Raw Input"), "Raw Input connection is missing from PIP diagnostics");
-        var image = BitmapSource.Create(16, 16, 96, 96, PixelFormats.Bgra32, null, new byte[1024], 64); image.Freeze();
-        var pending = new TaskCompletionSource<LocalOcrResult>();
-        window.CaptureRegionAsync = delegate { throw new Exception("Global capture incorrectly opened a region selector"); };
-        window.CaptureMonitorAsync = delegate {
-            captures++; Assert(window.SelectedTab == 1, "PIP changed views before freezing the Alt-held frame");
-            return Task.FromResult(image);
-        };
-        window.RecognizeImageAsync = delegate { recognitions++; return pending.Task; };
-        window.Activated += delegate { activations++; };
-        bool active = window.IsActive; var state = window.WindowState;
-        inputBackend.Send(hotkey, 0x12, true);
-        Assert(inputBackend.Send(hotkey, 0x24, true), "Raw Input Alt+Home did not request capture");
-        Assert(captures == 1 && recognitions == 1 && window.OcrBusy, "Full-screen capture did not freeze immediately");
-        Assert(!inputBackend.Send(hotkey, 0x24, true) && hotkey.CaptureShortcutCount == 1
-            && window.CaptureHotkeyStatus.Text.Contains("입력 수신") && hotkey.LastCaptureShortcutUtc.HasValue,
-            "Raw Input repetition or actual-reception diagnostics are incorrect");
-        window.CaptureMonitorForOcr(); Assert(captures == 1, "Repeated hotkey while busy captured another frame");
-        Wait(() => !window.SearchBusy && window.SelectedTab == 3, "background capture opens cached search tab");
-        var result = new LocalOcrResult { Language = "ko" };
-        result.Lines.AddRange(new[] { "화면 UI 미확인 문구", ExactName }); pending.SetResult(result);
-        Wait(() => !window.OcrBusy && window.OcrMode, "full-screen OCR results");
-        Assert(window.OcrItemCount == 1 && Text(window).Contains("187 G") && network == 0, "Full-screen OCR did not use cached item minima");
-        Assert(!Text(window).Contains("화면 UI 미확인 문구") && !window.OcrLinesInput.Text.Contains("화면 UI 미확인 문구")
-            && !OcrElements<Expander>(window.SearchResultsPanel).Any(item => (item.Header as string ?? "").StartsWith("이름 미확인")),
-            "Unmatched full-screen text remains visible in results, editor or a folded group");
-        Assert(activations == 0 && window.IsActive == active && window.WindowState == state && window.IsVisible,
-            "Background OCR activated, hid, or restored the PIP");
-        foreach (bool dark in new[] { false, true }) {
-            AppTheme.SetDark(dark); window.Width = 360; window.Height = 540; Pump();
-            Capture(window, "pip-ocr-monitor-" + (dark ? "dark" : "light") + ".png");
-            window.CaptureHotkeyPanel.IsExpanded = true; Pump(); VerifyWidth(window);
-            Capture(window, "pip-ocr-hotkey-settings-" + (dark ? "dark" : "light") + ".png");
-            window.CaptureHotkeyPanel.IsExpanded = false;
-        }
-        window.CaptureMonitorAsync = delegate { captures++; return Task.FromResult(image); };
-        window.RecognizeImageAsync = delegate {
-            var noise = new LocalOcrResult { Language = "ko" }; noise.Lines.Add("화면 UI 미확인 문구"); return Task.FromResult(noise);
-        };
-        inputBackend.Send(hotkey, 0x24, false); inputBackend.Send(hotkey, 0x24, true);
-        Wait(() => !window.OcrBusy, "all unmatched full-screen OCR");
-        Assert(window.OcrMode && window.OcrItemCount == 0 && window.OcrLinesInput.Text == "" && !Text(window).Contains("187 G")
-            && !Text(window).Contains("화면 UI 미확인 문구") && Text(window).Contains("일치하는 이름을 찾지 못"),
-            "All-unmatched capture kept a stale price or exposed HUD text");
-        window.SetInteractionBlocked("modal fixture"); window.CaptureMonitorForOcr(); Assert(captures == 2, "Blocked PIP captured behind modal");
-        window.SetInteractionBlocked(null); window.WindowState = WindowState.Minimized; window.CaptureMonitorForOcr();
-        Assert(captures == 2, "Minimized PIP captured or restored itself");
-        window.Close(); window.CaptureMonitorForOcr(); Assert(captures == 2, "Closed PIP accepted capture");
-        Assert(inputBackend.Removes == 1 && !hotkey.IsRegistered && !hotkey.Enabled, "PIP close did not release the Raw Input connection");
-        passed.Add("Alt+Home settings, background full-screen capture before view changes, one operation while busy, no selector/network/activation, market-only filtering including all-noise replacement, and modal/minimized/close guards");
-    }
-
-    sealed class OcrRawInputBackend : IPipCaptureHotkeyBackend
-    {
-        PipRawKeyboardRegistration registration;
-        PipRawKeyboardPacket packet;
-        public int Removes;
-        public int LastError { get { return 0; } }
-        public bool TryGetKeyboardRegistration(out PipRawKeyboardRegistration value) { value = registration; return true; }
-        public bool RegisterKeyboard(IntPtr target)
-        { registration = new PipRawKeyboardRegistration { Exists = true, Window = target, Flags = PipCaptureHotkey.RawKeyboardFlags }; return true; }
-        public bool RemoveKeyboard() { registration = new PipRawKeyboardRegistration(); Removes++; return true; }
-        public bool TryReadKeyboard(IntPtr input, out PipRawKeyboardPacket value) { value = packet; return true; }
-        public bool Send(PipCaptureHotkey hotkey, int key, bool down)
-        {
-            packet = new PipRawKeyboardPacket { MakeCode = (ushort)(key == 0x12 ? 0x38 : 0x47), VirtualKey = (ushort)key,
-                Flags = (ushort)((down ? 0 : 1) | (key == 0x24 ? 2 : 0)), Message = down ? 0x104u : 0x105u };
-            return hotkey.ProcessMessage(registration.Window, 0x00ff, new IntPtr(1), new IntPtr(1));
-        }
-    }
-
-    static void VerifyOcrWithoutCache()
-    {
-        var window = NewWindow(delegate { checkCalls++; });
-        MarketSnapshotData cache = null; int network = 0;
-        window.ConfigureMarketSearch(() => cache, delegate {
-            network++; cache = Fixture("ocr-later-cache-" + network);
-            return Task.FromResult(new MarketSnapshotResult { Data = cache, Downloaded = true });
-        }, "");
-        window.SelectedTab = 3; Wait(() => !window.SearchBusy, "OCR without cache");
-        var image = BitmapSource.Create(16, 16, 96, 96, PixelFormats.Bgra32, null, new byte[1024], 64); image.Freeze();
-        window.CaptureRegionAsync = delegate { return Task.FromResult(image); };
-        window.RecognizeImageAsync = delegate {
-            var result = new LocalOcrResult { Language = "ko" };
-            result.Lines.AddRange(new[] { "화면 UI 미확인 문구", ExactName }); return Task.FromResult(result);
-        };
-        Click(window.CaptureButton); Wait(() => !window.OcrBusy, "filtered OCR without item index");
-        Assert(window.OcrMode && window.OcrItemCount == 0 && window.OcrLinesInput.Text == "" && network == 0
-            && Text(window).Contains("저장된 시세가 없습니다"), "OCR exposed unverified names or fetched missing cache automatically");
-        Click(window.SearchRefreshButton); Wait(() => !window.SearchBusy && !window.OcrBusy, "manual cache after OCR");
-        Assert(window.OcrItemCount == 1 && window.OcrLinesInput.Text == ExactName && Text(window).Contains("187 G") && network == 1,
-            "Manual cache download did not re-resolve the privately retained OCR text");
-        window.OcrEditor.IsExpanded = true; window.OcrLinesInput.Text = "시세에만 존재하는 신규 이름";
-        Click(window.SearchRefreshButton); Wait(() => !window.SearchBusy && !window.OcrBusy, "refresh while editing OCR");
-        Assert(window.OcrLinesInput.Text == "시세에만 존재하는 신규 이름" && window.OcrItemCount == 1 && network == 2,
-            "Price refresh overwrote unapplied OCR name edits");
-        window.Close();
-        passed.Add("Missing-cache OCR hides every unverified line, manual snapshot download re-resolves original text without HUD exposure, and refresh preserves unapplied edits");
-    }
-
-    static IEnumerable<T> OcrElements<T>(DependencyObject root) where T : DependencyObject
-    {
-        var found = root as T; if (found != null) yield return found;
-        for (int i = 0; i < VisualTreeHelper.GetChildrenCount(root); i++)
-            foreach (var child in OcrElements<T>(VisualTreeHelper.GetChild(root, i))) yield return child;
-    }
-
     static void Capture(Window window, string filename)
     {
         window.UpdateLayout(); var root = (FrameworkElement)window.Content;

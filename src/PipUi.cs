@@ -43,8 +43,6 @@ namespace MabinogiBarter
             pipBehindModal = false;
             pip.Icon = Icon;
             pipSettings.Apply(pip);
-            pip.ConfigureCaptureHotkey(pipSettings.CaptureHotkeyEnabled, pipSettings.CaptureHotkeyKey);
-            pip.CaptureHotkeyChanged = QueuePipSettingsSave;
             pip.SelectedTab = pipSettings.Tab;
             pip.RemainingOnly = checklistRemainingOnly;
             pip.RemainingOnlyChanged = SetChecklistRemainingOnly;
@@ -148,8 +146,6 @@ namespace MabinogiBarter
             pipSettings.Left = pipChecklist.Left; pipSettings.Top = pipChecklist.Top;
             pipSettings.Width = pipChecklist.Width; pipSettings.Height = pipChecklist.Height;
             pipSettings.Tab = pipChecklist.SelectedTab;
-            pipSettings.CaptureHotkeyEnabled = pipChecklist.CaptureHotkeyEnabled;
-            pipSettings.CaptureHotkeyKey = pipChecklist.CaptureHotkeyKey;
             try { pipSettings.Save(pipSettingsFile); }
             catch (IOException) { footerMessage.Text = "PIP 창 위치를 저장하지 못했습니다. 재료 구비 상태는 별도로 저장됩니다."; }
             catch (UnauthorizedAccessException) { footerMessage.Text = "PIP 창 위치를 저장할 폴더에 접근할 수 없습니다."; }

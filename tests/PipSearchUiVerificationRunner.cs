@@ -44,6 +44,7 @@ public static class PipSearchUiVerificationRunner
             VerifyCloseCancellation();
             VerifySettings();
             VerifyOcrBatch();
+            VerifyFullScreenOcr();
             File.WriteAllLines(Path.Combine(output, "report.txt"), passed.Concat(new[] { "Refresh delegate calls: " + refreshCalls, "No network client or production files used." }), Encoding.UTF8);
             Console.WriteLine("PASS: " + String.Join("; ", passed));
             return 0;
@@ -382,6 +383,14 @@ public static class PipSearchUiVerificationRunner
         Assert(PipWindowSettings.Load(path).Tab == 3, "Search tab selection was not persisted");
         settings.Tab = 99; settings.Save(path);
         Assert(PipWindowSettings.Load(path).Tab == 1, "Invalid saved tab was not normalized");
+        settings.CaptureHotkeyEnabled = true; settings.CaptureHotkeyKey = 0x23; settings.Save(path);
+        Assert(PipWindowSettings.Load(path).CaptureHotkeyEnabled && PipWindowSettings.Load(path).CaptureHotkeyKey == 0x23,
+            "Hotkey preference was not persisted");
+        settings.CaptureHotkeyKey = 0x77; settings.Save(path);
+        Assert(PipWindowSettings.Load(path).CaptureHotkeyKey == 0x24, "Skill function key was not normalized to Home");
+        File.WriteAllText(path, "{\"Tab\":3}");
+        Assert(!PipWindowSettings.Load(path).CaptureHotkeyEnabled && PipWindowSettings.Load(path).CaptureHotkeyKey == 0x24,
+            "Existing profiles must default to disabled Alt+Home");
         passed.Add("tab 3 settings round-trip and invalid-tab fallback");
     }
 
@@ -552,6 +561,53 @@ public static class PipSearchUiVerificationRunner
         current = null;
         passed.Add("OCR batch exact/unknown/no-listing/ambiguous states, explicit candidate choice, duplicate collapse, local correction, refresh, cancellation, empty capture and late close guards; light/dark/minimum layout; injected bitmap only, no screen capture/clipboard/game input");
     }
+    static void VerifyFullScreenOcr()
+    {
+        var window = NewWindow(delegate { checkCalls++; });
+        int captures = 0, recognitions = 0, network = 0, activations = 0, changed = 0;
+        window.ConfigureMarketSearch(() => Fixture("monitor-cache"), delegate { network++; return Task.FromResult(new MarketSnapshotResult()); }, "");
+        Assert(!window.CaptureHotkeyEnabled && window.CaptureHotkeyKey == 0x24, "Global capture must initially be disabled Alt+Home");
+        window.CaptureHotkeyChanged = delegate { changed++; };
+        window.ConfigureCaptureHotkey(false, 0x23);
+        Assert(window.CaptureHotkeyKey == 0x23 && changed == 1, "Hotkey UI change did not reach preference callback");
+        window.ConfigureCaptureHotkey(false, 0x77);
+        Assert(window.CaptureHotkeyKey == 0x24 && !window.CaptureHotkeyEnabled, "Invalid hotkey UI value did not fall back to Home");
+        var image = BitmapSource.Create(16, 16, 96, 96, PixelFormats.Bgra32, null, new byte[1024], 64); image.Freeze();
+        var pending = new TaskCompletionSource<LocalOcrResult>();
+        window.CaptureRegionAsync = delegate { throw new Exception("Global capture incorrectly opened a region selector"); };
+        window.CaptureMonitorAsync = delegate {
+            captures++; Assert(window.SelectedTab == 1, "PIP changed views before freezing the Alt-held frame");
+            return Task.FromResult(image);
+        };
+        window.RecognizeImageAsync = delegate { recognitions++; return pending.Task; };
+        window.Activated += delegate { activations++; };
+        bool active = window.IsActive; var state = window.WindowState;
+        window.CaptureMonitorForOcr();
+        Assert(captures == 1 && recognitions == 1 && window.OcrBusy, "Full-screen capture did not freeze immediately");
+        window.CaptureMonitorForOcr(); Assert(captures == 1, "Repeated hotkey while busy captured another frame");
+        Wait(() => !window.SearchBusy && window.SelectedTab == 3, "background capture opens cached search tab");
+        var result = new LocalOcrResult { Language = "ko" };
+        result.Lines.AddRange(new[] { "화면 UI 미확인 문구", ExactName }); pending.SetResult(result);
+        Wait(() => !window.OcrBusy && window.OcrMode, "full-screen OCR results");
+        Assert(window.OcrItemCount == 2 && Text(window).Contains("187 G") && network == 0, "Full-screen OCR did not use cached item minima");
+        var unknown = OcrElements<Expander>(window.SearchResultsPanel).Single(item => (item.Header as string ?? "").StartsWith("이름 미확인"));
+        Assert(!unknown.IsExpanded && Text(window).Contains("거래 불가 판정이 아닙니다"), "Unknown full-screen text must remain available in a collapsed group");
+        Assert(activations == 0 && window.IsActive == active && window.WindowState == state && window.IsVisible,
+            "Background OCR activated, hid, or restored the PIP");
+        foreach (bool dark in new[] { false, true }) {
+            AppTheme.SetDark(dark); window.Width = 360; window.Height = 540; Pump();
+            Capture(window, "pip-ocr-monitor-" + (dark ? "dark" : "light") + ".png");
+            window.CaptureHotkeyPanel.IsExpanded = true; Pump(); VerifyWidth(window);
+            Capture(window, "pip-ocr-hotkey-settings-" + (dark ? "dark" : "light") + ".png");
+            window.CaptureHotkeyPanel.IsExpanded = false;
+        }
+        window.SetInteractionBlocked("modal fixture"); window.CaptureMonitorForOcr(); Assert(captures == 1, "Blocked PIP captured behind modal");
+        window.SetInteractionBlocked(null); window.WindowState = WindowState.Minimized; window.CaptureMonitorForOcr();
+        Assert(captures == 1, "Minimized PIP captured or restored itself");
+        window.Close(); window.CaptureMonitorForOcr(); Assert(captures == 1, "Closed PIP accepted capture");
+        passed.Add("Alt+Home settings, background full-screen capture before view changes, one operation while busy, no selector/network/activation, unknown text folding, and modal/minimized/close guards");
+    }
+
     static IEnumerable<T> OcrElements<T>(DependencyObject root) where T : DependencyObject
     {
         var found = root as T; if (found != null) yield return found;

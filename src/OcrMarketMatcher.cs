@@ -17,7 +17,7 @@ namespace MabinogiBarter
     public sealed class OcrMarketMatcher
     {
         public const int MaximumRows = 100, MaximumLineLength = 512;
-        const int MaximumInputCharacters = 32768, MaximumInputLines = 256, MaximumCandidates = 5;
+        const int MaximumInputCharacters = 32768, MaximumInputLines = 256, MaximumCandidates = 5, MaximumPrioritizedMatches = 512;
         readonly MarketSearchIndex search;
         readonly Dictionary<string, List<MarketSearchEntry>> exact = new Dictionary<string, List<MarketSearchEntry>>(StringComparer.Ordinal);
         readonly Dictionary<string, List<MarketSearchEntry>> enchantAliases = new Dictionary<string, List<MarketSearchEntry>>(StringComparer.Ordinal);
@@ -66,31 +66,42 @@ namespace MabinogiBarter
             });
         }
 
-        public List<OcrMarketMatch> Resolve(IEnumerable<string> lines)
+        public List<OcrMarketMatch> Resolve(IEnumerable<string> lines, bool prioritizeItems = false)
         {
             var result = new List<OcrMarketMatch>(); var seen = new HashSet<string>(StringComparer.Ordinal);
             if (lines == null) return result;
             int characters = 0, lineCount = 0;
             foreach (string input in lines) {
-                if (lineCount++ >= MaximumInputLines || characters >= MaximumInputCharacters || result.Count >= MaximumRows) break;
+                if (lineCount++ >= MaximumInputLines || characters >= MaximumInputCharacters || (!prioritizeItems && result.Count >= MaximumRows)) break;
                 if (String.IsNullOrWhiteSpace(input)) continue;
                 string limited = input.Substring(0, Math.Min(input.Length, Math.Min(MaximumLineLength, MaximumInputCharacters - characters)));
                 characters += limited.Length;
                 foreach (string raw in limited.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries)) {
-                    if (result.Count >= MaximumRows) break;
+                    if (!prioritizeItems && result.Count >= MaximumRows) break;
                     string original = spaces.Replace(raw, " ").Trim();
                     if (original.Length == 0) continue;
                     string text = Clean(original);
                     if (text.Length == 0) continue;
                     List<MarketSearchEntry> matches;
                     if (exact.TryGetValue(Key(text), out matches)) {
-                        Append(result, seen, Match(text, original, matches, true)); continue;
+                        Append(result, seen, Match(text, original, matches, true), prioritizeItems); continue;
                     }
                     List<OcrMarketMatch> packed = Packed(text, original);
                     if (packed.Count > 1) {
-                        foreach (OcrMarketMatch match in packed) Append(result, seen, match);
-                    } else Append(result, seen, Match(text, original, Suggest(text), false));
+                        foreach (OcrMarketMatch match in packed) Append(result, seen, match, prioritizeItems);
+                    } else Append(result, seen, Match(text, original, Suggest(text), false), prioritizeItems);
                 }
+            }
+            if (prioritizeItems) {
+                // A whole-screen capture may contain HUD text before any loot.
+                // Scan the bounded input first, then retain OCR order within each
+                // confidence group instead of letting the first 100 HUD rows win.
+                var prioritized = new List<OcrMarketMatch>();
+                for (int rank = 0; rank < 3; rank++) foreach (OcrMarketMatch match in result) {
+                    if (Rank(match) == rank) prioritized.Add(match);
+                    if (prioritized.Count == MaximumRows) return prioritized;
+                }
+                return prioritized;
             }
             return result;
         }
@@ -182,8 +193,24 @@ namespace MabinogiBarter
             if (match.Exact) match.Text = match.Candidates[0].Name;
             return match;
         }
-        static void Append(List<OcrMarketMatch> rows, HashSet<string> seen, OcrMarketMatch match)
-        { if (rows.Count < MaximumRows && seen.Add(Key(match.Text))) rows.Add(match); }
+        static int Rank(OcrMarketMatch match) { return match.Exact ? 0 : match.Candidates.Count > 0 ? 1 : 2; }
+        static void Append(List<OcrMarketMatch> rows, HashSet<string> seen, OcrMarketMatch match, bool prioritizeItems)
+        {
+            string key = Key(match.Text);
+            if (seen.Contains(key)) return;
+            int limit = prioritizeItems ? MaximumPrioritizedMatches : MaximumRows;
+            if (rows.Count >= limit) {
+                if (!prioritizeItems) return;
+                // Packed lines can exceed the bounded buffer. Later confirmed
+                // items may replace lower-confidence rows, but never earlier
+                // rows of equal confidence, preserving stable output ordering.
+                int replace = -1, worst = Rank(match);
+                for (int i = rows.Count - 1; i >= 0; i--) if (Rank(rows[i]) > worst) { replace = i; worst = Rank(rows[i]); }
+                if (replace < 0) return;
+                seen.Remove(Key(rows[replace].Text)); rows.RemoveAt(replace);
+            }
+            seen.Add(key); rows.Add(match);
+        }
         static string Key(string value) { return KoreanNameSearch.Normalize(value).ToUpperInvariant(); }
         static bool Word(char value) { return Char.IsLetterOrDigit(value) || value == '_'; }
         static void AddNames(HashSet<string> names, List<MarketSnapshotItem> items)

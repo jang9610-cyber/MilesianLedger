@@ -20,6 +20,86 @@ namespace MabinogiBarter
     {
         static int running;
 
+        // The hotkey caller must obtain the frame before returning to its
+        // message loop: Alt-held item names can disappear on the next input.
+        // This path never hides, shows, activates, or creates any window.
+        public static Task<BitmapSource> CaptureMonitorAsync(Window owner, CancellationToken token)
+        {
+            if (owner == null) throw new ArgumentNullException("owner");
+            if (token.IsCancellationRequested || owner.Dispatcher.HasShutdownStarted || owner.Dispatcher.HasShutdownFinished)
+                return Task.FromResult<BitmapSource>(null);
+            if (!owner.Dispatcher.CheckAccess()) {
+                try { return owner.Dispatcher.Invoke(new Func<Task<BitmapSource>>(() => CaptureMonitorAsync(owner, token))); }
+                catch (OperationCanceledException) { return Task.FromResult<BitmapSource>(null); }
+                catch (InvalidOperationException) {
+                    if (owner.Dispatcher.HasShutdownStarted || owner.Dispatcher.HasShutdownFinished) return Task.FromResult<BitmapSource>(null);
+                    throw;
+                }
+            }
+            if (!owner.IsLoaded || new WindowInteropHelper(owner).Handle == IntPtr.Zero || token.IsCancellationRequested)
+                return Task.FromResult<BitmapSource>(null);
+            if (Interlocked.CompareExchange(ref running, 1, 0) != 0)
+                throw new InvalidOperationException("이미 화면을 캡처하고 있습니다.");
+            try {
+                BitmapSource snapshot;
+                Int32Rect monitor;
+                List<Int32Rect> ownWindows;
+                using (new PhysicalDpiScope()) {
+                    monitor = CursorMonitorBounds();
+                    ownWindows = VisibleOwnWindowBounds(owner);
+                    token.ThrowIfCancellationRequested();
+                    // No await, delay, focus operation or key state changes
+                    // occur before this ordinary desktop BitBlt completes.
+                    snapshot = ReadDesktop(monitor);
+                }
+                token.ThrowIfCancellationRequested();
+                var result = ScreenRegionCaptureGeometry.MaskOwnWindows(snapshot, monitor, ownWindows);
+                snapshot = null;
+                token.ThrowIfCancellationRequested();
+                return Task.FromResult(result);
+            } catch (OperationCanceledException) { return Task.FromResult<BitmapSource>(null); }
+            finally { Interlocked.Exchange(ref running, 0); }
+        }
+
+        static Int32Rect CursorMonitorBounds()
+        {
+            POINT point;
+            if (!GetPhysicalCursorPos(out point)) throw new Win32Exception(Marshal.GetLastWin32Error(), "마우스가 있는 화면을 확인하지 못했습니다.");
+            IntPtr monitor = MonitorFromPoint(point, 2); // MONITOR_DEFAULTTONEAREST
+            var info = new MONITORINFO { Size = Marshal.SizeOf(typeof(MONITORINFO)) };
+            if (monitor == IntPtr.Zero || !GetMonitorInfo(monitor, ref info))
+                throw new Win32Exception(Marshal.GetLastWin32Error(), "마우스가 있는 모니터를 확인하지 못했습니다.");
+            var bounds = new Int32Rect(info.Monitor.Left, info.Monitor.Top,
+                checked(info.Monitor.Right - info.Monitor.Left), checked(info.Monitor.Bottom - info.Monitor.Top));
+            ScreenRegionCaptureGeometry.ValidateDesktop(bounds);
+            return bounds;
+        }
+
+        static List<Int32Rect> VisibleOwnWindowBounds(Window owner)
+        {
+            var windows = new List<Window>();
+            if (Application.Current != null) foreach (Window window in Application.Current.Windows)
+                if (window.Dispatcher == owner.Dispatcher) windows.Add(window);
+            if (!windows.Contains(owner)) windows.Add(owner);
+            var result = new List<Int32Rect>();
+            foreach (Window window in windows) {
+                if (!ScreenRegionCaptureGeometry.ShouldMaskOwnWindow(window.IsVisible, window.WindowState == WindowState.Minimized,
+                    window.Topmost, window.IsActive)) continue;
+                // Read only HWNDs already owned by our WPF application. Never
+                // enumerate or inspect the game or any other process's windows.
+                // An inactive, ordinary main window can be behind the game
+                // while WS_VISIBLE stays true: masking it would erase the game.
+                IntPtr handle = new WindowInteropHelper(window).Handle;
+                if (handle == IntPtr.Zero || !IsWindowVisible(handle) || IsIconic(handle)) continue;
+                RECT bounds;
+                if (!GetWindowRect(handle, out bounds))
+                    throw new Win32Exception(Marshal.GetLastWin32Error(), "앱 창이 표시된 화면 영역을 확인하지 못했습니다.");
+                if (bounds.Right > bounds.Left && bounds.Bottom > bounds.Top)
+                    result.Add(new Int32Rect(bounds.Left, bounds.Top, checked(bounds.Right - bounds.Left), checked(bounds.Bottom - bounds.Top)));
+            }
+            return result;
+        }
+
         public static Task<BitmapSource> CaptureAsync(Window owner, CancellationToken token)
         {
             if (owner == null) throw new ArgumentNullException("owner");
@@ -375,9 +455,15 @@ namespace MabinogiBarter
 
         [StructLayout(LayoutKind.Sequential)] struct POINT { public int X, Y; }
         [StructLayout(LayoutKind.Sequential)] struct RECT { public int Left, Top, Right, Bottom; }
+        [StructLayout(LayoutKind.Sequential)] struct MONITORINFO { public int Size; public RECT Monitor, Work; public uint Flags; }
         [DllImport("user32.dll", SetLastError = true)] static extern IntPtr SetThreadDpiAwarenessContext(IntPtr context);
         [DllImport("user32.dll")] static extern int GetSystemMetrics(int index);
         [DllImport("user32.dll", SetLastError = true)] static extern bool GetPhysicalCursorPos(out POINT point);
+        [DllImport("user32.dll")] static extern IntPtr MonitorFromPoint(POINT point, uint flags);
+        [DllImport("user32.dll", EntryPoint = "GetMonitorInfoW", SetLastError = true)] static extern bool GetMonitorInfo(IntPtr monitor, ref MONITORINFO info);
+        [DllImport("user32.dll", SetLastError = true)] static extern bool GetWindowRect(IntPtr window, out RECT rectangle);
+        [DllImport("user32.dll")] static extern bool IsWindowVisible(IntPtr window);
+        [DllImport("user32.dll")] static extern bool IsIconic(IntPtr window);
         [DllImport("user32.dll", SetLastError = true)] static extern bool GetClientRect(IntPtr window, out RECT rectangle);
         [DllImport("user32.dll", SetLastError = true)] static extern bool ClientToScreen(IntPtr window, ref POINT point);
         [DllImport("user32.dll", SetLastError = true)] static extern bool SetWindowPos(IntPtr window, IntPtr after, int x, int y, int width, int height, uint flags);
@@ -398,6 +484,11 @@ namespace MabinogiBarter
     {
         public const long MaximumPixels = 64000000;
         public const int MinimumSide = 16;
+
+        public static bool ShouldMaskOwnWindow(bool isVisible, bool isMinimized, bool isTopmost, bool isActive)
+        {
+            return isVisible && !isMinimized && (isTopmost || isActive);
+        }
 
         static bool Finite(double value) { return !Double.IsNaN(value) && !Double.IsInfinity(value); }
         public static void ValidateDesktop(Int32Rect bounds)
@@ -445,6 +536,39 @@ namespace MabinogiBarter
             // CroppedBitmap retains its Source; a fresh bitmap instead releases
             // the full desktop as soon as the selector drops its only reference.
             var result = BitmapSource.Create(crop.Width, crop.Height, 96, 96, source.Format, source.Palette, pixels, stride);
+            result.Freeze(); return result;
+        }
+
+        public static BitmapSource MaskOwnWindows(BitmapSource source, Int32Rect monitor, IEnumerable<Int32Rect> ownWindows)
+        {
+            if (source == null) throw new ArgumentNullException("source");
+            if (ownWindows == null) throw new ArgumentNullException("ownWindows");
+            ValidateDesktop(monitor);
+            if (source.PixelWidth != monitor.Width || source.PixelHeight != monitor.Height)
+                throw new ArgumentException("모니터 크기와 캡처 이미지가 일치하지 않습니다.", "source");
+            var masks = new List<Int32Rect>();
+            foreach (var window in ownWindows) {
+                long left = Math.Max((long)monitor.X, window.X), top = Math.Max((long)monitor.Y, window.Y);
+                long right = Math.Min((long)monitor.X + monitor.Width, (long)window.X + window.Width);
+                long bottom = Math.Min((long)monitor.Y + monitor.Height, (long)window.Y + window.Height);
+                if (right > left && bottom > top)
+                    masks.Add(new Int32Rect((int)(left - monitor.X), (int)(top - monitor.Y), (int)(right - left), (int)(bottom - top)));
+            }
+            // With no intersecting app windows the already-frozen captured
+            // monitor can go straight to OCR without another full-frame copy.
+            if (masks.Count == 0 && source.IsFrozen) return source;
+            BitmapSource converted = source.Format == PixelFormats.Bgr32 ? source : new FormatConvertedBitmap(source, PixelFormats.Bgr32, null, 0);
+            int stride = checked(monitor.Width * 4);
+            var pixels = new byte[checked(stride * monitor.Height)];
+            converted.CopyPixels(pixels, stride, 0);
+            foreach (var mask in masks) {
+                int bytes = checked(mask.Width * 4);
+                for (int y = mask.Y; y < mask.Y + mask.Height; y++)
+                    Array.Clear(pixels, checked(y * stride + mask.X * 4), bytes);
+            }
+            // Bgr32 is opaque; zero RGB removes our text without a transparent
+            // hole. Neither the source bitmap nor the actual windows changes.
+            var result = BitmapSource.Create(monitor.Width, monitor.Height, 96, 96, PixelFormats.Bgr32, null, pixels, stride);
             result.Freeze(); return result;
         }
     }

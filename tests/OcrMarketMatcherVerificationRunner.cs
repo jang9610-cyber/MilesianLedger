@@ -58,6 +58,26 @@ public static class OcrMarketMatcherVerificationRunner
             var longRows = new List<string>(); for (int i = 0; i < 1000; i++) longRows.Add("없는 드랍 이름 " + i);
             Equal(100, matcher.Resolve(longRows).Count, "output capped at 100 rows");
             Equal(512, matcher.Resolve(new[] { new string('가', 50000) })[0].Text.Length, "oversized lines bounded");
+            var hudRows = new List<string>();
+            for (int i = 0; i < 110; i++) hudRows.Add("알 수 없는 화면 문구 " + i);
+            hudRows.Add("대지의"); hudRows.Add("거미줄 x3"); hudRows.Add("거미쥴");
+            hudRows.Add("고급 가죽 나무장작"); hudRows.Add("거미줄");
+            rows = matcher.Resolve(hudRows, true);
+            Equal(100, rows.Count, "whole-screen output remains capped at 100");
+            Exact(rows[0], "거미줄", 149); Exact(rows[1], "고급 가죽", 1234);
+            Check(rows[2].Exact && rows[2].Text == "나무장작", "known item without a listing still has first priority");
+            Check(!rows[3].Exact && rows[3].Text == "대지의" && rows[3].Candidates.Count == 2, "first candidate row keeps its original order");
+            Check(!rows[4].Exact && rows[4].Text == "거미쥴" && rows[4].Candidates.Count > 0, "spelling suggestion follows earlier candidate row");
+            Check(rows[5].Text == hudRows[0] && rows[6].Text == hudRows[1], "unknown rows remain editable in stable order after item rows");
+            Check(matcher.Resolve(hudRows)[0].Text == hudRows[0] && matcher.Resolve(hudRows)[99].Text == hudRows[99], "default mode preserves original first-100 behavior");
+            var beyondLimit = new List<string>();
+            for (int i = 0; i < 256; i++) beyondLimit.Add("알 수 없는 화면 문구 " + i);
+            beyondLimit.Add("거미줄");
+            foreach (var row in matcher.Resolve(beyondLimit, true)) Check(!row.Exact, "whole-screen scan does not cross 256-line limit");
+            var characterLimit = new List<string>();
+            for (int i = 0; i < 64; i++) characterLimit.Add(new string('가', 510) + i.ToString("D2"));
+            characterLimit.Add("거미줄");
+            foreach (var row in matcher.Resolve(characterLimit, true)) Check(!row.Exact, "whole-screen scan does not cross 32768-character limit");
 
             var large = Data();
             for (int i = 0; i < 17000; i++) Add(large, "아이템" + i.ToString("D5") + " 종류", i + 1);
@@ -70,7 +90,39 @@ public static class OcrMarketMatcherVerificationRunner
             for (int i = 0; i < 50; i++) Check(largeResult[i].Exact, "large snapshot exact resolution");
             foreach (var row in largeResult) Check(row.Candidates.Count <= 5, "candidate cap");
             Check(timer.Elapsed < TimeSpan.FromSeconds(15), "bounded 17k-catalog batch time");
-            string summary = checks + " OCR matcher checks passed; 17k catalog + 100 rows: " + timer.ElapsedMilliseconds + " ms. No HTTP, clipboard, or game access.";
+            var fullScreen = new List<string>();
+            for (int i = 0; i < 156; i++) fullScreen.Add("화면 문구" + i.ToString("D5"));
+            fullScreen.AddRange(inputs);
+            var fullTimer = Stopwatch.StartNew(); var prioritizedLarge = largeMatcher.Resolve(fullScreen, true); fullTimer.Stop();
+            Equal(100, prioritizedLarge.Count, "full-screen 256-row scan keeps all 100 item rows ahead of HUD");
+            for (int i = 0; i < 50; i++) Check(prioritizedLarge[i].Exact, "full-screen known item follows HUD in source but comes first in result");
+            for (int i = 50; i < 100; i++) Check(!prioritizedLarge[i].Exact && prioritizedLarge[i].Candidates.Count > 0, "candidate suggestions precede HUD without being confirmed");
+            Check(fullTimer.Elapsed < TimeSpan.FromSeconds(15), "bounded whole-screen 17k-catalog batch time");
+            // More than 512 distinct packed identities exercises the bounded
+            // intermediate buffer without affecting stable first-item ordering.
+            var packedRows = new List<string>();
+            for (int i = 0; i < 60; i++) {
+                var names = new List<string>();
+                for (int j = 0; j < 10; j++) names.Add("아이템" + (i * 10 + j).ToString("D5") + " 종류");
+                packedRows.Add(String.Join(" | ", names));
+            }
+            var packedLarge = largeMatcher.Resolve(packedRows, true);
+            Equal(100, packedLarge.Count, "600 packed identities retain a capped prioritized result");
+            for (int i = 0; i < 100; i++) Check(packedLarge[i].Text == "아이템" + i.ToString("D5") + " 종류", "packed result stable order survives intermediate bound");
+            var ambiguousData = Data(); var ambiguousLines = new List<string>();
+            for (int i = 0; i < 52; i++) {
+                var names = new List<string>();
+                for (int j = 0; j < 10; j++) {
+                    string name = "모호품" + (i * 10 + j).ToString("D3");
+                    Add(ambiguousData, name + " 종류", 10); Add(ambiguousData, name + "종류", 20); names.Add(name + " 종류");
+                }
+                ambiguousLines.Add(String.Join(" | ", names));
+            }
+            Add(ambiguousData, "거미줄", 149); ambiguousLines.Add("거미줄");
+            var prioritizedAmbiguous = new OcrMarketMatcher(ambiguousData).Resolve(ambiguousLines, true);
+            Exact(prioritizedAmbiguous[0], "거미줄", 149);
+            Check(!prioritizedAmbiguous[1].Exact && prioritizedAmbiguous[1].Text == "모호품000 종류", "late confirmed item displaces lower-confidence buffer entry while earlier candidates keep order");
+            string summary = checks + " OCR matcher checks passed; 17k catalog + 100 rows: " + timer.ElapsedMilliseconds + " ms; prioritized 256 rows: " + fullTimer.ElapsedMilliseconds + " ms. No HTTP, clipboard, or game access.";
             Console.WriteLine(summary);
             if (args.Length > 0) File.WriteAllText(Path.Combine(args[0], "report.txt"), summary);
             return 0;

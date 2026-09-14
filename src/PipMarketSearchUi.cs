@@ -197,6 +197,7 @@ namespace MabinogiBarter
             if (closed || SearchResultsPanel == null) return;
             SearchResultsPanel.Children.Clear();
             if (resetScroll) { searchOffset = 0; SearchResultsScroll.ScrollToTop(); }
+            SearchResultsPanel.Children.Add(CaptureHotkeyPanel);
             if (RenderOcrResults()) return;
             if (searchIndex == null) {
                 AddSearchNote(refreshSearchData == null ? searchUnavailable : "시세 받기를 누르면 전체 품목을 검색할 수 있습니다. 받은 시세는 오프라인에서도 볼 수 있어요.");

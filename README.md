@@ -91,6 +91,8 @@ Data based on NEXON Open API.
 
 개발 빌드의 PIP **영역 촬영**은 마우스로 지정한 영역에서 여러 아이템 이름을 읽어 개당 최저가를 표시합니다. Windows의 한국어 OCR로 이 PC에서 처리하며, 촬영 이미지와 인식 문장은 파일로 저장하거나 서버에 전송하지 않습니다. 정확하지 않은 이름은 후보 선택이나 직접 수정으로 확인하고, 시세가 없는 이름은 거래 불가로 단정하지 않습니다. 사용 순서와 요구 사항은 [PIP 사용 안내](docs/USER_GUIDE.md#영역-촬영으로-여러-아이템-찾기-개발-빌드)를 참고하세요.
 
+PIP에서 **전체 촬영 단축키 사용**을 켜면 **Alt+Home**으로 마우스가 있는 모니터 전체를 촬영할 수 있습니다. Alt로 표시한 게임 아이템 이름을 포커스 전환·영역 선택 없이 읽고, 이름이 확인된 품목을 먼저 보여 줍니다. 기본은 꺼짐이며 Alt+End·Alt+Insert로 바꿀 수 있습니다. Windows 단축키 등록만 사용하고 전역 키보드 후킹이나 게임 입력 생성은 하지 않습니다.
+
 ## 개발 환경과 빌드
 
 Windows 10/11과 Windows PowerShell, **.NET Framework 4.8**, **Windows 10/11 SDK**를 사용합니다. 빌드 스크립트는 Windows의 .NET Framework C# 컴파일러(`v4.0.30319\csc.exe`)와 WPF 어셈블리, SDK의 `UnionMetadata/Windows.winmd`를 사용합니다. .NET SDK와 별도의 NuGet 패키지는 필요하지 않습니다. 실행하는 PC에는 Windows SDK가 필요 없으며, 영역 촬영의 글자 인식에는 Windows 한국어 OCR 언어 기능이 필요합니다.
@@ -125,6 +127,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\test-auction-settl
 # OCR 다중 품목 매칭·영역 좌표·PIP 화면 검증 (실제 화면 촬영 없음)
 powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\test-ocr-market-matcher.ps1
 powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\test-screen-region-capture.ps1
+powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\test-pip-capture-hotkey.ps1
 powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\test-pip-search-ui.ps1
 
 # 합성 한국어 이미지 → 실제 Windows OCR → 캐시 가격 연결 (한국어 OCR 필요)

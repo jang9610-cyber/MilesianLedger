@@ -15,7 +15,7 @@ namespace MabinogiBarter
     public sealed partial class PipChecklistWindow
     {
         CancellationTokenSource ocrOperation;
-        bool ocrMode, ocrBusy, ocrMatching;
+        bool ocrMode, ocrBusy, ocrMatching, ocrWholeScreen;
         int ocrRevision, ocrMatchRevision;
         string ocrAppliedText = "";
         List<OcrMarketMatch> ocrMatches = new List<OcrMarketMatch>();
@@ -32,11 +32,13 @@ namespace MabinogiBarter
         // Production services are local-only. Tests replace both to avoid reading
         // the user's screen, requiring an OCR language pack or touching clipboard.
         public Func<Window, CancellationToken, Task<BitmapSource>> CaptureRegionAsync { get; set; }
+        public Func<Window, CancellationToken, Task<BitmapSource>> CaptureMonitorAsync { get; set; }
         public Func<BitmapSource, CancellationToken, Task<LocalOcrResult>> RecognizeImageAsync { get; set; }
 
         void BuildOcrControls()
         {
             CaptureRegionAsync = ScreenRegionCapture.CaptureAsync;
+            CaptureMonitorAsync = ScreenRegionCapture.CaptureMonitorAsync;
             RecognizeImageAsync = LocalOcrEngine.RecognizeAsync;
             CaptureButton = SmallButton("영역 촬영", CaptureItems);
             CaptureButton.Height = 32; CaptureButton.Padding = new Thickness(7, 0, 7, 0);
@@ -55,20 +57,38 @@ namespace MabinogiBarter
                 FontSize = 12, Margin = new Thickness(0, 0, 0, 8), HorizontalContentAlignment = HorizontalAlignment.Stretch };
             OcrClearButton = SmallButton("일반 검색", delegate { LeaveOcrResults(); RenderMarketSearch(true); SearchInput.Focus(); });
             OcrClearButton.ToolTip = "촬영 검색 결과를 지우고 이름 검색으로 돌아갑니다.";
+            BuildCaptureHotkeyControls();
         }
 
         async void CaptureItems()
         {
-            if (closed || OcrBusy || searchBusy || CaptureRegionAsync == null || RecognizeImageAsync == null) return;
+            await CaptureItemsAsync(CaptureRegionAsync, false);
+        }
+        public async void CaptureMonitorForOcr()
+        {
+            // Registered hotkeys work while the game keeps keyboard focus.
+            // A disabled/hidden PIP must not capture behind a modal or on close.
+            if (closed || !IsVisible || WindowState == WindowState.Minimized || !marketSearchRoot.IsEnabled || !PipWindowBehavior.IsNativeEnabled(this)) return;
+            await CaptureItemsAsync(CaptureMonitorAsync, true);
+        }
+        async Task CaptureItemsAsync(Func<Window, CancellationToken, Task<BitmapSource>> captureOperation, bool wholeScreen)
+        {
+            if (closed || OcrBusy || searchBusy || captureOperation == null || RecognizeImageAsync == null) return;
             int revision = ++ocrRevision;
             var pending = CancellationTokenSource.CreateLinkedTokenSource(searchLifetime.Token); ocrOperation = pending;
-            ocrBusy = true; UpdateOcrControls(); searchDelay.Stop(); CloseAcquisitionHelp();
-            SearchMessage("아이템 이름이 보이는 영역을 드래그하세요. Esc로 취소합니다.", false);
+            ocrBusy = true;
             try {
-                BitmapSource capture = await CaptureRegionAsync(this, pending.Token);
+                // Full-screen capture freezes the current Alt-held frame before
+                // changing any PIP content or scheduling asynchronous work.
+                var captureTask = wholeScreen ? captureOperation(this, pending.Token) : null;
+                UpdateOcrControls(); searchDelay.Stop();
+                if (!wholeScreen) CloseAcquisitionHelp();
+                SearchMessage(wholeScreen ? "전체 화면의 아이템 이름을 읽는 중…" : "아이템 이름이 보이는 영역을 드래그하세요. Esc로 취소합니다.", false);
+                BitmapSource capture = await (captureTask ?? captureOperation(this, pending.Token));
                 if (!OcrCurrent(revision, pending)) return;
                 if (capture == null) { SearchMessage("촬영을 취소했습니다. 이전 검색 결과를 유지합니다.", false); return; }
-                SearchMessage("선택한 영역의 글자를 읽는 중…", false);
+                if (wholeScreen) SelectedTab = 3;
+                SearchMessage(wholeScreen ? "전체 화면의 글자를 읽는 중…" : "선택한 영역의 글자를 읽는 중…", false);
                 var result = await RecognizeImageAsync(capture, pending.Token);
                 capture = null;
                 if (!OcrCurrent(revision, pending)) return;
@@ -77,7 +97,8 @@ namespace MabinogiBarter
                     SearchMessage("글자를 읽지 못했습니다. 아이템 이름이 크게 보이도록 영역을 좁혀 다시 촬영하세요.", true); return;
                 }
                 OcrLinesInput.Text = text.Length > 16000 ? text.Substring(0, 16000) : text;
-                ocrAppliedText = OcrLinesInput.Text; ocrMode = true; ocrMatches.Clear(); ocrChoices.Clear(); OcrEditor.IsExpanded = false;
+                ocrAppliedText = OcrLinesInput.Text; ocrMode = true; ocrWholeScreen = wholeScreen;
+                ocrMatches.Clear(); ocrChoices.Clear(); OcrEditor.IsExpanded = false;
                 SearchMessage("", false);
                 await ResolveOcrTextAsync(true);
             } catch (OperationCanceledException) {
@@ -106,11 +127,11 @@ namespace MabinogiBarter
         {
             if (closed || !ocrMode) return;
             int revision = ++ocrMatchRevision;
-            var data = searchSnapshot; string text = ocrAppliedText;
+            var data = searchSnapshot; string text = ocrAppliedText; bool prioritizeItems = ocrWholeScreen;
             ocrMatching = true; UpdateOcrControls();
             RenderMarketSearch(resetScroll);
             try {
-                var matches = await Task.Run(() => new OcrMarketMatcher(data).Resolve(text.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries)), searchLifetime.Token);
+                var matches = await Task.Run(() => new OcrMarketMatcher(data).Resolve(text.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries), prioritizeItems), searchLifetime.Token);
                 if (closed || !ocrMode || revision != ocrMatchRevision || !Object.ReferenceEquals(data, searchSnapshot)) return;
                 ocrMatches = matches; ocrMatching = false;
                 RenderMarketSearch(resetScroll);
@@ -133,6 +154,7 @@ namespace MabinogiBarter
             SearchRefreshButton.IsEnabled = !closed && !searchBusy && !OcrBusy && refreshSearchData != null;
             OcrApplyButton.IsEnabled = !OcrBusy; OcrLinesInput.IsReadOnly = OcrBusy;
             OcrClearButton.IsEnabled = !OcrBusy;
+            UpdateCaptureHotkeyControls();
         }
         void InvalidateOcrMatches()
         {
@@ -152,7 +174,8 @@ namespace MabinogiBarter
             if (ocrOperation != null) ocrOperation.Cancel();
             ocrMode = false; ocrBusy = false; ocrMatching = false;
             ocrOperation = null; ocrMatches.Clear(); ocrChoices.Clear(); ocrAppliedText = "";
-            OcrLinesInput.Clear(); CaptureRegionAsync = null; RecognizeImageAsync = null;
+            OcrLinesInput.Clear(); CaptureRegionAsync = null; CaptureMonitorAsync = null; RecognizeImageAsync = null;
+            if (captureHotkey != null) captureHotkey.Dispose();
         }
 
         MarketSearchEntry SelectedOcrItem(OcrMarketMatch match)
@@ -185,7 +208,16 @@ namespace MabinogiBarter
             SearchResultsPanel.Children.Add(OcrEditor);
             if (searchIndex == null) AddSearchNote("저장된 시세가 없습니다. 시세 받기를 누르면 인식한 이름을 공통 데이터에서 다시 찾습니다.");
             if (ocrMatches.Count == 0) AddSearchNote(ocrMatching ? "인식한 이름을 공통 시세에서 찾는 중…" : "검색할 이름이 없습니다. 인식한 글자를 확인해 주세요.");
-            foreach (var match in visible) SearchResultsPanel.Children.Add(CreateOcrResult(match));
+            var unknown = new StackPanel(); int unknownCount = 0;
+            foreach (var match in visible) {
+                if (ocrWholeScreen && match.Candidates.Count == 0) { unknown.Children.Add(CreateOcrResult(match)); ++unknownCount; }
+                else SearchResultsPanel.Children.Add(CreateOcrResult(match));
+            }
+            if (unknownCount > 0) SearchResultsPanel.Children.Add(new Expander {
+                Header = "이름 미확인 " + unknownCount + "종 · 펼치기", Content = unknown, Foreground = Ink, FontSize = 12,
+                HorizontalContentAlignment = HorizontalAlignment.Stretch, Margin = new Thickness(0, 3, 0, 9),
+                ToolTip = "아이템이 아닌 화면 문구도 포함될 수 있습니다. 거래 불가 품목으로 확정한 목록은 아닙니다."
+            });
             AddSearchNote("개당 참고 최저가 · 같은 이름은 한 번만 표시\n시세 미확인은 거래 불가 판정이 아닙니다.\n한 번에 최대 100종까지 표시합니다.");
             return true;
         }

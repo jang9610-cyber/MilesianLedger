@@ -29,6 +29,14 @@ public static class WorkspaceUiVerificationRunner
         Check(AutomationProperties.GetItemStatus(Menu(main, name)) == "현재 화면", "wrong selected menu: " + name);
         Check(Children<Button>(main).Count(b => AutomationProperties.GetItemStatus(b) == "현재 화면") == 1, "multiple selected pages");
         Check(Application.Current.Windows.Count == 1 && main.OwnedWindows.Count == 0, "navigation opened another window");
+        var nav = (StackPanel)Field(main, "nav");
+        bool tradePage = name == "교역 계획" || name == "재료 준비";
+        Check(Children<Button>(nav).Any(b => AutomationProperties.GetName(b) == "진행 상태 복원 메뉴") == tradePage,
+            "progress restore must only be available on trade pages: " + name);
+        Check(nav.Children.OfType<TextBlock>().Any(t => t.Text == "앱 설정") == tradePage,
+            "empty app settings group is visible outside trade pages: " + name);
+        Check(nav.Children.OfType<Border>().Any(b => b.Height == 1) == tradePage,
+            "empty app settings divider is visible outside trade pages: " + name);
     }
     static void Capture(MainWindow main, string folder, string name) { Pump(); main.SavePreview(Path.Combine(folder, name + ".png")); }
     static MarketSnapshotData Fixture()
@@ -123,7 +131,7 @@ public static class WorkspaceUiVerificationRunner
             main.ShowStationHub(); Pump(); Selected(main, "교역 계획");
             main.Close(); main = null; Pump();
             Check(Application.Current.Windows.Count == 0, "page lifetime left an orphan window");
-            Console.WriteLine("PASS exact app title; grouped/selected navigation; embedded market and settlement without extra windows; six coupon choices fit default height; light/dark and minimum-size captures; manual amounts/coupon/selection and filters survive navigation; background trade/PIP changes preserve the active page; app close releases pages. No HTTP or OS clipboard.");
+            Console.WriteLine("PASS exact app title; grouped/selected navigation with progress restore only on trade pages; embedded market and settlement without extra windows; six coupon choices fit default height; light/dark and minimum-size captures; manual amounts/coupon/selection and filters survive navigation; background trade/PIP changes preserve the active page; app close releases pages. No HTTP or OS clipboard.");
             return 0;
         } catch (Exception ex) { Console.Error.WriteLine(ex); return 1; }
         finally { if (main != null) main.Close(); }

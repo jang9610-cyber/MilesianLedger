@@ -427,6 +427,85 @@ public static class AuctionSettlementUiVerificationRunner
         current = null;
         Pass("missing provider leaves manual calculations available; host close disposes the embedded view and cancels the injected pending refresh without later UI mutation");
     }
+    static void VerifyResetAndUnifiedRefresh()
+    {
+        var window = NewWindow(); SetSale(window, ManualGross);
+        var original = Fixture("reset-original", false); var fresh = Fixture("reset-refreshed", true);
+        int reads = 0, requests = 0, copies = copyCalls;
+        CancellationToken refreshToken = CancellationToken.None;
+        var pending = new TaskCompletionSource<MarketSnapshotResult>();
+        window.MarketPanel.Configure(delegate { reads++; return original; }, delegate(CancellationToken token) {
+            refreshToken = token; requests++; refreshCalls++; return pending.Task;
+        }, null);
+        Wait(delegate { return !window.MarketPanel.IsBusy && Object.ReferenceEquals(window.MarketPanel.Snapshot, original); }, "reset fixture cache");
+        Query(window, Material, Material);
+        window.CouponPriceInput(10).Text = "0";
+        window.CouponPriceInput(20).Text = "765,432.50";
+        window.CouponPriceInput(30).Clear();
+        window.PremiumControl.IsChecked = true; window.ExtraCostInput.Text = "12345";
+        Click(window.CouponSelectButton(20));
+        var prices = Coupons.ToDictionary(discount => discount, discount => window.CouponPriceInput(discount).Text);
+        var sources = Coupons.ToDictionary(discount => discount, discount => window.CouponSourceText(discount).Text);
+        var marketLabels = Coupons.ToDictionary(discount => discount, discount => window.CouponMarketText(discount).Text);
+        string source = window.MarketPanel.SourceText.Text;
+        Check(window.CurrentReport != null && window.CopyImageButton.IsEnabled, "Reset fixture has no valid selected calculation");
+        // A queued name search must not bring its results back after reset.
+        window.MarketPanel.ItemNameInput.Text = "템포";
+        Click(window.ResetButton); PumpFor(180);
+        VerifyResetState(window, "reset with a pending name debounce");
+        foreach (int discount in Coupons) {
+            Check(window.CouponPriceInput(discount).Text == prices[discount]
+                && window.CouponSourceText(discount).Text == sources[discount]
+                && window.CouponMarketText(discount).Text == marketLabels[discount],
+                "Reset altered the raw price, pricing mode or market reference for coupon " + discount);
+        }
+        Check(reads == 1 && requests == 0 && copyCalls == copies && Object.ReferenceEquals(window.MarketPanel.Snapshot, original)
+            && window.MarketPanel.SourceText.Text == source, "Reset cleared/reloaded cached market data or performed a refresh/copy");
+        InvalidReport(window, "reset report");
+
+        SetSale(window, ManualGross); Query(window, Material, Material);
+        window.PremiumControl.IsChecked = true; window.ExtraCostInput.Text = "23456";
+        Click(window.CouponSelectButton(20));
+        Check(Text(window.MarketPanel.ReferencePanel).Contains("187 G"), "Reset fixture lost its original item quote");
+        Click(window.MarketPanel.RefreshButton);
+        Check(requests == 1 && window.MarketPanel.IsBusy && !window.MarketPanel.RefreshButton.IsEnabled
+            && window.ResetButton.IsEnabled, "Unified refresh was duplicated or blocked independent settlement reset");
+        Click(window.ResetButton);
+        VerifyResetState(window, "reset during a pending shared refresh");
+        foreach (int discount in Coupons)
+            Check(window.CouponPriceInput(discount).Text == prices[discount] && window.CouponSourceText(discount).Text == sources[discount],
+                "Pending-refresh reset altered coupon price/mode " + discount);
+        Check(window.MarketPanel.IsBusy && !refreshToken.IsCancellationRequested && reads == 1 && requests == 1,
+            "Settlement reset canceled or duplicated the shared market refresh");
+        pending.SetResult(new MarketSnapshotResult { Data = fresh, Downloaded = true });
+        Wait(delegate { return !window.MarketPanel.IsBusy && Object.ReferenceEquals(window.MarketPanel.Snapshot, fresh); }, "unified refresh after reset");
+        VerifyResetState(window, "completed shared refresh after reset");
+        VerifyCouponMarket(window, fresh);
+        foreach (int discount in new[] { 10, 20, 30 })
+            Check(window.CouponPriceInput(discount).Text == prices[discount] && window.CouponSourceText(discount).Text == sources[discount],
+                "A later snapshot overwrote the manual/free/empty coupon preserved by reset: " + discount);
+        Check(window.CouponPriceInput(50).Text == "13000000" && window.CouponPriceInput(100).Text == "20000000"
+            && window.CouponSourceText(50).Text.Contains("자동") && window.CouponSourceText(100).Text.Contains("자동"),
+            "Reset disabled follow-market mode for automatic coupon prices");
+        SetSale(window, ManualGross); Query(window, Material, Material);
+        Check(Text(window.MarketPanel.ReferencePanel).Contains("197 G") && !Text(window.MarketPanel.ReferencePanel).Contains("187 G")
+            && reads == 1 && requests == 1 && copyCalls == copies, "One header refresh did not update both item and coupon quotes from the same cached snapshot");
+        Check(window.SelectedDiscount == 0 && Row(window, 20).CouponPrice == 765432.50m,
+            "Starting another settlement lost the reset default selection or retained manual coupon amount");
+        CloseWindow(window); current = null;
+        Pass("settlement-only reset clears names, pending suggestions, sale/people/extra/premium/coupon selection and stale report/copy; all raw coupon prices and automatic/manual/free/unknown modes survive; reset during one shared header refresh neither cancels nor duplicates it, and both item and automatic coupon quotes advance afterward without repopulating reset inputs");
+    }
+    static void VerifyResetState(AuctionSettlementView window, string context)
+    {
+        Check(window.GrossInput.Text == "" && window.PeopleInput.Text == "1" && window.ExtraCostInput.Text == "0"
+            && window.PremiumControl.IsChecked == false && window.SelectedDiscount == 0, context + " did not restore settlement defaults");
+        Check(window.MarketPanel.ItemNameInput.Text == "" && window.MarketPanel.SelectedItemName == null
+            && window.MarketPanel.ResultsPanel.Children.Count == 0 && window.MarketPanel.ResultsScroll.Visibility == Visibility.Collapsed
+            && !Text(window.MarketPanel.ReferencePanel).Contains(Material) && !Text(window.MarketPanel.ReferencePanel).Contains("187 G")
+            && !Text(window.MarketPanel.ReferencePanel).Contains("197 G"), context + " retained a name, suggestion or stale item price");
+        Check(window.CurrentReport == null && !window.CopyImageButton.IsEnabled && !window.RecommendationText.IsVisible,
+            context + " retained a report, recommendation or enabled stale image copying");
+    }
     static void Run()
     {
         var window = NewWindow();
@@ -447,7 +526,7 @@ public static class AuctionSettlementUiVerificationRunner
         VerifyCouponMarket(window, snapshot);
         VerifyExpected(window, false); VerifySearch(window); VerifyImagesAndLayout(window);
         VerifyRefreshAndManualPrices(window, delegate(TaskCompletionSource<MarketSnapshotResult> value) { pending = value; });
-        VerifyInvalidAndRemainder(window); VerifyNoProviderAndCloseCancellation(); VerifyCouponSourcesAndRecommendation(); VerifyInitialNameSearch();
+        VerifyInvalidAndRemainder(window); VerifyNoProviderAndCloseCancellation(); VerifyCouponSourcesAndRecommendation(); VerifyInitialNameSearch(); VerifyResetAndUnifiedRefresh();
     }
     static void Click(Button button) { Check(button.IsEnabled, "Attempt to click a disabled fixture button"); button.RaiseEvent(new RoutedEventArgs(Button.ClickEvent)); Pump(); }
     static IEnumerable<T> Elements<T>(DependencyObject root) where T : DependencyObject
@@ -465,6 +544,7 @@ public static class AuctionSettlementUiVerificationRunner
     static void VerifyWidth(AuctionSettlementView window)
     {
         window.UpdateLayout();
+        VerifyHeaderActions(window);
         foreach (var control in LayoutControls(window)) {
             var bounds = Bounds(control, window);
             Check(control.ActualWidth > 10 && control.ActualHeight > 0 && bounds.Left >= -1 && bounds.Right <= window.ActualWidth + 1,
@@ -483,7 +563,7 @@ public static class AuctionSettlementUiVerificationRunner
     {
         var controls = new List<FrameworkElement> { window.MarketPanel.ItemNameInput, window.MarketPanel.RefreshButton,
             window.GrossInput, window.PeopleInput, window.ExtraCostInput, window.PremiumControl,
-            window.CopyImageButton, window.RecommendationText, SelectedSummary(window) };
+            window.ResetButton, window.CopyImageButton, window.RecommendationText, SelectedSummary(window) };
         foreach (int discount in new[] { 0, 10, 20, 30, 50, 100 }) {
             controls.Add(window.CouponCard(discount)); controls.Add(window.CouponSelectButton(discount));
             if (discount == 0) continue;
@@ -491,6 +571,27 @@ public static class AuctionSettlementUiVerificationRunner
             controls.Add(window.CouponMarketText(discount)); controls.Add(window.CouponSourceText(discount));
         }
         return controls;
+    }
+    static void VerifyHeaderActions(AuctionSettlementView window)
+    {
+        var actions = new[] { window.MarketPanel.RefreshButton, window.ResetButton, window.CopyImageButton };
+        Check(Convert.ToString(window.MarketPanel.RefreshButton.Content) == "경매장 갱신"
+            && Elements<Button>(window).Count(button => Convert.ToString(button.Content) == "경매장 갱신") == 1
+            && !Elements<Button>(window.MarketPanel).Contains(window.MarketPanel.RefreshButton),
+            "Unified market refresh is missing, duplicated, renamed or still inside the scrolling search card");
+        var actionBounds = actions.Select(action => Bounds(action, window)).ToArray();
+        double contentTop = Math.Min(Bounds(window.InputScroll, window).Top, Bounds(window.BodyScroll, window).Top);
+        for (int i = 0; i < actions.Length; i++) {
+            VerifyFullyVisible(window, actions[i], "Fixed settlement header at " + window.ActualWidth + "x" + window.ActualHeight);
+            Check(!AncestorViewports(actions[i], window).Any() && actionBounds[i].Bottom <= contentTop,
+                "A header action scrolls with inputs or overlaps the page content");
+            if (i > 0) Check(actionBounds[i].Left >= actionBounds[i - 1].Right
+                && Math.Abs(actionBounds[i].Top - actionBounds[0].Top) <= 2,
+                "Refresh, reset and copy controls overlap or have inconsistent top alignment");
+        }
+        var title = Elements<TextBlock>(window).Single(block => block.Text == "수수료·분배");
+        Check(Bounds(title, window).Right <= actionBounds[0].Left,
+            "Header actions overlap the settlement title at " + window.ActualWidth + "px");
     }
     static TextBlock SelectedSummary(AuctionSettlementView window)
     {

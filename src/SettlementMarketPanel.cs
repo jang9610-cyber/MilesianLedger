@@ -78,7 +78,6 @@ namespace MabinogiBarter
             body.Children.Add(Label("아이템 이름 · 초성 검색", 13, "#202D35", true));
             var inputRow = new Grid { Margin = new Thickness(0, 6, 0, 0) };
             inputRow.ColumnDefinitions.Add(new ColumnDefinition());
-            inputRow.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
             ItemNameInput = new TextBox { FontSize = 14, MinHeight = 38, Padding = new Thickness(9, 7, 9, 7),
                 MaxLength = 200, Foreground = AppTheme.Brush("#202D35"), Background = AppTheme.Surface,
                 BorderBrush = AppTheme.Brush("#DCE5DF"), BorderThickness = new Thickness(1),
@@ -87,11 +86,13 @@ namespace MabinogiBarter
             ItemNameInput.ToolTip = "초성·이름을 섞어 검색할 수 있습니다. 예: ㄱㅁㅈ, 가는 ㅅㅁㅊ. 판매품 이름은 직접 입력해도 됩니다.";
             AutomationProperties.SetName(ItemNameInput, "정산 아이템 이름");
             inputRow.Children.Add(ItemNameInput);
-            RefreshButton = Button("시세 갱신"); RefreshButton.MinWidth = 94;
-            RefreshButton.Margin = new Thickness(8, 0, 0, 0); RefreshButton.IsEnabled = false;
-            RefreshButton.ToolTip = "서버가 수집한 공통 시세를 받습니다. 실시간 경매장 조회를 요청하지 않습니다.";
-            AutomationProperties.SetName(RefreshButton, "정산 참고 시세 갱신");
-            Grid.SetColumn(RefreshButton, 1); inputRow.Children.Add(RefreshButton); body.Children.Add(inputRow);
+            // The settlement page hosts this single action in its fixed header.
+            RefreshButton = Button("경매장 갱신"); RefreshButton.Width = 112; RefreshButton.IsEnabled = false;
+            RefreshButton.HorizontalContentAlignment = HorizontalAlignment.Center;
+            RefreshButton.VerticalContentAlignment = VerticalAlignment.Center;
+            RefreshButton.ToolTip = "서버의 전체 공통 경매장 데이터를 받아 아이템 참고 시세와 쿠폰 시세를 함께 갱신합니다. 직접 입력한 판매 금액과 쿠폰 구매가는 유지합니다.";
+            AutomationProperties.SetName(RefreshButton, "경매장 갱신 (아이템·쿠폰 시세)");
+            body.Children.Add(inputRow);
             SourceText = Label("저장된 시세 없음", 11, "#728087", false);
             SourceText.Margin = new Thickness(0, 6, 0, 0); body.Children.Add(SourceText);
             StatusText = Label("", 11, "#728087", false);
@@ -190,7 +191,7 @@ namespace MabinogiBarter
                 // Cancellation during disposal/reconfiguration has no UI result.
             } catch {
                 if (Current(revision, pending) && (!restoring || previousSnapshot == snapshotRevision))
-                    Message("저장된 시세를 읽지 못했습니다. 시세 갱신으로 다시 확인하세요.", true);
+                    Message("저장된 시세를 읽지 못했습니다. 상단 경매장 갱신으로 다시 확인하세요.", true);
             } finally { FinishOperation(revision, pending); }
         }
 
@@ -217,7 +218,7 @@ namespace MabinogiBarter
                 else if (indexed == null) Message("아직 게시된 시세가 없습니다. 이름은 그대로 입력할 수 있습니다.", false);
                 else Message(result.Downloaded ? "새 공통 시세를 받았습니다." : "최신 공통 시세입니다.", false);
             } catch (OperationCanceledException) {
-                if (Current(revision, pending)) Message("시세 갱신이 취소되었습니다.", false);
+                if (Current(revision, pending)) Message("경매장 갱신이 취소되었습니다.", false);
             } catch {
                 if (Current(revision, pending)) Message(indexed == null ? "시세를 받지 못했습니다. 다시 갱신해 주세요."
                     : "시세를 받지 못해 저장된 시세를 유지합니다.", true);
@@ -277,7 +278,7 @@ namespace MabinogiBarter
         void SetBusy(bool value)
         {
             busy = value; RefreshButton.IsEnabled = !value && refresh != null;
-            RefreshButton.Content = value ? "확인 중…" : "시세 갱신";
+            RefreshButton.Content = value ? "확인 중…" : "경매장 갱신";
         }
         void Message(string text, bool error)
         {
@@ -286,8 +287,17 @@ namespace MabinogiBarter
         }
         void UpdateSource()
         {
-            if (indexed == null) { SourceText.Text = refresh == null ? unavailable : "저장된 시세 없음 · 시세 갱신으로 공통 데이터를 받으세요."; return; }
+            if (indexed == null) { SourceText.Text = refresh == null ? unavailable : "저장된 시세 없음 · 상단 경매장 갱신으로 공통 데이터를 받으세요."; return; }
             SourceText.Text = "매물 수집 " + Stamp(indexed.Data.ListingsFetchedUtc) + " · 통계 게시 " + Stamp(indexed.Data.GeneratedUtc);
+        }
+
+        public void ClearItemName()
+        {
+            VerifyAccess(); if (disposed) return;
+            inputDelay.Stop(); settingSelection = true;
+            try { ItemNameInput.Clear(); }
+            finally { settingSelection = false; }
+            RenderSearch();
         }
 
         void NameChanged(object sender, TextChangedEventArgs e)
@@ -348,7 +358,7 @@ namespace MabinogiBarter
             ReferencePanel.Children.Add(Label(entry.Name, 12, "#202D35", true));
             if (entry.IsEnchantScroll && !entry.EnchantNameKnown) {
                 ReferencePanel.Children.Add(Label("인챈트 이름 미확인 · 가격 표시 제외", 13, "#916020", true));
-                ReferencePanel.Children.Add(Label("시세 갱신 후 인챈트 이름으로 검색하세요.", 11, "#728087", false));
+                ReferencePanel.Children.Add(Label("상단 경매장 갱신 후 인챈트 이름으로 검색하세요.", 11, "#728087", false));
                 return;
             }
             string lowest = entry.HasListing && entry.UnitPrice.HasValue ? Gold(entry.UnitPrice.Value)

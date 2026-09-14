@@ -30,7 +30,7 @@ namespace MabinogiBarter
         readonly TextBlock summary = Text("", 16, Green, true), status = Text("", 11, Muted, false), amountHint = Text("", 11, Muted, false);
         readonly TextBlock recommendation = Text("", 12, Green, true);
         readonly StackPanel comparisons = new StackPanel();
-        bool fillingPrices, disposed;
+        bool fillingPrices, resetting, disposed;
         int selectedDiscount;
         AuctionSettlementInput currentInput;
         public AuctionSettlementReport CurrentReport { get; private set; }
@@ -40,6 +40,7 @@ namespace MabinogiBarter
         public TextBox ExtraCostInput { get; private set; }
         public CheckBox PremiumControl { get; private set; }
         public Button CopyImageButton { get; private set; }
+        public Button ResetButton { get; private set; }
         public ScrollViewer BodyScroll { get; private set; }
         public ScrollViewer InputScroll { get; private set; }
         public Action<BitmapSource> ImageCopier { get; set; }
@@ -57,21 +58,26 @@ namespace MabinogiBarter
             Background = AppTheme.Brush("#F4F6F5"); Foreground = Ink; FontFamily = new FontFamily("Malgun Gothic");
             UseLayoutRounding = true; SnapsToDevicePixels = true;
             ImageCopier = bitmap => Clipboard.SetImage(bitmap);
+            MarketPanel = new SettlementMarketPanel(); MarketPanel.SnapshotChanged = ApplyMarketPrices;
             var root = new Grid { Margin = new Thickness(16) };
             root.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto }); root.RowDefinitions.Add(new RowDefinition()); root.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
             var header = new Grid { Margin = new Thickness(0, 0, 0, 12) };
             header.ColumnDefinitions.Add(new ColumnDefinition()); header.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
             var heading = new StackPanel(); heading.Children.Add(Text("수수료·분배", 24, Ink, true));
             heading.Children.Add(Text("판매한 총액을 입력하고, 함께 나눌 금액을 비교하세요.", 12, Muted, false)); header.Children.Add(heading);
-            CopyImageButton = Button("분배표 이미지 복사", CopyReport, true); CopyImageButton.Margin = new Thickness(12, 0, 0, 0);
+            var actions = new StackPanel { Orientation = Orientation.Horizontal, VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(12, 0, 0, 0) };
+            actions.Children.Add(MarketPanel.RefreshButton);
+            ResetButton = Button("분배 초기화", ResetSettlement, false); ResetButton.Margin = new Thickness(8, 0, 0, 0);
+            ResetButton.ToolTip = "아이템 이름·판매 금액·분배 인원·기타 비용·프플 할인·쿠폰 선택을 초기화합니다. 쿠폰 가격과 시세 자동 반영/직접 입력 설정은 유지합니다.";
+            AutomationProperties.SetName(ResetButton, "수수료·분배 초기화 (쿠폰 가격 유지)"); actions.Children.Add(ResetButton);
+            CopyImageButton = Button("분배표 이미지 복사", CopyReport, true); CopyImageButton.Margin = new Thickness(8, 0, 0, 0);
             AutomationProperties.SetName(CopyImageButton, "분배표 이미지 복사");
-            Grid.SetColumn(CopyImageButton, 1); header.Children.Add(CopyImageButton); root.Children.Add(header);
+            actions.Children.Add(CopyImageButton); Grid.SetColumn(actions, 1); header.Children.Add(actions); root.Children.Add(header);
             var columns = new Grid();
             columns.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(320) });
             columns.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(14) });
             columns.ColumnDefinitions.Add(new ColumnDefinition());
             var inputs = new StackPanel(); inputs.Children.Add(BuildInputs());
-            MarketPanel = new SettlementMarketPanel(); MarketPanel.SnapshotChanged = ApplyMarketPrices;
             MarketPanel.ResultsScroll.MaxHeight = 126;
             inputs.Children.Add(Card(MarketPanel));
             InputScroll = new ScrollViewer { Content = inputs, VerticalScrollBarVisibility = ScrollBarVisibility.Auto, HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled };
@@ -214,9 +220,22 @@ namespace MabinogiBarter
                 : "직접 입력한 구매가 · 시세 갱신 시 유지";
         }
 
+        void ResetSettlement()
+        {
+            if (disposed) return;
+            resetting = true;
+            try {
+                MarketPanel.ClearItemName(); GrossInput.Clear(); PeopleInput.Text = "1";
+                ExtraCostInput.Text = "0"; PremiumControl.IsChecked = false; selectedDiscount = 0;
+            } finally { resetting = false; }
+            Recalculate();
+            status.Text = "분배 입력을 초기화했습니다. 쿠폰 가격과 시세 자동 반영/직접 입력 설정은 유지됩니다.";
+            InputScroll.ScrollToTop(); BodyScroll.ScrollToTop();
+        }
+
         void Recalculate()
         {
-            if (coupons.Count != 6) return;
+            if (resetting || coupons.Count != 6) return;
             CurrentReport = null; currentInput = null; CopyImageButton.IsEnabled = false;
             decimal gross, extra; int people;
             string error = !TryMoney(GrossInput.Text, out gross) ? "실제 판매한 총액을 입력하세요."

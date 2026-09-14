@@ -353,9 +353,11 @@ namespace MabinogiBarter
             nav.Children.Add(BuildNavigationButton("수수료·분배", "판매 정산 · 분배금", "settlement", ShowAuctionSettlement, workspacePage == WorkspacePage.Settlement));
             AddNavigationGroup("게임 중 도구", false);
             nav.Children.Add(BuildNavigationButton("PIP", "체크리스트 · 시세 검색", "pip", ShowPipChecklist, false));
-            var divider = new Border { Height = 1, Background = Line, Margin = new Thickness(11, 13, 11, 12) }; nav.Children.Add(divider);
-            AddNavigationGroup("앱 설정", true);
-            nav.Children.Add(BuildNavigationButton("진행 상태 복원", "", "settings", ShowProgressHistory, false));
+            if (workspacePage == WorkspacePage.Trade) {
+                var divider = new Border { Height = 1, Background = Line, Margin = new Thickness(11, 13, 11, 12) }; nav.Children.Add(divider);
+                AddNavigationGroup("앱 설정", true);
+                nav.Children.Add(BuildNavigationButton("진행 상태 복원", "", "settings", ShowProgressHistory, false));
+            }
         }
         void RenderStats(ProcurementPlan currentPlan = null)
         {

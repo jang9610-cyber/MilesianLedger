@@ -302,6 +302,9 @@ namespace MabinogiBarter
                 if (quote.UnitPrice.HasValue && quote.UnitPrice.Value <= 0) throw new InvalidDataException();
                 data.Quotes.Add(name, quote);
             }
+            // Apply the current category policy to the parsed view only. The verified
+            // compressed source is saved unchanged, so old disk caches remain valid.
+            MarketPricePolicy.Apply(data);
             return data;
         }
         static List<MarketSnapshotItem> ParseItems(object raw)

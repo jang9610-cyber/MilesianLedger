@@ -124,7 +124,7 @@ public static class AuctionSettlementUiVerificationRunner
         SameSale(window, "Suggestion selection");
         Query(window, Equipment, Equipment);
         reference = Text(window.MarketPanel.ReferencePanel);
-        Check(reference.Contains("7,654,321 G") && reference.Contains("옵션별 가격 차이") && !reference.Contains("888,888") && !reference.Contains("999,999"), "Option-bearing equipment exposed an unsafe sale average");
+        Check(reference.Contains("7,654,321 G") && reference.Contains("유동 옵션") && !reference.Contains("24시간 평균 판매단가") && !reference.Contains("888,888") && !reference.Contains("999,999"), "Option-bearing equipment exposed an unsafe sale average");
         Query(window, Duplicate, Duplicate);
         reference = Text(window.MarketPanel.ReferencePanel);
         Check(reference.Contains("19 G") && !reference.Contains("20 G") && reference.Contains("미확인") && !reference.Contains("901 G") && !reference.Contains("902 G") && !reference.Contains("903 G") && !reference.Contains("904 G"), "Same-name category averages were mixed or quote display was rounded instead of truncated");

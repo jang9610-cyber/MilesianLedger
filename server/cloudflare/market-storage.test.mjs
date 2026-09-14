@@ -93,14 +93,16 @@ test('only complete listing scans replace supply, empty completed scan means zer
   assert.equal(snapshot.items_24h[0].lowest_listing_price, null);
 }));
 
-test('quotes preserve all-option lowest price but rankings avoid unsafe comparison', () => fixture(s => {
+test('same-name quotes use all categories while rows retain their own category minimum', () => fixture(s => {
   commit(s, 'list', [trade('a', NOW, { price: 30 }), trade('b', NOW, { price: 5, comparable: 0 }), trade('c', NOW, { category: '다른 분류', price: 15 })]);
   const snapshot = s.buildSnapshot(NOW);
   assert.equal(snapshot.quotes.length, 1);
   assert.equal(snapshot.quotes[0].unit_price, 5);
   assert.equal(snapshot.quotes[0].listing_count, 3);
   assert.equal(snapshot.quotes[0].quantity, 30);
-  assert.equal(snapshot.items_24h.find(i => i.category === '천옷/방직').lowest_listing_price, null);
+  assert.equal(snapshot.items_24h.find(i => i.category === '천옷/방직').lowest_listing_price, 5);
+  assert.equal(snapshot.items_24h.find(i => i.category === '천옷/방직').price_comparable, true, 'legacy option metadata cannot hide material prices');
+  assert.equal(snapshot.items_24h.find(i => i.category === '다른 분류').lowest_listing_price, 15);
 }));
 
 test('rolling boundaries use exact trade times and do not count future records', () => fixture(s => {

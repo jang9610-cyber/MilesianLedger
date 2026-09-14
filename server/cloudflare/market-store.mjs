@@ -1,6 +1,7 @@
 import { SCHEMA } from './market-schema.mjs';
 import { RETENTION } from './market-core.mjs';
 import { isUnnamedEnchantScroll } from './market-enchant.mjs';
+import { isPriceComparable, PRICE_COMPARISON_POLICY_VERSION } from './market-price-policy.mjs';
 import { encodeChunks, decodeChunk, itemKey, addSafe, MAX_CHUNK_BYTES } from './market-chunks.mjs';
 
 const DAY = 86400_000;
@@ -97,7 +98,7 @@ export class MarketStore {
   }
   publicationSignature() {
     const runs = `${this.meta('history_published') || ''}|${this.meta('list_published') || ''}`;
-    return runs === '|' ? runs : 'enchant-names-v1:' + runs;
+    return runs === '|' ? runs : PRICE_COMPARISON_POLICY_VERSION + ':' + runs;
   }
   published(kind) {
     return this.one("SELECT * FROM market_v2_runs WHERE id=? AND state='complete'", this.meta(`${kind}_published`) || '');
@@ -209,15 +210,15 @@ export class MarketStore {
     const since24 = now - DAY, since7 = now - 7 * DAY;
     const day = new Map(), week = new Map(), stock = new Map();
     const sales = (map, names, values) => {
-      const [i, time, quantity, trades, gold, comparable] = values;
+      const [i, time, quantity, trades, gold] = values;
       const [name, category] = names[i], key = itemKey(name, category);
       if (!map.has(key)) {
         if (map.size >= MAX_SNAPSHOT_NAMES) throw Error('MARKET_SNAPSHOT_TOO_MANY_ITEMS');
-        map.set(key, { name, category, sold_quantity: 0, trade_count: 0, traded_gold: 0, comparable: 1 });
+        map.set(key, { name, category, sold_quantity: 0, trade_count: 0, traded_gold: 0 });
       }
       const item = map.get(key);
       item.sold_quantity = addSafe(item.sold_quantity, quantity); item.trade_count = addSafe(item.trade_count, trades);
-      item.traded_gold = addSafe(item.traded_gold, gold); item.comparable = Math.min(item.comparable, comparable);
+      item.traded_gold = addSafe(item.traded_gold, gold);
     };
     for (const chunk of this.iterate(`SELECT c.payload FROM market_v2_chunks c
       JOIN market_v2_runs r ON r.id=c.run_id WHERE r.kind='history' AND r.state='complete' AND c.max_time>=? AND c.min_time<=?`, since7, now)) {
@@ -231,15 +232,15 @@ export class MarketStore {
     const list = publishedList && publishedList.started >= now - RETENTION ? publishedList : null;
     if (list) for (const chunk of this.iterate('SELECT payload FROM market_v2_chunks WHERE run_id=? ORDER BY page,part', list.id)) {
       const data = decodeChunk(chunk.payload);
-      for (const [i, lots, quantity, price, comparable] of data.listings) {
+      for (const [i, lots, quantity, price] of data.listings) {
         const [name, category] = data.names[i], key = itemKey(name, category);
         if (!stock.has(key)) {
           if (stock.size >= MAX_SNAPSHOT_NAMES) throw Error('MARKET_SNAPSHOT_TOO_MANY_ITEMS');
-          stock.set(key, { name, category, listed_quantity: 0, listing_count: 0, min_price: price, comparable: 1 });
+          stock.set(key, { name, category, listed_quantity: 0, listing_count: 0, min_price: price });
         }
         const item = stock.get(key);
         item.listed_quantity = addSafe(item.listed_quantity, quantity); item.listing_count = addSafe(item.listing_count, lots);
-        item.min_price = Math.min(item.min_price, price); item.comparable = Math.min(item.comparable, comparable);
+        item.min_price = Math.min(item.min_price, price);
       }
     }
     const combine = map => {
@@ -247,14 +248,17 @@ export class MarketStore {
       if (keys.size > MAX_SNAPSHOT_NAMES) throw Error('MARKET_SNAPSHOT_TOO_MANY_ITEMS');
       return [...keys].sort().map(key => {
         const trade = map.get(key), listing = stock.get(key), source = trade || listing;
-        const comparable = !isUnnamedEnchantScroll(source.name) && Math.min(trade?.comparable ?? 1, listing?.comparable ?? 1) === 1;
+        // Older chunks recorded a narrow allowlist and rejected any option metadata.
+        // Derive the current policy from the retained identity, without rewriting
+        // chunks or fetching trades again (which would also break exact ID dedup).
+        const comparable = isPriceComparable(source.name, source.category);
         return { name: source.name, category: source.category, image_url: null,
           sold_quantity: trade ? trade.sold_quantity : 0, trade_count: trade ? trade.trade_count : 0,
           traded_gold: trade ? trade.traded_gold : 0,
           listed_quantity: list ? (listing ? listing.listed_quantity : 0) : null,
           listing_count: list ? (listing ? listing.listing_count : 0) : null,
           average_sale_price: comparable && trade?.sold_quantity && trade.traded_gold !== null ? trade.traded_gold / trade.sold_quantity : null,
-          lowest_listing_price: comparable ? listing?.min_price ?? null : null,
+          lowest_listing_price: isUnnamedEnchantScroll(source.name) ? null : listing?.min_price ?? null,
           price_comparable: comparable };
       });
     };

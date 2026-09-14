@@ -1,9 +1,9 @@
 // Official auction schema: https://openapi.nexon.com/static/api/mabinogi/36_ko_script20250410023004.yaml
 import { namedEnchantScroll } from './market-enchant.mjs';
+import { isPriceComparable } from './market-price-policy.mjs';
 export const HISTORY_INTERVAL = 20 * 60_000;
 export const LIST_INTERVAL = 60 * 60_000;
 export const RETENTION = 8 * 24 * 60 * 60_000;
-export const COMPARABLE = new Set(['허브', '천옷/방직', '제련/블랙스미스', '힐웬 공학', '매직 크래프트', '포션', '음식', '기타 재료', '개조석', '퍼퓸']);
 export function json(value, status = 200, headers = {}) {
   return new Response(JSON.stringify(value), { status, headers: {
     'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store',
@@ -25,7 +25,7 @@ export function validateMarketPage(value, kind, now = Date.now()) {
     if (!Array.isArray(item.item_option ?? [])) throw Error('MARKET_INVALID_OPTIONS');
     // Only identified scrolls get an option-derived name; equipment remains name-level.
     const scrollName = namedEnchantScroll(item);
-    const comparable = !!scrollName || COMPARABLE.has(item.auction_item_category) && !(item.item_option?.length);
+    const comparable = isPriceComparable(scrollName || item.item_name, item.auction_item_category);
     const row = { name: scrollName || item.item_name, category: item.auction_item_category,
       quantity: item.item_count, price: item.auction_price_per_unit, comparable: comparable ? 1 : 0 };
     if (kind === 'history') {

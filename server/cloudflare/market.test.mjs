@@ -102,10 +102,13 @@ test('repeating cursor rolls back the entire bad page', () => storeFixture(s => 
   assert.throws(() => s.commitPage(s.active('history'), page('history', [sale('b')], 'x'), NOW), /REPEAT_CURSOR/);
   assert.equal(s.rankings(query({}), NOW).items.length, 0);
 }));
-test('equipment and option variants do not expose misleading name-level prices', () => storeFixture(s => {
+test('equipment suppresses averages while material option metadata does not', () => storeFixture(s => {
   const run = s.start('history', NOW);
   s.commitPage(run, page('history', [sale('a', { item_option: [{ option_value: '특수' }] }), sale('b', { item_name: '검', auction_item_category: '검' })]), NOW);
-  for (const r of s.rankings(query({}), NOW).items) { assert.equal(r.price_comparable, false); assert.equal(r.average_sale_price, null); }
+  const items = s.rankings(query({}), NOW).items;
+  const equipment = items.find(item => item.name === '검'), material = items.find(item => item.name === '거미줄');
+  assert.equal(equipment.price_comparable, false); assert.equal(equipment.average_sale_price, null);
+  assert.equal(material.price_comparable, true); assert.equal(material.average_sale_price, 200);
 }));
 test('empty successful snapshot means zero supply; expired data is marked stale', () => storeFixture(s => {
   s.commitPage(s.start('history', NOW), page('history', [sale()]), NOW);

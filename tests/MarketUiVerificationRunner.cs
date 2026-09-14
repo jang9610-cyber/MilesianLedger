@@ -119,6 +119,7 @@ public static class MarketUiVerificationRunner
             VerifyInsights(output);
             VerifyRiskViews(output);
             VerifyCategoryTree(output);
+            VerifyPriceCategoryPolicy(output);
             Check(requests == 8, "insight filters, favorites and restart must not make network requests");
             var empty = new MarketStatisticsView(null, "오프라인 연결 미설정"); window = new Window { Content = empty, Width = 830, Height = 650, Left = -18000, Top = -18000, ShowActivated = false, ShowInTaskbar = false };
             window.Show(); Pump(); Check(!empty.RefreshButton.IsEnabled && empty.Table.Items.Count == 0, "unconfigured view must remain a local empty state"); empty.Dispose();
@@ -284,6 +285,39 @@ public static class MarketUiVerificationRunner
             Console.WriteLine("PASS game category tree: parent descendants, same-name leaf identity, unknown API categories, risk/favorite/initial intersections, empty-period/publication/navigation state and independent tree/table scrolling at minimum light/dark size; no network.");
         } catch { Capture(window, Path.Combine(output, "category-failure.png")); throw; }
         finally { view.Dispose(); window.Close(); }
+    }
+    static void VerifyPriceCategoryPolicy(string output)
+    {
+        var gem = InsightItem("고정 품목 보석", "보석", 2, 2, 5, null, null, false); gem.TradedGold = 360;
+        var expensive = InsightItem("큰 가격 차이 쿠폰", "뷰티 쿠폰", 2, 2, 5, null, 100, false); expensive.TradedGold = 1200;
+        var amulet = InsightItem("유동 옵션 애뮬릿", "애뮬릿", 2, 2, 5, 900, 100, true);
+        var unnamed = InsightItem("전용 인챈트 스크롤", "인챈트 스크롤", 2, 2, 5, 900, 100, true);
+        DateTime stamp = DateTime.UtcNow;
+        var items = new List<MarketSnapshotItem> { gem, expensive, amulet, unnamed };
+        var data = new MarketSnapshotData { Version = "category-policy", GeneratedUtc = stamp, ListingsFetchedUtc = stamp,
+            Items24h = items, Items7d = new List<MarketSnapshotItem>(), Status = new Dictionary<string, object>(),
+            Quotes = new Dictionary<string, MarketSnapshotQuote> {
+                { gem.Name, new MarketSnapshotQuote { Name = gem.Name, UnitPrice = 100, ListingCount = 5, Quantity = 5, FetchedUtc = stamp } },
+                { unnamed.Name, new MarketSnapshotQuote { Name = unnamed.Name, UnitPrice = 100, ListingCount = 5, Quantity = 5, FetchedUtc = stamp } }
+            } };
+        MarketPricePolicy.Apply(data);
+        var view = new MarketStatisticsView(null, "평균 분류 검증") { Margin = new Thickness(24) };
+        var window = new Window { Content = view, Width = 1130, Height = 820, Left = -18000, Top = -18000, ShowActivated = false, ShowInTaskbar = false };
+        int before = requests;
+        try {
+            window.Show(); Publish(view, data);
+            var rows = Rows(view);
+            Check(rows.Count == 3 && rows.Single(row => row.Name == gem.Name).AveragePriceText == "180"
+                && rows.Single(row => row.Name == gem.Name).LowestPriceText == "100", "restored fixed-category prices did not reach the statistics table");
+            var option = rows.Single(row => row.Name == amulet.Name);
+            Check(option.AveragePriceText == "옵션 제외" && option.AveragePriceDetail.Contains("유동 옵션") && option.LowestPriceText == "100", "variable-option mean/lowest explanation mismatch");
+            var unidentified = rows.Single(row => row.Name == unnamed.Name);
+            Check(unidentified.AveragePriceText == "이름 미확인" && unidentified.AveragePriceDetail.Contains("인챈트 이름") && unidentified.LowestPriceText == "미확인", "unidentified enchant identity was treated as an equipment option");
+            view.RiskOnlyInput.IsChecked = true; Pump();
+            Check(Rows(view).Count == 1 && Rows(view)[0].Name == expensive.Name && Rows(view)[0].RiskMultipleText == "6배", "restored fixed-category mean bypassed five-times risk filtering");
+            Check(requests == before, "restoring fixed-category means triggered a network request");
+            Console.WriteLine("PASS restored fixed-category means/minima in table, variable-option and unidentified-enchant explanations, five-times filtering; no network.");
+        } finally { view.Dispose(); window.Close(); }
     }
     static void VerifyRiskViews(string output)
     {

@@ -154,7 +154,18 @@ public static class MarketSnapshotLiveVerificationRunner
             if (searchedQuotes <= names.Length) throw new Exception("PIP live fixture does not contain items beyond barter materials.");
             Console.WriteLine("PASS PIP search against every priced market quote: " + searchedQuotes + " names; zero extra HTTP requests");
             var enchants = VerifyEnchantScrolls(client.CachedData, search);
+            foreach (var item in client.CachedData.Items24h.Concat(client.CachedData.Items7d)) {
+                bool comparable = MarketPricePolicy.IsComparable(item.Name, item.Category);
+                if (item.PriceComparable != comparable || (!comparable && item.AverageSalePrice.HasValue))
+                    throw new Exception("Live item did not apply the variable-category average policy: " + item.Name);
+                if (comparable && item.SoldQuantity > 0 && item.TradeCount > 0 && item.TradedGold >= 0 && !item.AverageSalePrice.HasValue)
+                    throw new Exception("Live fixed-category observed average is still hidden: " + item.Name);
+            }
+            int averageCount = client.CachedData.Items24h.Count(item => item.AverageSalePrice.HasValue);
+            int variableCount = client.CachedData.Items24h.Count(item => MarketPricePolicy.IsVariableOptionCategory(item.Category));
+            Console.WriteLine("PASS live category-average policy: 24h visible averages=" + averageCount + ", variable-option items=" + variableCount);
             var report = new { verified_at = DateTime.UtcNow.ToString("o"), first_requests = first.Requests, whole_item_requests = batchRequests,
+                comparable_average_items24h = averageCount, variable_option_items24h = variableCount,
                 pip_search_names = search.Count, pip_verified_quotes = searchedQuotes,
                 named_enchant_count = enchants.NamedCount, named_enchant_verified_count = enchants.VerifiedCount,
                 named_enchant_priced_quotes = enchants.PricedQuotes, named_enchant_partial_search_verified = enchants.PartialSearchVerified,

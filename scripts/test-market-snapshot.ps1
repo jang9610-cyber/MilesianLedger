@@ -9,7 +9,7 @@ $taskArgs = @('/nologo', '/target:exe', '/codepage:65001', ('/out:' + $taskRunne
 foreach ($taskReference in @('System.dll','System.Core.dll','System.Net.Http.dll','System.Web.Extensions.dll')) {
     $taskArgs += '/reference:' + (Join-Path $taskFramework $taskReference)
 }
-foreach ($taskSource in @('src/MarketSnapshot.cs','src/AuctionCore.cs','src/AuctionProxyConfig.cs','tests/MarketSnapshotVerificationRunner.cs')) {
+foreach ($taskSource in @('src/MarketSnapshot.cs','src/MarketPricePolicy.cs','src/MarketPrices.cs','src/AuctionCore.cs','src/AuctionProxyConfig.cs','tests/MarketSnapshotVerificationRunner.cs')) {
     $taskArgs += Join-Path $taskRoot $taskSource
 }
 & (Join-Path $taskFramework 'csc.exe') @taskArgs

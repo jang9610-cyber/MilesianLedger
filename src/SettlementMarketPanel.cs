@@ -358,7 +358,10 @@ namespace MabinogiBarter
                 ReferencePanel.Children.Add(Label("24시간 평균 판매단가 · " + Average(indexed.Average24, entry.Name), 12, "#202D35", false));
                 ReferencePanel.Children.Add(Label("7일 평균 판매단가 · " + Average(indexed.Average7, entry.Name), 12, "#202D35", false));
                 if (entry.IsEnchantScroll) ReferencePanel.Children.Add(Label("같은 인챈트 이름 · 스크롤 종류 기준", 11, "#728087", false));
-            } else ReferencePanel.Children.Add(Label("옵션별 가격 차이가 있는 참고 최저가입니다. 평균 판매단가는 표시하지 않습니다.", 11, "#916020", false));
+            } else {
+                string reason = MarketPricePolicy.ExclusionReason(entry.Name, entry.Category);
+                ReferencePanel.Children.Add(Label(String.IsNullOrEmpty(reason) ? "평균 판매단가를 비교할 자료를 확인하지 못했습니다." : reason, 11, "#916020", false));
+            }
             ReferencePanel.Children.Add(Label("매물 수집 " + Stamp(entry.FetchedUtc) + " · 모든 가격은 개당 기준", 11, "#728087", false));
         }
 

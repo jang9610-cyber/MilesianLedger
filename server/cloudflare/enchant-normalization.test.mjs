@@ -95,11 +95,12 @@ test('malformed rank tokens cannot make unidentified scrolls price comparable', 
   }
 });
 
-test('equipment, random scrolls and bundles retain their original names and comparability', () => {
-  for (const item of [raw({ item_name: '테스트 검', auction_item_category: '한손검' }),
-    raw({ item_name: '랜덤 인챈트 스크롤' }), raw({ item_name: '인챈트 스크롤 꾸러미' }),
+test('equipment stays excluded while separately named scroll bundles retain their own prices', () => {
+  const equipment = raw({ item_name: '테스트 검', auction_item_category: '한손 장비' });
+  assert.equal(parsed(equipment).name, equipment.item_name); assert.equal(parsed(equipment).comparable, 0);
+  for (const item of [raw({ item_name: '랜덤 인챈트 스크롤' }), raw({ item_name: '인챈트 스크롤 꾸러미' }),
     raw({ item_name: '인챈트 스크롤 선택 상자' })]) {
-    const row = parsed(item); assert.equal(row.name, item.item_name); assert.equal(row.comparable, 0);
+    const row = parsed(item); assert.equal(row.name, item.item_name); assert.equal(row.comparable, 1);
   }
   const material = parsed(raw({ item_name: '거미줄', auction_item_category: '천옷/방직', item_option: [] }));
   assert.equal(material.name, '거미줄'); assert.equal(material.comparable, 1);

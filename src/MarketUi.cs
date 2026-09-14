@@ -37,12 +37,15 @@ namespace MabinogiBarter
         public string SoldQuantityText { get { return Count(Item.SoldQuantity); } }
         public string TradeCountText { get { return Count(Item.TradeCount); } }
         public string TradedGoldText { get { return Price(Item.TradedGold); } }
-        public string AveragePriceText { get { return !IsObserved ? "—" : Item.PriceComparable ? Price(Item.AverageSalePrice) : "옵션 제외"; } }
+        public string AveragePriceText { get { return !IsObserved ? "—" : Item.PriceComparable ? Price(Item.AverageSalePrice)
+            : MarketPricePolicy.IsUnidentifiedEnchant(Item.Name) ? "이름 미확인"
+            : MarketPricePolicy.IsVariableOptionCategory(Item.Category) ? "옵션 제외" : "평균 미확인"; } }
+        string AverageExclusionReason { get { string reason = MarketPricePolicy.ExclusionReason(Item.Name, Item.Category); return String.IsNullOrEmpty(reason) ? "평균 단가를 비교할 자료를 확인하지 못했습니다." : reason; } }
         public string AveragePriceDetail
         {
             get {
                 if (!IsObserved) return "선택 기간에 관측된 거래가 없습니다.";
-                if (!Item.PriceComparable) return "옵션별 가격 차이로 단가 비교에서 제외합니다.";
+                if (!Item.PriceComparable) return AverageExclusionReason;
                 if (!Item.AverageSalePrice.HasValue || !Item.TradedGold.HasValue || !(Item.SoldQuantity > 0))
                     return "평균 거래 단가를 계산할 정보가 없습니다.";
                 return "거래 금액 " + Price(Item.TradedGold) + " G ÷ 판매 수량 " + Count(Item.SoldQuantity)
@@ -79,7 +82,7 @@ namespace MabinogiBarter
                 return "—";
             }
         }
-        public string Detail { get { return Name + " · " + Category + " · " + (riskView || !IsObserved || opportunity != MarketOpportunity.All ? OpportunityDetail : Item.PriceComparable ? "모든 거래를 포함한 수량 가중 평균 · 고가 거래의 영향을 받을 수 있습니다." : "최저가는 옵션이 다른 매물을 포함한 참고값입니다. 평균 단가는 비교하지 않습니다."); } }
+        public string Detail { get { return Name + " · " + Category + " · " + (riskView || !IsObserved || opportunity != MarketOpportunity.All ? OpportunityDetail : Item.PriceComparable ? "모든 거래를 포함한 수량 가중 평균 · 고가 거래의 영향을 받을 수 있습니다." : AverageExclusionReason); } }
         public MarketStatisticsRow(MarketSnapshotItem item, bool isObserved = true, decimal? referenceLowest = null, bool isNameQuote = false)
         {
             Item = item; IsObserved = isObserved; SearchKey = KoreanNameSearch.Normalize(item.Name);

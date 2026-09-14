@@ -70,6 +70,22 @@ public static class OcrMarketMatcherVerificationRunner
             Check(!rows[4].Exact && rows[4].Text == "거미쥴" && rows[4].Candidates.Count > 0, "spelling suggestion follows earlier candidate row");
             Check(rows[5].Text == hudRows[0] && rows[6].Text == hudRows[1], "unknown rows remain editable in stable order after item rows");
             Check(matcher.Resolve(hudRows)[0].Text == hudRows[0] && matcher.Resolve(hudRows)[99].Text == hudRows[99], "default mode preserves original first-100 behavior");
+            foreach (bool prioritize in new[] { false, true }) {
+                var onlyItems = matcher.Resolve(hudRows, prioritize, marketItemsOnly: true);
+                Equal(5, onlyItems.Count, "unknown HUD before known and packed names does not consume output limit");
+                bool noListing = false, enchantCandidate = false, fuzzyCandidate = false;
+                foreach (var row in onlyItems) {
+                    Check(row.Candidates.Count > 0, "market-only result never contains unknown text");
+                    if (row.Text == "나무장작") noListing = row.Exact && !row.Candidates[0].HasListing;
+                    if (row.Text == "대지의") enchantCandidate = !row.Exact && row.Candidates.Count == 2;
+                    if (row.Text == "거미쥴") fuzzyCandidate = !row.Exact && row.Candidates[0].Name == "거미줄";
+                }
+                Check(noListing, "known market identity without listing is retained");
+                Check(enchantCandidate, "ambiguous named/dedicated enchant variants remain unconfirmed choices");
+                Check(fuzzyCandidate, "spelling candidate remains unconfirmed instead of receiving automatic price");
+                Equal(0, matcher.Resolve(new[] { "어느 이름과도 비슷하지 않은 화면 안내", "없는 화면 안내 문구" }, prioritize, true).Count, "all-unknown OCR produces empty market-only result");
+                Equal(0, new OcrMarketMatcher(null).Resolve(new[] { "거미줄", "대지의" }, prioritize, true).Count, "no cached market produces empty market-only result");
+            }
             var beyondLimit = new List<string>();
             for (int i = 0; i < 256; i++) beyondLimit.Add("알 수 없는 화면 문구 " + i);
             beyondLimit.Add("거미줄");
@@ -109,6 +125,17 @@ public static class OcrMarketMatcherVerificationRunner
             var packedLarge = largeMatcher.Resolve(packedRows, true);
             Equal(100, packedLarge.Count, "600 packed identities retain a capped prioritized result");
             for (int i = 0; i < 100; i++) Check(packedLarge[i].Text == "아이템" + i.ToString("D5") + " 종류", "packed result stable order survives intermediate bound");
+            var hudAndPacked = new List<string>();
+            for (int i = 0; i < 110; i++) hudAndPacked.Add("정확한 품목과 무관한 화면 문구 " + i);
+            hudAndPacked.AddRange(packedRows);
+            var filteredTimer = Stopwatch.StartNew();
+            foreach (bool prioritize in new[] { false, true }) {
+                var filteredPacked = largeMatcher.Resolve(hudAndPacked, prioritize, true);
+                Equal(100, filteredPacked.Count, "market-only filtering happens before 100-result cutoff");
+                for (int i = 0; i < 100; i++) Check(filteredPacked[i].Exact && filteredPacked[i].Text == "아이템" + i.ToString("D5") + " 종류", "market-only filtering preserves packed identity order");
+            }
+            filteredTimer.Stop();
+            Check(filteredTimer.Elapsed < TimeSpan.FromSeconds(15), "market-only scan remains bounded for 17k catalog and HUD/packed inputs");
             var ambiguousData = Data(); var ambiguousLines = new List<string>();
             for (int i = 0; i < 52; i++) {
                 var names = new List<string>();

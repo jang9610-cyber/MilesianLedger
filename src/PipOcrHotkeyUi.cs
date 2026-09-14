@@ -31,11 +31,11 @@ namespace MabinogiBarter
             AutomationProperties.SetName(CaptureHotkeyChoice, "전체 촬영 단축키 선택");
             var row = new Grid(); row.ColumnDefinitions.Add(new ColumnDefinition()); row.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
             row.Children.Add(CaptureHotkeyChoice);
-            CaptureHotkeyRetry = SmallButton("다시 등록", delegate { if (captureHotkey != null) captureHotkey.Retry(); });
+            CaptureHotkeyRetry = SmallButton("다시 연결", delegate { if (captureHotkey != null) captureHotkey.Retry(); });
             Grid.SetColumn(CaptureHotkeyRetry, 1); row.Children.Add(CaptureHotkeyRetry); body.Children.Add(row);
             CaptureHotkeyStatus = Label("단축키 꺼짐", 11, Muted, false); CaptureHotkeyStatus.TextWrapping = TextWrapping.Wrap;
             CaptureHotkeyStatus.Margin = new Thickness(0, 6, 0, 0); body.Children.Add(CaptureHotkeyStatus);
-            var help = Label("Alt를 누른 채 지정 키를 한 번 누르세요.\n마우스가 있는 모니터 전체를 즉시 촬영합니다.\n항상 위에 뜬 장부 창이 가린 부분은 읽지 않습니다.", 11, Muted, false);
+            var help = Label("Alt를 누른 채 지정 키를 한 번 누르세요.\n백그라운드 입력 감지: Raw Input\n마우스가 있는 모니터 전체를 즉시 촬영합니다.\n장부 창이 가린 부분은 읽지 않습니다.\n촬영되지 않으면 위의 ‘입력 수신’ 표시를 확인하세요.", 11, Muted, false);
             help.TextWrapping = TextWrapping.Wrap; help.Margin = new Thickness(0, 6, 0, 0); body.Children.Add(help);
             CaptureHotkeyPanel = new Expander { Content = body, Foreground = Ink, FontSize = 12,
                 HorizontalContentAlignment = HorizontalAlignment.Stretch, Margin = new Thickness(0, 3, 0, 9) };

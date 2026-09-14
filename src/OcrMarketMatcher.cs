@@ -66,10 +66,10 @@ namespace MabinogiBarter
             });
         }
 
-        public List<OcrMarketMatch> Resolve(IEnumerable<string> lines, bool prioritizeItems = false)
+        public List<OcrMarketMatch> Resolve(IEnumerable<string> lines, bool prioritizeItems = false, bool marketItemsOnly = false)
         {
             var result = new List<OcrMarketMatch>(); var seen = new HashSet<string>(StringComparer.Ordinal);
-            if (lines == null) return result;
+            if (lines == null || (marketItemsOnly && search.Count == 0)) return result;
             int characters = 0, lineCount = 0;
             foreach (string input in lines) {
                 if (lineCount++ >= MaximumInputLines || characters >= MaximumInputCharacters || (!prioritizeItems && result.Count >= MaximumRows)) break;
@@ -84,12 +84,12 @@ namespace MabinogiBarter
                     if (text.Length == 0) continue;
                     List<MarketSearchEntry> matches;
                     if (exact.TryGetValue(Key(text), out matches)) {
-                        Append(result, seen, Match(text, original, matches, true), prioritizeItems); continue;
+                        Append(result, seen, Match(text, original, matches, true), prioritizeItems, marketItemsOnly); continue;
                     }
                     List<OcrMarketMatch> packed = Packed(text, original);
                     if (packed.Count > 1) {
-                        foreach (OcrMarketMatch match in packed) Append(result, seen, match, prioritizeItems);
-                    } else Append(result, seen, Match(text, original, Suggest(text), false), prioritizeItems);
+                        foreach (OcrMarketMatch match in packed) Append(result, seen, match, prioritizeItems, marketItemsOnly);
+                    } else Append(result, seen, Match(text, original, Suggest(text), false), prioritizeItems, marketItemsOnly);
                 }
             }
             if (prioritizeItems) {
@@ -194,8 +194,12 @@ namespace MabinogiBarter
             return match;
         }
         static int Rank(OcrMarketMatch match) { return match.Exact ? 0 : match.Candidates.Count > 0 ? 1 : 2; }
-        static void Append(List<OcrMarketMatch> rows, HashSet<string> seen, OcrMarketMatch match, bool prioritizeItems)
+        static void Append(List<OcrMarketMatch> rows, HashSet<string> seen, OcrMarketMatch match, bool prioritizeItems, bool marketItemsOnly)
         {
+            // Filter before the output/buffer cap, so a HUD paragraph cannot
+            // consume the result slots before a later known item is examined.
+            // A known identity remains eligible even without a current listing.
+            if (marketItemsOnly && match.Candidates.Count == 0) return;
             string key = Key(match.Text);
             if (seen.Contains(key)) return;
             int limit = prioritizeItems ? MaximumPrioritizedMatches : MaximumRows;

@@ -18,6 +18,7 @@ namespace MabinogiBarter
         bool ocrMode, ocrBusy, ocrMatching, ocrWholeScreen;
         int ocrRevision, ocrMatchRevision;
         string ocrAppliedText = "";
+        string ocrEditorAppliedText = "";
         List<OcrMarketMatch> ocrMatches = new List<OcrMarketMatch>();
         readonly Dictionary<string, string> ocrChoices = new Dictionary<string, string>(StringComparer.Ordinal);
 
@@ -49,7 +50,7 @@ namespace MabinogiBarter
                 FontSize = 13, Padding = new Thickness(8), VerticalScrollBarVisibility = ScrollBarVisibility.Auto,
                 HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled };
             LedgerControls.StyleTextInput(OcrLinesInput);
-            OcrLinesInput.ToolTip = "아이템 이름을 한 줄에 하나씩 수정하세요. 없는 품목도 남겨 두며, 같은 이름은 합칩니다.";
+            OcrLinesInput.ToolTip = "아이템 이름을 한 줄에 하나씩 수정하세요. 경매장 데이터에서 찾은 이름만 남기며, 같은 이름은 합칩니다.";
             AutomationProperties.SetName(OcrLinesInput, "인식한 아이템 이름 여러 줄 수정"); editor.Children.Add(OcrLinesInput);
             OcrApplyButton = SmallButton("수정한 이름 검색", ApplyEditedOcr);
             OcrApplyButton.Margin = new Thickness(0, 7, 0, 0); editor.Children.Add(OcrApplyButton);
@@ -66,7 +67,7 @@ namespace MabinogiBarter
         }
         public async void CaptureMonitorForOcr()
         {
-            // Registered hotkeys work while the game keeps keyboard focus.
+            // Background input can request a capture without activating the PIP.
             // A disabled/hidden PIP must not capture behind a modal or on close.
             if (closed || !IsVisible || WindowState == WindowState.Minimized || !marketSearchRoot.IsEnabled || !PipWindowBehavior.IsNativeEnabled(this)) return;
             await CaptureItemsAsync(CaptureMonitorAsync, true);
@@ -96,8 +97,11 @@ namespace MabinogiBarter
                 if (String.IsNullOrWhiteSpace(text)) {
                     SearchMessage("글자를 읽지 못했습니다. 아이템 이름이 크게 보이도록 영역을 좁혀 다시 촬영하세요.", true); return;
                 }
-                OcrLinesInput.Text = text.Length > 16000 ? text.Substring(0, 16000) : text;
-                ocrAppliedText = OcrLinesInput.Text; ocrMode = true; ocrWholeScreen = wholeScreen;
+                // Keep raw OCR only in memory for a later shared-data refresh.
+                // HUD text must not leak into the editable item list either.
+                ocrAppliedText = text.Length > 16000 ? text.Substring(0, 16000) : text;
+                OcrLinesInput.Clear(); ocrEditorAppliedText = "";
+                ocrMode = true; ocrWholeScreen = wholeScreen;
                 ocrMatches.Clear(); ocrChoices.Clear(); OcrEditor.IsExpanded = false;
                 SearchMessage("", false);
                 await ResolveOcrTextAsync(true);
@@ -121,6 +125,7 @@ namespace MabinogiBarter
             if (closed || OcrBusy) return;
             if (String.IsNullOrWhiteSpace(OcrLinesInput.Text)) { SearchMessage("검색할 아이템 이름을 한 줄에 하나씩 입력하세요.", true); return; }
             ocrAppliedText = OcrLinesInput.Text; ocrMatches.Clear(); ocrChoices.Clear(); OcrEditor.IsExpanded = false;
+            OcrLinesInput.Clear(); ocrEditorAppliedText = "";
             await ResolveOcrTextAsync(true);
         }
         async Task ResolveOcrTextAsync(bool resetScroll)
@@ -131,9 +136,14 @@ namespace MabinogiBarter
             ocrMatching = true; UpdateOcrControls();
             RenderMarketSearch(resetScroll);
             try {
-                var matches = await Task.Run(() => new OcrMarketMatcher(data).Resolve(text.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries), prioritizeItems), searchLifetime.Token);
+                var matches = await Task.Run(() => new OcrMarketMatcher(data).Resolve(text.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries), prioritizeItems, true), searchLifetime.Token);
                 if (closed || !ocrMode || revision != ocrMatchRevision || !Object.ReferenceEquals(data, searchSnapshot)) return;
                 ocrMatches = matches; ocrMatching = false;
+                // A price refresh must not overwrite names being edited.
+                if (resetScroll || OcrLinesInput.Text == ocrEditorAppliedText) {
+                    ocrEditorAppliedText = String.Join("\n", VisibleOcrMatches().Select(match => match.Text));
+                    OcrLinesInput.Text = ocrEditorAppliedText;
+                }
                 RenderMarketSearch(resetScroll);
             } catch (OperationCanceledException) { }
             catch {
@@ -165,7 +175,7 @@ namespace MabinogiBarter
             ++ocrRevision; ++ocrMatchRevision;
             if (ocrOperation != null) ocrOperation.Cancel();
             ocrOperation = null; ocrBusy = false; ocrMatching = false; ocrMode = false;
-            ocrAppliedText = ""; ocrMatches.Clear(); ocrChoices.Clear();
+            ocrAppliedText = ""; ocrEditorAppliedText = ""; ocrMatches.Clear(); ocrChoices.Clear();
             OcrLinesInput.Clear(); OcrEditor.IsExpanded = false; SearchMessage("", false); UpdateOcrControls();
         }
         void CloseOcr()
@@ -173,7 +183,7 @@ namespace MabinogiBarter
             ++ocrRevision; ++ocrMatchRevision;
             if (ocrOperation != null) ocrOperation.Cancel();
             ocrMode = false; ocrBusy = false; ocrMatching = false;
-            ocrOperation = null; ocrMatches.Clear(); ocrChoices.Clear(); ocrAppliedText = "";
+            ocrOperation = null; ocrMatches.Clear(); ocrChoices.Clear(); ocrAppliedText = ""; ocrEditorAppliedText = "";
             OcrLinesInput.Clear(); CaptureRegionAsync = null; CaptureMonitorAsync = null; RecognizeImageAsync = null;
             if (captureHotkey != null) captureHotkey.Dispose();
         }
@@ -188,6 +198,7 @@ namespace MabinogiBarter
         {
             var result = new List<OcrMarketMatch>(); var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
             foreach (var match in ocrMatches) {
+                if (match.Candidates.Count == 0) continue;
                 var item = SelectedOcrItem(match);
                 string key = (item == null ? "raw:" : "item:") + KoreanNameSearch.Normalize(item == null ? match.Text : item.Name);
                 if (seen.Add(key)) result.Add(match);
@@ -207,18 +218,10 @@ namespace MabinogiBarter
             Grid.SetColumn(OcrClearButton, 1); header.Children.Add(OcrClearButton); SearchResultsPanel.Children.Add(header);
             SearchResultsPanel.Children.Add(OcrEditor);
             if (searchIndex == null) AddSearchNote("저장된 시세가 없습니다. 시세 받기를 누르면 인식한 이름을 공통 데이터에서 다시 찾습니다.");
-            if (ocrMatches.Count == 0) AddSearchNote(ocrMatching ? "인식한 이름을 공통 시세에서 찾는 중…" : "검색할 이름이 없습니다. 인식한 글자를 확인해 주세요.");
-            var unknown = new StackPanel(); int unknownCount = 0;
-            foreach (var match in visible) {
-                if (ocrWholeScreen && match.Candidates.Count == 0) { unknown.Children.Add(CreateOcrResult(match)); ++unknownCount; }
-                else SearchResultsPanel.Children.Add(CreateOcrResult(match));
-            }
-            if (unknownCount > 0) SearchResultsPanel.Children.Add(new Expander {
-                Header = "이름 미확인 " + unknownCount + "종 · 펼치기", Content = unknown, Foreground = Ink, FontSize = 12,
-                HorizontalContentAlignment = HorizontalAlignment.Stretch, Margin = new Thickness(0, 3, 0, 9),
-                ToolTip = "아이템이 아닌 화면 문구도 포함될 수 있습니다. 거래 불가 품목으로 확정한 목록은 아닙니다."
-            });
-            AddSearchNote("개당 참고 최저가 · 같은 이름은 한 번만 표시\n시세 미확인은 거래 불가 판정이 아닙니다.\n한 번에 최대 100종까지 표시합니다.");
+            if (visible.Count == 0 && (ocrMatching || searchIndex != null)) AddSearchNote(ocrMatching
+                ? "인식한 이름을 공통 시세에서 찾는 중…" : "경매장 품목과 일치하는 이름을 찾지 못했습니다. 아이템 이름이 선명하게 보이도록 다시 촬영하세요.");
+            foreach (var match in visible) SearchResultsPanel.Children.Add(CreateOcrResult(match));
+            AddSearchNote("경매장 데이터에서 찾은 품목만 표시합니다.\n개당 참고 최저가 · 중복 제외 · 최대 100종\n매물 없음은 거래 불가 판정이 아닙니다.");
             return true;
         }
         Border CreateOcrResult(OcrMarketMatch match)

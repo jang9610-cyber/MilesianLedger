@@ -82,13 +82,7 @@ namespace MabinogiBarter
 
         static void StyleStationPresetName(TextBox input)
         {
-            var template = new ControlTemplate(typeof(TextBox));
-            var border = new FrameworkElementFactory(typeof(Border), "Frame"); border.SetValue(Border.CornerRadiusProperty, new CornerRadius(8)); border.SetValue(Border.BorderThicknessProperty, new Thickness(1));
-            border.SetBinding(Border.BackgroundProperty, new Binding("Background") { RelativeSource = RelativeSource.TemplatedParent });
-            border.SetBinding(Border.BorderBrushProperty, new Binding("BorderBrush") { RelativeSource = RelativeSource.TemplatedParent });
-            var host = new FrameworkElementFactory(typeof(ScrollViewer), "PART_ContentHost"); border.AppendChild(host); template.VisualTree = border;
-            var hover = new Trigger { Property = UIElement.IsMouseOverProperty, Value = true }; hover.Setters.Add(new Setter(Border.BorderBrushProperty, B("#91B4A4"), "Frame")); template.Triggers.Add(hover);
-            var focus = new Trigger { Property = UIElement.IsKeyboardFocusWithinProperty, Value = true }; focus.Setters.Add(new Setter(Border.BorderBrushProperty, Green, "Frame")); template.Triggers.Add(focus); input.Template = template;
+            LedgerControls.StyleTextInput(input);
         }
 
         void RefreshStationPresetForm()

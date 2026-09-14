@@ -84,6 +84,7 @@ namespace MabinogiBarter
                 CaretBrush = AppTheme.Brush("#202D35"), SelectionBrush = AppTheme.Brush("#226C54"),
                 VerticalContentAlignment = VerticalAlignment.Center };
             ItemNameInput.ToolTip = "초성·이름을 섞어 검색할 수 있습니다. 예: ㄱㅁㅈ, 가는 ㅅㅁㅊ. 판매품 이름은 직접 입력해도 됩니다.";
+            LedgerControls.StyleTextInput(ItemNameInput);
             AutomationProperties.SetName(ItemNameInput, "정산 아이템 이름");
             inputRow.Children.Add(ItemNameInput);
             // The settlement page hosts this single action in its fixed header.
@@ -393,27 +394,10 @@ namespace MabinogiBarter
         static Button Button(string text)
         {
             var button = new Button { Content = text, FontSize = 12, FontWeight = FontWeights.SemiBold,
-                Padding = new Thickness(10, 6, 10, 6), Background = AppTheme.Surface,
-                Foreground = AppTheme.Brush("#202D35"), BorderBrush = AppTheme.Brush("#DCE5DF"),
+                Padding = new Thickness(14, 9, 14, 9), Background = AppTheme.Surface,
+                Foreground = AppTheme.Brush("#202D35"), BorderBrush = AppTheme.Brush("#E2E8E5"),
                 BorderThickness = new Thickness(1), Cursor = Cursors.Hand, MinHeight = 34 };
-            var template = new ControlTemplate(typeof(Button));
-            var border = new FrameworkElementFactory(typeof(Border));
-            border.SetValue(Border.CornerRadiusProperty, new CornerRadius(7));
-            border.SetBinding(Border.BackgroundProperty, new Binding("Background") { RelativeSource = RelativeSource.TemplatedParent });
-            border.SetBinding(Border.BorderBrushProperty, new Binding("BorderBrush") { RelativeSource = RelativeSource.TemplatedParent });
-            border.SetBinding(Border.BorderThicknessProperty, new Binding("BorderThickness") { RelativeSource = RelativeSource.TemplatedParent });
-            border.SetBinding(Border.PaddingProperty, new Binding("Padding") { RelativeSource = RelativeSource.TemplatedParent });
-            var presenter = new FrameworkElementFactory(typeof(ContentPresenter));
-            presenter.SetBinding(FrameworkElement.HorizontalAlignmentProperty, new Binding("HorizontalContentAlignment") { RelativeSource = RelativeSource.TemplatedParent });
-            presenter.SetBinding(FrameworkElement.VerticalAlignmentProperty, new Binding("VerticalContentAlignment") { RelativeSource = RelativeSource.TemplatedParent });
-            border.AppendChild(presenter); template.VisualTree = border;
-            var hover = new Trigger { Property = UIElement.IsMouseOverProperty, Value = true };
-            hover.Setters.Add(new Setter(UIElement.OpacityProperty, .84)); template.Triggers.Add(hover);
-            var pressed = new Trigger { Property = ButtonBase.IsPressedProperty, Value = true };
-            pressed.Setters.Add(new Setter(UIElement.OpacityProperty, .66)); template.Triggers.Add(pressed);
-            var disabled = new Trigger { Property = UIElement.IsEnabledProperty, Value = false };
-            disabled.Setters.Add(new Setter(UIElement.OpacityProperty, .45)); template.Triggers.Add(disabled);
-            button.Template = template; return button;
+            LedgerControls.StyleButton(button); return button;
         }
         public void Dispose()
         {

@@ -11,6 +11,8 @@ using System.Threading;
 using System.Web.Script.Serialization;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
+using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Threading;
@@ -86,6 +88,7 @@ public static class MarketUiVerificationRunner
             Capture(window, Path.Combine(output, "market-default-light.png"));
             foreach (bool dark in new[] { false, true }) {
                 AppTheme.SetDark(dark); window.Width = 830; window.Height = 650; Pump(); CheckLayout(view);
+                VerifySharedControls(view, output, dark);
                 Capture(window, Path.Combine(output, dark ? "market-minimum-dark.png" : "market-minimum-light.png"));
             }
             VerifyInitialSearch(view);
@@ -128,6 +131,72 @@ public static class MarketUiVerificationRunner
         finally { if (view != null) view.Dispose(); if (window != null) window.Close(); stopped = true; listener.Stop(); }
     }
     static void Check(bool value, string message) { if (!value) throw new Exception(message); }
+    static void VerifySharedControls(MarketStatisticsView view, string output, bool dark)
+    {
+        int before = requests;
+        Check(view.SearchInput.ActualHeight == 36 && view.RefreshButton.ActualHeight == 36,
+            "shared search field and refresh button must align with the trade dropdown height");
+        var inputBorder = view.SearchInput.Template.FindName("Frame", view.SearchInput) as Border;
+        Check(inputBorder != null && inputBorder.CornerRadius.TopLeft == 8, "search field is missing the shared rounded input chrome");
+        var inputs = new[] { view.PeriodInput, view.SortInput, view.OpportunityInput };
+        for (int index = 0; index < inputs.Length; index++) {
+            var combo = inputs[index]; int original = combo.SelectedIndex;
+            combo.ApplyTemplate(); combo.IsDropDownOpen = true;
+            var popup = combo.Template.FindName("PART_Popup", combo) as Popup;
+            Check(popup != null, "shared dropdown lost its native popup part");
+            Wait(() => popup.IsOpen && popup.Child != null && ((FrameworkElement)popup.Child).IsLoaded);
+            var menu = popup.Child as Border;
+            Check(menu != null && menu.CornerRadius.TopLeft == 8 && menu.ActualWidth >= combo.ActualWidth,
+                "shared dropdown popup must retain its rounded menu and minimum trigger width");
+            Check(popup.PopupAnimation == PopupAnimation.None, "shared AppMotion reveal must replace the legacy popup slide animation");
+            Check(SameColor(menu.Background, AppTheme.Surface) && SameColor(combo.Foreground, AppTheme.Brush("#202D35")),
+                "shared dropdown did not follow the active light/dark theme");
+            var selected = combo.ItemContainerGenerator.ContainerFromIndex(original) as ComboBoxItem;
+            Check(selected != null && selected.IsSelected && selected.IsEnabled, "opening a shared dropdown lost its active choice");
+            if (AppMotion.Enabled && menu.IsVisible) Wait(() => HasMotion(menu));
+            var settled = DateTime.UtcNow.AddMilliseconds(500); Wait(() => DateTime.UtcNow >= settled);
+            Check(!HasMotion(menu), "dropdown reveal left active animation clocks after arrival");
+            CaptureElement(menu, Path.Combine(output, "market-dropdown-" + index + (dark ? "-dark.png" : "-light.png")));
+            combo.IsDropDownOpen = false; Pump();
+            PressKey(combo, Key.End); Pump(); Check(combo.SelectedIndex == combo.Items.Count - 1, "shared dropdown lost End-key selection");
+            combo.SelectedIndex = original; Pump();
+        }
+        bool previousMotion = AppMotion.ReducedMotion;
+        try {
+            AppMotion.ReducedMotion = true; view.OpportunityInput.IsDropDownOpen = true; Pump();
+            var popup = (Popup)view.OpportunityInput.Template.FindName("PART_Popup", view.OpportunityInput);
+            Wait(() => popup.IsOpen && ((FrameworkElement)popup.Child).IsLoaded);
+            Check(!HasMotion(popup.Child) && popup.Child.Opacity == 1, "reduced motion must show the dropdown immediately without residual animation");
+            view.OpportunityInput.IsDropDownOpen = false; Pump();
+        } finally { AppMotion.ReducedMotion = previousMotion; }
+        Check(requests == before, "dropdown animations, keyboard selection and theme rendering must remain local");
+    }
+    static bool HasMotion(DependencyObject element)
+    {
+        var visual = element as UIElement;
+        if (visual != null && (visual.HasAnimatedProperties || Animated(visual.RenderTransform))) return true;
+        for (int i = 0; i < VisualTreeHelper.GetChildrenCount(element); i++) if (HasMotion(VisualTreeHelper.GetChild(element, i))) return true;
+        return false;
+    }
+    static bool Animated(Transform transform)
+    {
+        if (transform == null) return false; if (transform.HasAnimatedProperties) return true;
+        var group = transform as TransformGroup; return group != null && group.Children.Any(Animated);
+    }
+    static bool SameColor(Brush left, Brush right)
+    {
+        var first = left as SolidColorBrush; var second = right as SolidColorBrush;
+        return first != null && second != null && first.Color == second.Color;
+    }
+    static void PressKey(UIElement target, Key key)
+    {
+        target.RaiseEvent(new KeyEventArgs(Keyboard.PrimaryDevice, PresentationSource.FromVisual(target), Environment.TickCount, key) { RoutedEvent = Keyboard.KeyDownEvent });
+    }
+    static void CaptureElement(FrameworkElement element, string path)
+    {
+        element.UpdateLayout(); var bmp = new RenderTargetBitmap((int)Math.Ceiling(element.ActualWidth), (int)Math.Ceiling(element.ActualHeight), 96, 96, PixelFormats.Pbgra32);
+        bmp.Render(element); var encoder = new PngBitmapEncoder(); encoder.Frames.Add(BitmapFrame.Create(bmp)); using (var file = File.Create(path)) encoder.Save(file);
+    }
     static void VerifyStarClick(MarketStatisticsView view)
     {
         view.Table.UpdateLayout();
@@ -515,6 +584,6 @@ public static class MarketUiVerificationRunner
     static T Find<T>(DependencyObject obj) where T : DependencyObject { var value = obj as T; if (value != null) return value; for (int i = 0; i < VisualTreeHelper.GetChildrenCount(obj); i++) { var found = Find<T>(VisualTreeHelper.GetChild(obj, i)); if (found != null) return found; } return null; }
     static void Pump() { Dispatcher.CurrentDispatcher.Invoke(DispatcherPriority.ApplicationIdle, new Action(delegate { })); }
     static void Wait(Func<bool> done) { var deadline = DateTime.UtcNow.AddSeconds(10); while (!done()) { if (DateTime.UtcNow > deadline) throw new Exception("UI timeout"); Pump(); Thread.Sleep(10); } Pump(); }
-    static void CheckLayout(MarketStatisticsView view) { view.UpdateLayout(); Check(view.Table.ActualHeight > 300, "too little table space"); foreach (var control in new FrameworkElement[] { view.SearchInput, view.PeriodInput, view.SortInput, view.RefreshButton, view.Table }) { var bounds = control.TransformToAncestor(view).TransformBounds(new Rect(0, 0, control.ActualWidth, control.ActualHeight)); Check(bounds.Left >= -1 && bounds.Right <= view.ActualWidth + 1, "fixed controls extend outside page"); } }
+    static void CheckLayout(MarketStatisticsView view) { view.UpdateLayout(); double minimum = Window.GetWindow(view).Height <= 650 ? 260 : 300; Check(view.Table.ActualHeight > minimum, "too little table space: " + view.Table.ActualHeight); foreach (var control in new FrameworkElement[] { view.SearchInput, view.PeriodInput, view.SortInput, view.RefreshButton, view.Table }) { var bounds = control.TransformToAncestor(view).TransformBounds(new Rect(0, 0, control.ActualWidth, control.ActualHeight)); Check(bounds.Left >= -1 && bounds.Right <= view.ActualWidth + 1, "fixed controls extend outside page"); } }
     static void Capture(Window window, string path) { window.UpdateLayout(); var visual = (FrameworkElement)window.Content; var bmp = new RenderTargetBitmap((int)Math.Ceiling(window.ActualWidth), (int)Math.Ceiling(window.ActualHeight), 96, 96, PixelFormats.Pbgra32); var drawing = new DrawingVisual(); using (var dc = drawing.RenderOpen()) { dc.DrawRectangle(AppTheme.Brush("#F4F6F5"), null, new Rect(0, 0, window.ActualWidth, window.ActualHeight)); dc.DrawRectangle(new VisualBrush(visual), null, new Rect(24, 24, visual.ActualWidth, visual.ActualHeight)); } bmp.Render(drawing); var encoder = new PngBitmapEncoder(); encoder.Frames.Add(BitmapFrame.Create(bmp)); using (var file = File.Create(path)) encoder.Save(file); }
 }

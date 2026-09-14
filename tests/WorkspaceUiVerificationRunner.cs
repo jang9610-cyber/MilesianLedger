@@ -31,12 +31,43 @@ public static class WorkspaceUiVerificationRunner
         Check(Application.Current.Windows.Count == 1 && main.OwnedWindows.Count == 0, "navigation opened another window");
         var nav = (StackPanel)Field(main, "nav");
         bool tradePage = name == "교역 계획" || name == "재료 준비";
-        Check(Children<Button>(nav).Any(b => AutomationProperties.GetName(b) == "진행 상태 복원 메뉴") == tradePage,
-            "progress restore must only be available on trade pages: " + name);
-        Check(nav.Children.OfType<TextBlock>().Any(t => t.Text == "앱 설정") == tradePage,
-            "empty app settings group is visible outside trade pages: " + name);
-        Check(nav.Children.OfType<Border>().Any(b => b.Height == 1) == tradePage,
-            "empty app settings divider is visible outside trade pages: " + name);
+        Check(!Children<Button>(nav).Any(b => AutomationProperties.GetName(b) == "진행 상태 복원 메뉴"),
+            "progress restore must not move the sidebar layout: " + name);
+        Check(!nav.Children.OfType<TextBlock>().Any(t => t.Text == "앱 설정") && !nav.Children.OfType<Border>().Any(b => b.Height == 1),
+            "obsolete app settings section is visible: " + name);
+        var restore = (Button)Field(main, "progressRestoreButton");
+        Check(restore.IsVisible == tradePage, "header restore visibility is wrong: " + name);
+        Check(Children<Button>((DependencyObject)Field(main, "plannerHeader")).Count(b => b == restore) == 1,
+            "restore action must belong to the trade header");
+        if (tradePage) {
+            var refresh = (Button)Field(main, "auctionRefreshButton");
+            Point restoreTop = restore.TranslatePoint(new Point(0, 0), main);
+            Point refreshBottom = refresh.TranslatePoint(new Point(0, refresh.ActualHeight), main);
+            Check(restoreTop.Y >= refreshBottom.Y, "restore must sit below the trade refresh/reset buttons");
+            Check(restore.ActualWidth > 90 && restoreTop.X + restore.ActualWidth <= main.ActualWidth,
+                "restore button is clipped");
+        }
+    }
+    static void OpenAndCloseHistory(MainWindow main, string output)
+    {
+        string progressFile = Path.Combine(output, "progress.json");
+        string before = File.Exists(progressFile) ? File.ReadAllText(progressFile) : null;
+        string failure = null; bool inspected = false;
+        Dispatcher.CurrentDispatcher.BeginInvoke(DispatcherPriority.ApplicationIdle, new Action(delegate {
+            Window history = main.OwnedWindows.Cast<Window>().FirstOrDefault();
+            try {
+                Check(history != null && history.Title == "진행 상태 복원 · 밀레시안 장부", "header button opened the wrong dialog");
+                Check(Children<ListBox>(history).Count() == 1, "restore history list is missing");
+                Check(Children<Button>(history).Any(b => Object.Equals(b.Content, "현재 상태 저장")), "history save action is missing");
+                inspected = true;
+            } catch (Exception ex) { failure = ex.Message; }
+            finally { if (history != null) history.Close(); }
+        }));
+        ((Button)Field(main, "progressRestoreButton")).RaiseEvent(new RoutedEventArgs(Button.ClickEvent)); Pump();
+        Check(inspected && failure == null, "history dialog verification failed: " + failure);
+        Check(main.OwnedWindows.Count == 0, "history dialog stayed open");
+        Check((File.Exists(progressFile) ? File.ReadAllText(progressFile) : null) == before,
+            "opening and closing history changed preparation progress");
     }
     static void Capture(MainWindow main, string folder, string name) { Pump(); main.SavePreview(Path.Combine(folder, name + ".png")); }
     static MarketSnapshotData Fixture()
@@ -72,8 +103,8 @@ public static class WorkspaceUiVerificationRunner
             main.Left = -18000; main.Top = -18000; main.ShowActivated = false; main.ShowInTaskbar = false; main.Show(); Pump();
             Check(main.Title == "밀레시안 장부", "window title still limits the app to barter");
             var labels = ((StackPanel)Field(main, "nav")).Children.OfType<TextBlock>().Select(t => t.Text).ToArray();
-            Check(labels.SequenceEqual(new[] { "교역", "경매장", "게임 중 도구", "앱 설정" }), "sidebar group order");
-            Selected(main, "교역 계획"); Capture(main, output, "workspace-trade-light");
+            Check(labels.SequenceEqual(new[] { "교역", "경매장", "게임 중 도구" }), "sidebar group order");
+            Selected(main, "교역 계획"); OpenAndCloseHistory(main, output); Capture(main, output, "workspace-trade-light");
 
             Call(main, "ShowAuctionSettlement"); Selected(main, "수수료·분배");
             var settlement = (AuctionSettlementView)Field(main, "settlementView");
@@ -110,7 +141,7 @@ public static class WorkspaceUiVerificationRunner
             var step = steps.FirstOrDefault();
             if (step != null) { Call(main, "SetPipReady", step.Key, !step.IsReady); Check(market.IsVisible, "PIP checklist update displaced the market page"); }
 
-            main.ShowSummary(); Pump(); Selected(main, "재료 준비");
+            main.ShowSummary(); Pump(); Selected(main, "재료 준비"); OpenAndCloseHistory(main, output); Capture(main, output, "workspace-materials-dark");
             Check(((FrameworkElement)Field(main, "plannerStats")).IsVisible, "trade stats not restored");
             Call(main, "ShowAuctionSettlement"); Selected(main, "수수료·분배");
             Check(Object.ReferenceEquals(Field(main, "settlementView"), settlement)
@@ -131,7 +162,7 @@ public static class WorkspaceUiVerificationRunner
             main.ShowStationHub(); Pump(); Selected(main, "교역 계획");
             main.Close(); main = null; Pump();
             Check(Application.Current.Windows.Count == 0, "page lifetime left an orphan window");
-            Console.WriteLine("PASS exact app title; grouped/selected navigation with progress restore only on trade pages; embedded market and settlement without extra windows; six coupon choices fit default height; light/dark and minimum-size captures; manual amounts/coupon/selection and filters survive navigation; background trade/PIP changes preserve the active page; app close releases pages. No HTTP or OS clipboard.");
+            Console.WriteLine("PASS exact app title; stable grouped navigation; progress restore below trade header actions only on trade pages and opens history without modifying progress; embedded market and settlement without extra windows; six coupon choices fit default height; light/dark and minimum-size captures; manual amounts/coupon/selection and filters survive navigation; background trade/PIP changes preserve the active page; app close releases pages. No HTTP or OS clipboard.");
             return 0;
         } catch (Exception ex) { Console.Error.WriteLine(ex); return 1; }
         finally { if (main != null) main.Close(); }

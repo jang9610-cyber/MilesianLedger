@@ -27,7 +27,7 @@ namespace MabinogiBarter
         {
             bool trade = workspacePage == WorkspacePage.Trade;
             plannerHeader.Visibility = plannerStats.Visibility = plannerFooter.Visibility = trade ? Visibility.Visible : Visibility.Collapsed;
-            mainWorkspace.Margin = trade ? new Thickness(30, 24, 30, 14) : new Thickness(24, 22, 24, 20);
+            mainWorkspace.Margin = new Thickness(30, 24, 30, 14);
         }
 
         MarketSnapshotClient WorkspaceMarketClient(out string message)

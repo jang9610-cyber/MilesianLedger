@@ -20,6 +20,7 @@ namespace MabinogiBarter
         AuctionSettings auctionSettings;
         Button auctionRefreshButton;
         Button auctionAllRefreshButton;
+        Button progressRestoreButton;
         TextBlock auctionStatus;
         TextBlock auctionSummaryStatus;
         CancellationTokenSource auctionCancellation;
@@ -51,7 +52,17 @@ namespace MabinogiBarter
             actions.Children.Add(Btn("주간 리셋", ResetWeek, false)); panel.Children.Add(actions);
             auctionStatus = T(auction.IsConfigured ? "공통 시세 사용 · 버튼으로 최신 버전 확인" : auction.ConfigurationMessage, 10, Muted, false);
             if (!String.IsNullOrEmpty(auction.Notice)) auctionStatus.Text = auction.Notice;
-            auctionStatus.HorizontalAlignment = HorizontalAlignment.Right; auctionStatus.MaxWidth = 285; auctionStatus.Margin = new Thickness(0, 8, 8, 0); panel.Children.Add(auctionStatus);
+            var details = new Grid { Margin = new Thickness(0, 8, 8, 0) };
+            details.ColumnDefinitions.Add(new ColumnDefinition());
+            details.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+            auctionStatus.HorizontalAlignment = HorizontalAlignment.Right; auctionStatus.MaxWidth = 220;
+            auctionStatus.Margin = new Thickness(0, 0, 12, 0); details.Children.Add(auctionStatus);
+            progressRestoreButton = Btn("진행 상태 복원", ShowProgressHistory, false);
+            progressRestoreButton.FontSize = 11; progressRestoreButton.Padding = new Thickness(10, 5, 10, 5);
+            progressRestoreButton.Margin = new Thickness(0); progressRestoreButton.HorizontalAlignment = HorizontalAlignment.Right;
+            progressRestoreButton.ToolTip = "저장해 둔 교역 품목·수량·재료 준비 상태로 되돌립니다.";
+            System.Windows.Automation.AutomationProperties.SetName(progressRestoreButton, "진행 상태 복원");
+            Grid.SetColumn(progressRestoreButton, 1); details.Children.Add(progressRestoreButton); panel.Children.Add(details);
             return panel;
         }
 

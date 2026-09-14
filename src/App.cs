@@ -231,23 +231,8 @@ namespace MabinogiBarter
         }
         static Button Btn(string text, Action action, bool primary)
         {
-            var b = new Button { Content = text, Padding = new Thickness(14, 9, 14, 9), Foreground = primary ? AppTheme.OnAccent : Ink, Background = primary ? Green : AppTheme.Surface, BorderBrush = primary ? Green : Line, BorderThickness = new Thickness(1), FontSize = 12, FontWeight = FontWeights.SemiBold, Cursor = Cursors.Hand, VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(0, 0, 8, 0) };
-            var template = new ControlTemplate(typeof(Button));
-            var border = new FrameworkElementFactory(typeof(Border), "ButtonSurface");
-            border.SetValue(Border.CornerRadiusProperty, new CornerRadius(7));
-            border.SetBinding(Border.BackgroundProperty, new System.Windows.Data.Binding("Background") { RelativeSource = System.Windows.Data.RelativeSource.TemplatedParent });
-            border.SetBinding(Border.BorderBrushProperty, new System.Windows.Data.Binding("BorderBrush") { RelativeSource = System.Windows.Data.RelativeSource.TemplatedParent });
-            border.SetValue(Border.BorderThicknessProperty, new Thickness(1));
-            border.SetBinding(Border.PaddingProperty, new System.Windows.Data.Binding("Padding") { RelativeSource = System.Windows.Data.RelativeSource.TemplatedParent });
-            var presenter = new FrameworkElementFactory(typeof(ContentPresenter));
-            presenter.SetValue(ContentPresenter.HorizontalAlignmentProperty, HorizontalAlignment.Stretch);
-            presenter.SetValue(ContentPresenter.VerticalAlignmentProperty, VerticalAlignment.Center);
-            border.AppendChild(presenter); template.VisualTree = border;
-            var focus = new Trigger { Property = UIElement.IsKeyboardFocusedProperty, Value = true };
-            focus.Setters.Add(new Setter(Border.BorderBrushProperty, B("#B58B35"), "ButtonSurface")); template.Triggers.Add(focus);
-            var disabled = new Trigger { Property = UIElement.IsEnabledProperty, Value = false };
-            disabled.Setters.Add(new Setter(UIElement.OpacityProperty, 0.38)); template.Triggers.Add(disabled);
-            b.Template = template;
+            var b = new Button { Content = text, HorizontalContentAlignment = HorizontalAlignment.Stretch, VerticalContentAlignment = VerticalAlignment.Center, Padding = new Thickness(14, 9, 14, 9), Foreground = primary ? AppTheme.OnAccent : Ink, Background = primary ? Green : AppTheme.Surface, BorderBrush = primary ? Green : Line, BorderThickness = new Thickness(1), FontSize = 12, FontWeight = FontWeights.SemiBold, Cursor = Cursors.Hand, VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(0, 0, 8, 0) };
+            LedgerControls.StyleButton(b);
             b.Click += delegate { action(); };
             return b;
         }
@@ -304,10 +289,7 @@ namespace MabinogiBarter
             Grid.SetColumn(workspace, 1); shell.Children.Add(workspace);
             var header = new Grid { Margin = new Thickness(0, 0, 0, 20) }; plannerHeader = header;
             header.ColumnDefinitions.Add(new ColumnDefinition()); header.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
-            var heading = new StackPanel();
-            heading.Children.Add(T("BARTER PLANNER", 10, Green, true));
-            title.FontSize = 28; title.FontWeight = FontWeights.SemiBold; title.Margin = new Thickness(0, 7, 0, 6); heading.Children.Add(title);
-            subtitle.FontSize = 12; subtitle.Foreground = Muted; subtitle.TextWrapping = TextWrapping.Wrap; subtitle.Margin = new Thickness(0, 0, 16, 0); heading.Children.Add(subtitle); header.Children.Add(heading);
+            header.Children.Add(LedgerControls.PageHeading("BARTER PLANNER", title, subtitle));
             var headerRight = new StackPanel { VerticalAlignment = VerticalAlignment.Center, HorizontalAlignment = HorizontalAlignment.Right };
             saveStatus.FontSize = 11; saveStatus.Foreground = Green; saveStatus.Text = "●  로컬 자동 저장"; saveStatus.HorizontalAlignment = HorizontalAlignment.Right; saveStatus.Margin = new Thickness(0, 0, 8, 12); headerRight.Children.Add(saveStatus);
             headerRight.Children.Add(BuildAuctionHeader()); Grid.SetColumn(headerRight, 1); header.Children.Add(headerRight); workspace.Children.Add(header);
@@ -353,11 +335,6 @@ namespace MabinogiBarter
             nav.Children.Add(BuildNavigationButton("수수료·분배", "판매 정산 · 분배금", "settlement", ShowAuctionSettlement, workspacePage == WorkspacePage.Settlement));
             AddNavigationGroup("게임 중 도구", false);
             nav.Children.Add(BuildNavigationButton("PIP", "체크리스트 · 시세 검색", "pip", ShowPipChecklist, false));
-            if (workspacePage == WorkspacePage.Trade) {
-                var divider = new Border { Height = 1, Background = Line, Margin = new Thickness(11, 13, 11, 12) }; nav.Children.Add(divider);
-                AddNavigationGroup("앱 설정", true);
-                nav.Children.Add(BuildNavigationButton("진행 상태 복원", "", "settings", ShowProgressHistory, false));
-            }
         }
         void RenderStats(ProcurementPlan currentPlan = null)
         {

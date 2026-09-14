@@ -22,7 +22,7 @@ namespace MabinogiBarter
             public Button Select, FollowMarket;
             public Border Card;
         }
-        static readonly Brush Green = AppTheme.Brush("#226C54"), Ink = AppTheme.Brush("#202D35"), Muted = AppTheme.Brush("#748278"), Line = AppTheme.Brush("#DCE5DF");
+        static readonly Brush Green = AppTheme.Brush("#226C54"), Ink = AppTheme.Brush("#202D35"), Muted = AppTheme.Brush("#728087"), Line = AppTheme.Brush("#E2E8E5");
         readonly Dictionary<int, CouponView> coupons = new Dictionary<int, CouponView>();
         readonly HashSet<int> manualPrices = new HashSet<int>();
         readonly Dictionary<int, decimal?> marketPrices = new Dictionary<int, decimal?>();
@@ -59,12 +59,12 @@ namespace MabinogiBarter
             UseLayoutRounding = true; SnapsToDevicePixels = true;
             ImageCopier = bitmap => Clipboard.SetImage(bitmap);
             MarketPanel = new SettlementMarketPanel(); MarketPanel.SnapshotChanged = ApplyMarketPrices;
-            var root = new Grid { Margin = new Thickness(16) };
+            var root = new Grid();
             root.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto }); root.RowDefinitions.Add(new RowDefinition()); root.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
             var header = new Grid { Margin = new Thickness(0, 0, 0, 12) };
             header.ColumnDefinitions.Add(new ColumnDefinition()); header.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
-            var heading = new StackPanel(); heading.Children.Add(Text("수수료·분배", 24, Ink, true));
-            heading.Children.Add(Text("판매한 총액을 입력하고, 함께 나눌 금액을 비교하세요.", 12, Muted, false)); header.Children.Add(heading);
+            var heading = LedgerControls.PageHeading("AUCTION SETTLEMENT", Text("수수료·분배", 28, Ink, true),
+                Text("판매한 총액을 입력하고, 함께 나눌 금액을 비교하세요.", 12, Muted, false)); header.Children.Add(heading);
             var actions = new StackPanel { Orientation = Orientation.Horizontal, VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(12, 0, 0, 0) };
             actions.Children.Add(MarketPanel.RefreshButton);
             ResetButton = Button("분배 초기화", ResetSettlement, false); ResetButton.Margin = new Thickness(8, 0, 0, 0);
@@ -323,18 +323,13 @@ namespace MabinogiBarter
         static TextBox Input(string value, string name)
         {
             var field = new TextBox { Text = value, FontSize = 14, Height = 34, Padding = new Thickness(9, 0, 9, 0), Margin = new Thickness(0, 5, 0, 0), VerticalContentAlignment = VerticalAlignment.Center, TextAlignment = TextAlignment.Right, Background = AppTheme.Surface, Foreground = Ink, BorderBrush = Line, BorderThickness = new Thickness(1) };
+            LedgerControls.StyleTextInput(field);
             AutomationProperties.SetName(field, name); return field;
         }
         static Button Button(string label, Action action, bool accent)
         {
-            var button = new Button { Content = label, FontSize = 12, FontWeight = FontWeights.SemiBold, Padding = new Thickness(11, 7, 11, 7), MinHeight = 32, Foreground = accent ? AppTheme.OnAccent : Ink, Background = accent ? Green : AppTheme.Surface, BorderBrush = accent ? Green : Line, Cursor = Cursors.Hand, VerticalAlignment = VerticalAlignment.Center };
-            var template = new ControlTemplate(typeof(Button));
-            var border = new FrameworkElementFactory(typeof(Border)); border.SetValue(Border.CornerRadiusProperty, new CornerRadius(7)); border.SetValue(Border.BorderThicknessProperty, new Thickness(1));
-            border.SetBinding(Border.BackgroundProperty, new Binding("Background") { RelativeSource = RelativeSource.TemplatedParent }); border.SetBinding(Border.BorderBrushProperty, new Binding("BorderBrush") { RelativeSource = RelativeSource.TemplatedParent }); border.SetBinding(Border.PaddingProperty, new Binding("Padding") { RelativeSource = RelativeSource.TemplatedParent });
-            var content = new FrameworkElementFactory(typeof(ContentPresenter)); content.SetValue(FrameworkElement.HorizontalAlignmentProperty, HorizontalAlignment.Center); content.SetValue(FrameworkElement.VerticalAlignmentProperty, VerticalAlignment.Center); border.AppendChild(content); template.VisualTree = border;
-            var hover = new Trigger { Property = UIElement.IsMouseOverProperty, Value = true }; hover.Setters.Add(new Setter(UIElement.OpacityProperty, .82)); template.Triggers.Add(hover);
-            var disabled = new Trigger { Property = UIElement.IsEnabledProperty, Value = false }; disabled.Setters.Add(new Setter(UIElement.OpacityProperty, .45)); template.Triggers.Add(disabled);
-            button.Template = template; button.Click += delegate { action(); }; return button;
+            var button = new Button { Content = label, FontSize = 12, FontWeight = FontWeights.SemiBold, Padding = new Thickness(14, 9, 14, 9), MinHeight = 34, Foreground = accent ? AppTheme.OnAccent : Ink, Background = accent ? Green : AppTheme.Surface, BorderBrush = accent ? Green : Line, Cursor = Cursors.Hand, VerticalAlignment = VerticalAlignment.Center, HorizontalContentAlignment = HorizontalAlignment.Center, VerticalContentAlignment = VerticalAlignment.Center };
+            LedgerControls.StyleButton(button); button.Click += delegate { action(); }; return button;
         }
     }
 }

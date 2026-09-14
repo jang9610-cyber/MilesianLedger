@@ -8,14 +8,20 @@ namespace MabinogiBarter
 {
     public sealed partial class MainWindow
     {
+        static void StyleStationCombo(ComboBox combo, string placeholder) { LedgerControls.StyleCombo(combo, placeholder); }
+    }
+
+    public static partial class LedgerControls
+    {
         static ControlTemplate StationComboTemplate;
         static Style StationComboItemStyle;
 
         // Keep ComboBox's selection, focus, capture, keyboard and automation logic.
         // This helper only replaces its noneditable visual template and item style.
-        static void StyleStationCombo(ComboBox combo, string placeholder)
+        public static void StyleCombo(ComboBox combo, string placeholder)
         {
             if (combo == null) throw new ArgumentNullException("combo");
+            AppMotion.Initialize();
             AppMotion.Dropdown(combo);
             if (StationComboTemplate == null)
                 StationComboTemplate = (ControlTemplate)XamlReader.Parse(StationComboTemplateXaml);
@@ -30,9 +36,9 @@ namespace MabinogiBarter
             combo.Resources["StationComboGreen"] = Green;
             combo.Resources["StationComboInk"] = Ink;
             combo.Resources["StationComboMuted"] = Muted;
-            combo.Resources["StationComboHover"] = B("#EEF6F1");
-            combo.Resources["StationComboSelected"] = B("#DDEDE5");
-            combo.Resources["StationComboDisabled"] = B("#F4F6F5");
+            combo.Resources["StationComboHover"] = AppTheme.Brush("#EEF6F1");
+            combo.Resources["StationComboSelected"] = AppTheme.Brush("#DDEDE5");
+            combo.Resources["StationComboDisabled"] = AppTheme.Brush("#F4F6F5");
             combo.Background = AppTheme.Surface;
             combo.Foreground = Ink;
             combo.BorderBrush = Line;

@@ -11,7 +11,6 @@ using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using System.Windows.Data;
 using System.Windows.Input;
-using System.Windows.Markup;
 using System.Windows.Media;
 using System.Windows.Threading;
 
@@ -157,9 +156,9 @@ namespace MabinogiBarter
             root.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
             root.RowDefinitions.Add(new RowDefinition());
             root.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto }); Content = root;
-            var heading = new StackPanel { Margin = new Thickness(0, 0, 0, 8) };
-            heading.Children.Add(Text("시장 통계", 25, "#202D35", true));
-            heading.Children.Add(Text("판매량과 매물 현황 · 단가와 거래 금액은 G 기준", 12, "#728087", false)); root.Children.Add(heading);
+            var heading = LedgerControls.PageHeading("MARKET INSIGHTS", Text("시장 통계", 28, "#202D35", true),
+                Text("판매량과 매물 현황 · 단가와 거래 금액은 G 기준", 12, "#728087", false));
+            heading.Margin = new Thickness(0, 0, 0, 16); root.Children.Add(heading);
             var filters = new Grid { Margin = new Thickness(0, 0, 0, 8) };
             filters.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
             filters.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
@@ -167,15 +166,14 @@ namespace MabinogiBarter
             filters.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
             filters.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto }); filters.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
             filters.ColumnDefinitions.Add(new ColumnDefinition()); filters.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
-            PeriodInput = Combo(new[] { "최근 24시간", "최근 7일" }, 108); PeriodInput.Margin = new Thickness(0, 0, 7, 0);
-            SortInput = Combo(new[] { "판매 수량순", "거래 건수순", "거래 금액순", "매물 수량순" }, 120); SortInput.Margin = new Thickness(0, 0, 7, 0);
+            PeriodInput = Combo(new[] { "최근 24시간", "최근 7일" }, 125); PeriodInput.Margin = new Thickness(0, 0, 7, 0);
+            SortInput = Combo(new[] { "판매 수량순", "거래 건수순", "거래 금액순", "매물 수량순" }, 130); SortInput.Margin = new Thickness(0, 0, 7, 0);
             Grid.SetColumn(SortInput, 1); filters.Children.Add(PeriodInput); filters.Children.Add(SortInput);
             var search = new Grid { Margin = new Thickness(0, 0, 7, 0), MinWidth = 90 };
-            SearchInput = new TextBox { FontSize = 13, MinHeight = 34, Padding = new Thickness(8, 5, 8, 5), MaxLength = 200,
-                Background = AppTheme.Surface, Foreground = Paint("#202D35"), BorderBrush = Paint("#DCE5DF"), BorderThickness = new Thickness(1),
-                CaretBrush = Paint("#202D35"), VerticalContentAlignment = VerticalAlignment.Center };
+            SearchInput = new TextBox { MaxLength = 200, Height = 36, MinHeight = 36, FontSize = 12,
+                Padding = new Thickness(12, 0, 12, 0), VerticalContentAlignment = VerticalAlignment.Center }; LedgerControls.StyleTextInput(SearchInput);
             SearchInput.ToolTip = "아이템 이름이나 초성으로 검색하세요. ㄱㅁㅈ, 거ㅁ줄처럼 입력할 수 있으며 띄어쓰기는 생략해도 됩니다.";
-            var hint = Text("이름·초성 검색", 12, "#728087", false); hint.Margin = new Thickness(9, 0, 0, 0); hint.VerticalAlignment = VerticalAlignment.Center; hint.IsHitTestVisible = false;
+            var hint = Text("이름·초성 검색", 12, "#728087", false); hint.Margin = new Thickness(13, 0, 0, 0); hint.VerticalAlignment = VerticalAlignment.Center; hint.IsHitTestVisible = false;
             search.Children.Add(SearchInput); search.Children.Add(hint); Grid.SetColumn(search, 2); filters.Children.Add(search);
             RefreshButton = RefreshControl(); RefreshButton.IsEnabled = client != null;
             RefreshButton.ToolTip = "서버의 공통 게시본을 받습니다. 검색과 화면 전환은 경매장 조회를 시작하지 않습니다.";
@@ -187,7 +185,7 @@ namespace MabinogiBarter
             categoryPath = Text("전체", 12, "#226C54", true); categoryPath.MinWidth = 120; categoryPath.Margin = new Thickness(1, 0, 12, 0); categoryPath.VerticalAlignment = VerticalAlignment.Center;
             categoryPath.ToolTip = "왼쪽에서 대분류나 세부 분류를 선택하세요."; discovery.Children.Add(categoryPath);
             OpportunityInput = Combo(new[] { "전체 품목", "거래 활발", "판매량 대비 매물 부족", "최근 거래가보다 저렴" }, Double.NaN);
-            OpportunityInput.MinWidth = 205; OpportunityInput.Margin = new Thickness(0, 0, 14, 0); Grid.SetColumn(OpportunityInput, 1); discovery.Children.Add(OpportunityInput);
+            OpportunityInput.MinWidth = 220; OpportunityInput.Margin = new Thickness(0, 0, 14, 0); Grid.SetColumn(OpportunityInput, 1); discovery.Children.Add(OpportunityInput);
             WatchlistOnlyInput = new CheckBox { Content = "관심 품목만 · 0", FontSize = 12, Foreground = Paint("#202D35"), VerticalAlignment = VerticalAlignment.Center, Cursor = Cursors.Hand };
             WatchlistOnlyInput.ToolTip = "별표로 저장한 품목만 표시합니다. 분류·판매 기회·검색 조건도 함께 적용됩니다.";
             Grid.SetColumn(WatchlistOnlyInput, 2); discovery.Children.Add(WatchlistOnlyInput); Grid.SetRow(discovery, 1); Grid.SetColumnSpan(discovery, 4); filters.Children.Add(discovery);
@@ -441,49 +439,17 @@ namespace MabinogiBarter
             grid.Columns.Add(column); return column;
         }
         static ScrollViewer FindScroll(DependencyObject root) { var found = root as ScrollViewer; if (found != null) return found; for (int i = 0; i < VisualTreeHelper.GetChildrenCount(root); i++) { var child = FindScroll(VisualTreeHelper.GetChild(root, i)); if (child != null) return child; } return null; }
-        static ControlTemplate comboTemplate;
-        static Style comboItemStyle;
         static ComboBox Combo(string[] values, double width)
         {
-            var combo = new ComboBox { ItemsSource = values, SelectedIndex = 0, Width = width, MinHeight = 34, Padding = new Thickness(8, 0, 23, 0),
-                Background = AppTheme.Surface, Foreground = Paint("#202D35"), BorderBrush = Paint("#DCE5DF"), BorderThickness = new Thickness(1), FontSize = 12 };
-            combo.Resources["MarketComboSurface"] = AppTheme.Surface; combo.Resources["MarketComboInk"] = Paint("#202D35");
-            combo.Resources["MarketComboLine"] = Paint("#DCE5DF"); combo.Resources["MarketComboSelected"] = Paint("#EAF3E9");
-            if (comboTemplate == null) comboTemplate = (ControlTemplate)XamlReader.Parse(ComboTemplate);
-            if (comboItemStyle == null) comboItemStyle = (Style)XamlReader.Parse(ComboItemStyle);
-            combo.Template = comboTemplate; combo.ItemContainerStyle = comboItemStyle; return combo;
+            var combo = new ComboBox { ItemsSource = values, SelectedIndex = 0, Width = width };
+            LedgerControls.StyleCombo(combo, ""); return combo;
         }
-        const string ComboTemplate = @"
-<ControlTemplate xmlns='http://schemas.microsoft.com/winfx/2006/xaml/presentation' xmlns:x='http://schemas.microsoft.com/winfx/2006/xaml' TargetType='{x:Type ComboBox}'>
- <Grid>
-  <Border CornerRadius='7' Background='{TemplateBinding Background}' BorderBrush='{TemplateBinding BorderBrush}' BorderThickness='{TemplateBinding BorderThickness}'/>
-  <ToggleButton Focusable='False' ClickMode='Press' IsChecked='{Binding IsDropDownOpen, RelativeSource={RelativeSource TemplatedParent}, Mode=TwoWay}'>
-   <ToggleButton.Template><ControlTemplate TargetType='{x:Type ToggleButton}'><Border Background='Transparent' CornerRadius='7'/></ControlTemplate></ToggleButton.Template>
-  </ToggleButton>
-  <ContentPresenter IsHitTestVisible='False' Margin='{TemplateBinding Padding}' VerticalAlignment='Center' Content='{TemplateBinding SelectionBoxItem}' ContentTemplate='{TemplateBinding SelectionBoxItemTemplate}' TextElement.Foreground='{TemplateBinding Foreground}'/>
-  <TextBlock IsHitTestVisible='False' Text='⌄' Foreground='{TemplateBinding Foreground}' Margin='0,0,8,2' VerticalAlignment='Center' HorizontalAlignment='Right'/>
-  <Popup x:Name='PART_Popup' IsOpen='{TemplateBinding IsDropDownOpen}' Placement='Bottom' AllowsTransparency='True' Focusable='False'>
-   <Border MinWidth='{Binding ActualWidth, RelativeSource={RelativeSource TemplatedParent}}' Background='{DynamicResource MarketComboSurface}' BorderBrush='{DynamicResource MarketComboLine}' BorderThickness='1' CornerRadius='7' Padding='3'>
-    <ScrollViewer MaxHeight='260' CanContentScroll='True'><ItemsPresenter KeyboardNavigation.DirectionalNavigation='Contained'/></ScrollViewer>
-   </Border>
-  </Popup>
- </Grid>
- <ControlTemplate.Triggers><Trigger Property='IsEnabled' Value='False'><Setter Property='Opacity' Value='0.45'/></Trigger></ControlTemplate.Triggers>
-</ControlTemplate>";
-        const string ComboItemStyle = @"
-<Style xmlns='http://schemas.microsoft.com/winfx/2006/xaml/presentation' xmlns:x='http://schemas.microsoft.com/winfx/2006/xaml' TargetType='{x:Type ComboBoxItem}'>
- <Setter Property='Foreground' Value='{DynamicResource MarketComboInk}'/><Setter Property='Background' Value='{DynamicResource MarketComboSurface}'/><Setter Property='Padding' Value='8,7'/>
- <Setter Property='Template'><Setter.Value><ControlTemplate TargetType='{x:Type ComboBoxItem}'><Border Background='{TemplateBinding Background}' Padding='{TemplateBinding Padding}' CornerRadius='4'><ContentPresenter/></Border></ControlTemplate></Setter.Value></Setter>
- <Style.Triggers><Trigger Property='IsHighlighted' Value='True'><Setter Property='Background' Value='{DynamicResource MarketComboSelected}'/></Trigger><Trigger Property='IsSelected' Value='True'><Setter Property='Background' Value='{DynamicResource MarketComboSelected}'/></Trigger></Style.Triggers>
-</Style>";
         static Button RefreshControl()
         {
-            var button = new Button { Content = "통계 갱신", MinWidth = 96, Padding = new Thickness(12, 6, 12, 6), Background = Paint("#226C54"), Foreground = AppTheme.OnAccent, FontWeight = FontWeights.SemiBold, BorderBrush = Paint("#226C54"), Cursor = Cursors.Hand };
-            var template = new ControlTemplate(typeof(Button)); var border = new FrameworkElementFactory(typeof(Border)); border.SetValue(Border.CornerRadiusProperty, new CornerRadius(7));
-            border.SetBinding(Border.BackgroundProperty, new Binding("Background") { RelativeSource = RelativeSource.TemplatedParent }); border.SetBinding(Border.PaddingProperty, new Binding("Padding") { RelativeSource = RelativeSource.TemplatedParent });
-            var content = new FrameworkElementFactory(typeof(ContentPresenter)); content.SetValue(FrameworkElement.HorizontalAlignmentProperty, HorizontalAlignment.Center); content.SetValue(FrameworkElement.VerticalAlignmentProperty, VerticalAlignment.Center); border.AppendChild(content); template.VisualTree = border;
-            var hover = new Trigger { Property = UIElement.IsMouseOverProperty, Value = true }; hover.Setters.Add(new Setter(UIElement.OpacityProperty, .84)); template.Triggers.Add(hover);
-            var disabled = new Trigger { Property = UIElement.IsEnabledProperty, Value = false }; disabled.Setters.Add(new Setter(UIElement.OpacityProperty, .45)); template.Triggers.Add(disabled); button.Template = template; return button;
+            var button = new Button { Content = "통계 갱신", MinWidth = 96, Height = 36, FontSize = 12, Padding = new Thickness(14, 9, 14, 9),
+                HorizontalContentAlignment = HorizontalAlignment.Center, VerticalContentAlignment = VerticalAlignment.Center,
+                Background = Paint("#226C54"), Foreground = AppTheme.OnAccent, FontWeight = FontWeights.SemiBold, BorderBrush = Paint("#226C54"), Cursor = Cursors.Hand };
+            LedgerControls.StyleButton(button); return button;
         }
         static Brush Paint(string color) { return AppTheme.Brush(color); }
         static TextBlock Text(string value, double size, string color, bool bold) { return new TextBlock { Text = value, FontSize = size, Foreground = Paint(color), FontWeight = bold ? FontWeights.SemiBold : FontWeights.Normal, TextWrapping = TextWrapping.Wrap }; }

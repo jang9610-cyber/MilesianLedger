@@ -86,7 +86,7 @@ namespace MabinogiBarter
             origin = new Uri(baseUri.GetLeftPart(UriPartial.Authority) + "/");
             cachePath = filePath;
             client = new HttpClient(handler) { Timeout = TimeSpan.FromSeconds(45) };
-            client.DefaultRequestHeaders.UserAgent.ParseAdd("MilesianLedger/1.1.0-beta.1");
+            client.DefaultRequestHeaders.UserAgent.ParseAdd("MilesianLedger/1.1.0-beta.2");
         }
         public MarketSnapshotData CachedData { get { lock (gate) return cached; } }
         // A successful new download is announced after the cache lock is released.

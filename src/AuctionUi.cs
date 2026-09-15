@@ -75,8 +75,8 @@ namespace MabinogiBarter
                 await Dispatcher.InvokeAsync(new Func<Task>(delegate { return RefreshAuctionFromButtonAsync(allMaterials); })).Task.Unwrap().ConfigureAwait(false);
                 return;
             }
-            // The ONLY UI-to-network entry point. No render, search, selection,
-            // startup, settings-save or local timer may call this method.
+            // Trade refresh-button entry point. No render, search, selection,
+            // settings-save or local timer may call this method. Startup uses its own snapshot loader.
             if (auctionRefreshing)
             {
                 return; // Two refresh buttons never create overlapping requests.

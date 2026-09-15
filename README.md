@@ -4,9 +4,9 @@
 
 <img src="assets/app-icon/barter-helper.png" alt="밀레시안 장부 아이콘" width="72" />
 
-**현재 버전: 1.1.0-beta.1 · 공개 베타**
+**현재 버전: 1.1.0-beta.2 · 공개 베타**
 
-**[Windows 실행 ZIP 다운로드](https://github.com/jang9610-cyber/MilesianLedger/releases/download/v1.1.0-beta.1/MilesianLedger-v1.1.0-beta.1.zip)** · [릴리즈 페이지](https://github.com/jang9610-cyber/MilesianLedger/releases/tag/v1.1.0-beta.1) · [변경 사항](docs/releases/v1.1.0-beta.1.md)
+**[Windows 실행 ZIP 다운로드](https://github.com/jang9610-cyber/MilesianLedger/releases/download/v1.1.0-beta.2/MilesianLedger-v1.1.0-beta.2.zip)** · [릴리즈 페이지](https://github.com/jang9610-cyber/MilesianLedger/releases/tag/v1.1.0-beta.2) · [변경 사항](docs/releases/v1.1.0-beta.2.md)
 
 Windows 10/11과 **.NET Framework 4.8**이 필요합니다. ZIP을 모두 압축 해제한 뒤 `MilesianLedger/MilesianLedger.exe`를 실행하세요. GitHub의 자동 생성 **Source code (zip/tar.gz)**에는 실행 파일이 없습니다. API 키를 발급하거나 앱에 입력할 필요는 없습니다.
 
@@ -54,7 +54,7 @@ PIP 상단의 **교역 / 경매장 검색** 탭은 전환해도 같은 위치에
 ## 처음 사용하기와 업데이트
 
 1. 실행 ZIP을 모두 풀고 `MilesianLedger.exe`를 실행합니다. 실행 파일과 `data`, `assets` 폴더를 함께 보관하세요.
-2. 시작 안내를 확인한 뒤 필요한 메뉴로 이동합니다. 교역을 준비한다면 교역품과 수량을 고르고 **재료 준비 방식 설정**에서 구매·제작·확보 방식을 정합니다.
+2. 시작 화면에서 공통 경매장 정보를 불러옵니다. 완료 후에도 마차 애니메이션을 재생하며 2초 뒤 자동으로 메인 화면을 엽니다. 연결 실패 시 저장된 정보를 사용하며, 캐시가 없어도 앱을 사용할 수 있습니다. 교역을 준비한다면 교역품과 수량을 고르고 **재료 준비 방식 설정**에서 구매·제작·확보 방식을 정합니다.
 3. 각 화면의 갱신 버튼으로 서버가 게시한 최신 공통 시세를 받습니다. 검색·체크·정렬은 받은 자료로 처리합니다.
 4. 필요한 수량 전체를 구비하거나 제작한 뒤 체크합니다. PIP에서도 같은 목록을 사용할 수 있습니다.
 
@@ -102,7 +102,7 @@ node --test "server/cloudflare/*.test.mjs"
 ./scripts/package.ps1
 ```
 
-실행 파일은 `dist/MilesianLedger/MilesianLedger.exe`, 배포 ZIP은 `dist/MilesianLedger-v1.1.0-beta.1.zip`에 생성됩니다. 기본 검증에는 실제 API 키나 경매장 호출이 필요하지 않습니다. 같은 버전의 ZIP을 다시 만들 때는 `package.ps1 -Force`를 사용합니다.
+실행 파일은 `dist/MilesianLedger/MilesianLedger.exe`, 배포 ZIP은 `dist/MilesianLedger-v1.1.0-beta.2.zip`에 생성됩니다. 기본 검증에는 실제 API 키나 경매장 호출이 필요하지 않습니다. 같은 버전의 ZIP을 다시 만들 때는 `package.ps1 -Force`를 사용합니다.
 
 | 경로 | 내용 |
 | --- | --- |
@@ -130,3 +130,9 @@ node --test "server/cloudflare/*.test.mjs"
 현재 별도의 오픈소스 라이선스는 지정하지 않았습니다. 저장소 공개만으로 소스와 모든 에셋에 동일한 재배포·상업 이용 권한이 부여되는 것은 아닙니다. 소스의 라이선스와 제3자 자료의 이용 조건을 각각 확인해야 합니다.
 
 made by 하프_알베도
+
+## 릴리즈 빌드 확인
+
+`v1.1.0-beta.2`부터 실행 ZIP은 GitHub Actions의 Windows 환경에서 생성합니다. [Release Windows beta](https://github.com/jang9610-cyber/MilesianLedger/actions/workflows/release.yml) 작업에서 해당 태그의 빌드·테스트·패키징·게시 로그를 확인할 수 있습니다. 릴리즈 본문에는 소스 커밋과 실행 기록 링크를 남깁니다. SHA-256 파일은 다운로드 파일이 배포된 파일과 동일한지 확인하는 용도이며 안전성 인증을 뜻하지 않습니다.
+
+배포 시 소스 버전과 릴리즈 노트를 준비하고 같은 버전의 `v` 태그를 푸시합니다. 태그와 앱 버전이 다르거나 테스트·파일 검증이 실패하면 게시하지 않습니다. 이미 공개된 릴리즈 파일은 덮어쓰지 않습니다. 워크플로에는 GitHub 기본 토큰만 사용하며 넥슨 API 키는 필요하지 않습니다.

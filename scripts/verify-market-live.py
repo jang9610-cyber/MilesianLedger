@@ -15,7 +15,7 @@ parser.add_argument('--legacy-check', action='store_true', help='With --metrics,
 args = parser.parse_args()
 
 def get(path, admin=False, method='GET', headers=None):
-    request_headers = {'User-Agent': 'MilesianLedger/1.1.0-beta.1', 'Accept': 'application/json'}
+    request_headers = {'User-Agent': 'MilesianLedger/1.1.0-beta.2', 'Accept': 'application/json'}
     if headers:
         request_headers.update(headers)
     if admin:

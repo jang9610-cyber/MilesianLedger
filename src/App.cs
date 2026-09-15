@@ -72,7 +72,9 @@ namespace MabinogiBarter
                     w.Close();
                     return 0;
                 }
-                var window = StartupSequence.PrepareMainWindow(app, new StartupReminderWindow(), () => new MainWindow(catalog, store, false));
+                var window = StartupSequence.PrepareMainWindow(app,
+                    new StartupLoadingWindow(token => StartupSequence.LoadMarketAsync(catalog, Path.GetDirectoryName(store.FilePath), token)),
+                    () => new MainWindow(catalog, store, false));
                 return window == null ? 0 : app.Run(window);
             }
             catch (Exception ex)
